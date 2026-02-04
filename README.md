@@ -28,6 +28,18 @@ The interface features a modern, sleek design that conveys:
 - **Backend**: Node.js, Express.js
 - **Database**: SQLite3
 - **Authentication**: JWT, bcryptjs
+- **Security**: Rate limiting, input validation
+
+## Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Password Hashing**: Bcrypt with salt rounds for secure password storage
+- **Rate Limiting**: 
+  - Auth routes: 5 requests per 15 minutes per IP
+  - API routes: 100 requests per 15 minutes per IP
+- **Environment Variables**: Sensitive data stored in .env file
+- **Input Validation**: Server-side validation for all user inputs
+- **CORS**: Configured for controlled cross-origin access
 
 ## Installation
 
@@ -42,12 +54,17 @@ cd ThExempt
 npm install
 ```
 
-3. Create a `.env` file (or use the provided one):
+3. Create a `.env` file with required environment variables:
 ```env
 PORT=5000
-JWT_SECRET=your-secret-key-change-in-production
+JWT_SECRET=your-secure-random-secret-key-at-least-32-characters-long
 NODE_ENV=development
 ```
+
+**Important Security Note:** 
+- Never commit your `.env` file to version control
+- Generate a strong, random JWT_SECRET (minimum 32 characters)
+- Change the JWT_SECRET in production environments
 
 4. Start the server:
 ```bash
@@ -130,6 +147,24 @@ The matching algorithm compares user skills with project requirements:
 - Project milestones and deadlines
 - Payment integration for project rewards
 - Mobile app (React Native)
+- Enhanced rate limiting per user/route
+- Two-factor authentication
+- OAuth integration (Google, GitHub)
+
+## Production Deployment Notes
+
+Before deploying to production:
+
+1. **Set strong JWT_SECRET**: Generate a cryptographically secure random string (minimum 32 characters)
+2. **Use HTTPS**: Always use SSL/TLS in production
+3. **Database**: Migrate to PostgreSQL or MySQL for production use
+4. **Environment Variables**: Never commit .env files; use secure secret management
+5. **Rate Limiting**: Adjust rate limits based on your traffic patterns
+6. **Monitoring**: Implement logging and monitoring (e.g., Winston, Sentry)
+7. **Backups**: Set up automated database backups
+8. **Security Headers**: Add helmet.js for security headers
+9. **Input Sanitization**: Add additional input sanitization for XSS prevention
+10. **CORS**: Configure CORS for your specific domain only
 
 ## License
 
