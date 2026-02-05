@@ -274,8 +274,8 @@ app.get('/api/users/search', async (req, res) => {
   const { query = '', limit = 10 } = req.query;
 
   try {
-    // Sanitize query to prevent SQL injection
-    const sanitizedQuery = query.replace(/[%_]/g, '\\$&');
+    // Sanitize query to prevent SQL injection - escape special characters
+    const sanitizedQuery = query.replace(/[\\%_]/g, '\\$&');
     
     const { data: users, error } = await supabase
       .from('profiles')
