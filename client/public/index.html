@@ -12,16 +12,17 @@
     }
 
     :root {
-      --primary: #1a1a2e;
-      --secondary: #16213e;
-      --accent: #0f3460;
-      --highlight: #e94560;
-      --success: #4caf50;
-      --warning: #ff9800;
-      --text: #ffffff;
-      --text-secondary: #b0b0b0;
-      --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      /* Change from dark theme to light modern theme */
+      --primary: #f5f7fa;           /* Light gray-blue background (was #1a1a2e) */
+      --secondary: #ffffff;         /* White for cards/containers (was #16213e) */
+      --accent: #e8eef5;            /* Light accent (was #0f3460) */
+      --highlight: #6366f1;         /* Indigo primary action color (was #e94560) */
+      --success: #10b981;           /* Modern green */
+      --warning: #f59e0b;           /* Modern amber */
+      --text: #1e293b;              /* Dark slate text (was #ffffff) */
+      --text-secondary: #64748b;    /* Medium slate (was #b0b0b0) */
+      --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);     /* Indigo to purple */
+      --gradient-alt: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); /* Pink to rose */
     }
 
     body {
@@ -40,13 +41,14 @@
 
     /* Header & Navigation */
     header {
-      background: rgba(22, 33, 62, 0.95);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       padding: 1rem 0;
       position: sticky;
       top: 0;
       z-index: 1000;
       border-bottom: 2px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     nav {
@@ -191,6 +193,7 @@
     .form-group select:focus {
       outline: none;
       border-color: var(--highlight);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
 
     .auth-switch {
@@ -277,13 +280,14 @@
       background: var(--secondary);
       border-radius: 16px;
       padding: 2rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--accent);
       transition: transform 0.3s, box-shadow 0.3s;
     }
 
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .card h3 {
