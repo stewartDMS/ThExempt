@@ -458,7 +458,7 @@ app.post('/api/projects/:id/video', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid video format. Use MP4, WebM, or MOV.' });
     }
 
-    const videoData = base64Video.replace(/^data:video\/\w+;base64,/, '');
+    const videoData = base64Video.replace(/^data:[^;]+;base64,/, '');
     const videoBuffer = Buffer.from(videoData, 'base64');
 
     const sizeLimit = 50 * 1024 * 1024;
@@ -467,9 +467,14 @@ app.post('/api/projects/:id/video', authenticateToken, async (req, res) => {
     }
 
     if (projectData.video_url) {
-      const existingPath = projectData.video_url.split('/project-videos/')[1];
-      if (existingPath) {
-        await supabase.storage.from('project-videos').remove([existingPath]);
+      try {
+        const urlParts = projectData.video_url.split('/project-videos/');
+        const existingPath = urlParts.length > 1 ? urlParts[1] : null;
+        if (existingPath) {
+          await supabase.storage.from('project-videos').remove([existingPath]);
+        }
+      } catch (err) {
+        console.warn('Failed to remove old video:', err);
       }
     }
 
@@ -495,7 +500,7 @@ app.post('/api/projects/:id/video', authenticateToken, async (req, res) => {
     let thumbUrl = null;
 
     if (thumbnailBase64) {
-      const thumbData = thumbnailBase64.replace(/^data:image\/\w+;base64,/, '');
+      const thumbData = thumbnailBase64.replace(/^data:[^;]+;base64,/, '');
       const thumbBuffer = Buffer.from(thumbData, 'base64');
       const thumbPath = `thumbnails/${projectId}/${Date.now()}.jpg`;
 
@@ -555,16 +560,26 @@ app.delete('/api/projects/:id/video', authenticateToken, async (req, res) => {
     }
 
     if (projectData.video_url) {
-      const videoStoragePath = projectData.video_url.split('/project-videos/')[1];
-      if (videoStoragePath) {
-        await supabase.storage.from('project-videos').remove([videoStoragePath]);
+      try {
+        const urlParts = projectData.video_url.split('/project-videos/');
+        const videoStoragePath = urlParts.length > 1 ? urlParts[1] : null;
+        if (videoStoragePath) {
+          await supabase.storage.from('project-videos').remove([videoStoragePath]);
+        }
+      } catch (err) {
+        console.warn('Failed to remove video:', err);
       }
     }
 
     if (projectData.video_thumbnail_url) {
-      const thumbStoragePath = projectData.video_thumbnail_url.split('/project-videos/')[1];
-      if (thumbStoragePath) {
-        await supabase.storage.from('project-videos').remove([thumbStoragePath]);
+      try {
+        const urlParts = projectData.video_thumbnail_url.split('/project-videos/');
+        const thumbStoragePath = urlParts.length > 1 ? urlParts[1] : null;
+        if (thumbStoragePath) {
+          await supabase.storage.from('project-videos').remove([thumbStoragePath]);
+        }
+      } catch (err) {
+        console.warn('Failed to remove thumbnail:', err);
       }
     }
 
