@@ -219,6 +219,116 @@ app.post('/api/users/skills', authenticateToken, async (req, res) => {
   }
 });
 
+// Get user profile by ID
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, name, username, email, bio, avatar_url, location, industry, skills, role, reputation_points, badges, created_at')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !profile) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user profile
+app.put('/api/users/me', authenticateToken, async (req, res) => {
+  const { name, username, bio, location, industry, skills, avatar_url } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        name,
+        username,
+        bio,
+        location,
+        industry,
+        skills,
+        avatar_url,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', req.user.id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ error: 'Failed to update profile' });
+    }
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Search users
+app.get('/api/users/search', async (req, res) => {
+  const { query, limit = 10 } = req.query;
+
+  try {
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id, name, username, bio, avatar_url, location, industry, reputation_points, badges')
+      .or(`name.ilike.%${query}%,username.ilike.%${query}%,bio.ilike.%${query}%,industry.ilike.%${query}%`)
+      .limit(limit);
+
+    if (error) {
+      return res.status(500).json({ error: 'Search failed' });
+    }
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Upload avatar
+app.post('/api/users/avatar', authenticateToken, async (req, res) => {
+  const { base64Image, fileName } = req.body;
+
+  try {
+    // Convert base64 to buffer
+    const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Upload to Supabase Storage
+    const filePath = `avatars/${req.user.id}/${fileName}`;
+    const { data, error } = await supabase.storage
+      .from('user-uploads')
+      .upload(filePath, buffer, {
+        contentType: 'image/png',
+        upsert: true
+      });
+
+    if (error) {
+      return res.status(500).json({ error: 'Upload failed' });
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('user-uploads')
+      .getPublicUrl(filePath);
+
+    // Update profile with avatar URL
+    await supabase
+      .from('profiles')
+      .update({ avatar_url: urlData.publicUrl })
+      .eq('id', req.user.id);
+
+    res.json({ avatar_url: urlData.publicUrl });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Project routes
 app.get('/api/projects', async (req, res) => {
   try {
