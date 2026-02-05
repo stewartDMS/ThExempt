@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThExempt - Unite, Strive, Build</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #1a1a2e;
+      --secondary: #16213e;
+      --accent: #0f3460;
+      --highlight: #e94560;
+      --success: #4caf50;
+      --warning: #ff9800;
+      --text: #ffffff;
+      --text-secondary: #b0b0b0;
+      --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--primary);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: rgba(22, 33, 62, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--highlight);
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: var(--text);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--accent);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--highlight);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: var(--text);
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 6rem 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border-bottom: 1px solid var(--accent);
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    /* Auth Forms */
+    .auth-container {
+      display: none;
+      max-width: 450px;
+      margin: 4rem auto;
+      padding: 3rem;
+      background: var(--secondary);
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .auth-container.active {
+      display: block;
+    }
+
+    .auth-container h2 {
+      margin-bottom: 2rem;
+      text-align: center;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      background: var(--primary);
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--highlight);
+    }
+
+    .auth-switch {
+      text-align: center;
+      margin-top: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .auth-switch a {
+      color: var(--highlight);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: none;
+      padding: 2rem 0;
+    }
+
+    .dashboard.active {
+      display: block;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: var(--secondary);
+      border-radius: 16px;
+    }
+
+    .user-info h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .user-stats {
+      display: flex;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--highlight);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .badge {
+      padding: 0.5rem 1rem;
+      background: var(--gradient);
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--secondary);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h3 {
+      margin-bottom: 1rem;
+      color: var(--highlight);
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .skills-list {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+
+    .skill-tag {
+      padding: 0.3rem 0.8rem;
+      background: var(--accent);
+      border-radius: 12px;
+      font-size: 0.85rem;
+    }
+
+    .match-score {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--success);
+      border-radius: 20px;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--secondary);
+      padding: 3rem;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .close-modal {
+      font-size: 2rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .close-modal:hover {
+      color: var(--highlight);
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 3rem;
+    }
+
+    section h2 {
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Contributions Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: var(--accent);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 1rem;
+      background: var(--secondary);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      top: 1.5rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--highlight);
+    }
+
+    .timeline-meta {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      border: 3px solid var(--accent);
+      border-top: 3px solid var(--highlight);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 2rem auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .user-stats {
+        justify-content: center;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .error-message {
+      color: var(--highlight);
+      padding: 1rem;
+      background: rgba(233, 69, 96, 0.1);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .success-message {
+      color: var(--success);
+      padding: 1rem;
+      background: rgba(76, 175, 80, 0.1);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <nav class="container">
+      <div class="logo">ThExempt</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" onclick="showHome()">Home</a></li>
+        <li><a href="#" onclick="showProjects()">Projects</a></li>
+        <li><a href="#" onclick="showDashboard()">Dashboard</a></li>
+      </ul>
+      <div id="authButtons">
+        <button class="btn btn-secondary" onclick="showLogin()">Login</button>
+        <button class="btn btn-primary" onclick="showSignup()">Sign Up</button>
+      </div>
+      <div id="userMenu" class="hidden">
+        <button class="btn btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="heroSection">
+    <div class="container">
+      <h1>Unite. Strive. Build.</h1>
+      <p>Connect with real business projects. Build skills. Earn reputation. Make an impact.</p>
+      <button class="btn btn-primary" onclick="showSignup()">Get Started</button>
+    </div>
+  </section>
+
+  <!-- Login Form -->
+  <div class="auth-container" id="loginForm">
+    <h2>Welcome Back</h2>
+    <div id="loginError"></div>
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+    </form>
+    <div class="auth-switch">
+      Don't have an account? <a onclick="showSignup()">Sign Up</a>
+    </div>
+  </div>
+
+  <!-- Signup Form -->
+  <div class="auth-container" id="signupForm">
+    <h2>Join ThExempt</h2>
+    <div id="signupError"></div>
+    <form onsubmit="handleSignup(event)">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Sign Up</button>
+    </form>
+    <div class="auth-switch">
+      Already have an account? <a onclick="showLogin()">Login</a>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard container" id="dashboardSection">
+    <div class="dashboard-header">
+      <div class="user-info">
+        <h2 id="userName">Loading...</h2>
+        <div class="user-stats">
+          <div class="stat">
+            <div class="stat-value" id="reputationPoints">0</div>
+            <div class="stat-label">Reputation</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="contributionCount">0</div>
+            <div class="stat-label">Contributions</div>
+          </div>
+        </div>
+        <div class="badges" id="userBadges"></div>
+      </div>
+      <button class="btn btn-primary" onclick="showCreateProject()">Post Project</button>
+    </div>
+
+    <!-- My Projects -->
+    <section>
+      <div class="section-header">
+        <h2>Available Projects</h2>
+      </div>
+      <div class="cards-grid" id="projectsList"></div>
+    </section>
+
+    <!-- My Contributions -->
+    <section>
+      <h2>My Contributions</h2>
+      <div class="timeline" id="contributionsList"></div>
+    </section>
+  </div>
+
+  <!-- Create Project Modal -->
+  <div class="modal" id="createProjectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Post a New Project</h2>
+        <span class="close-modal" onclick="closeModal('createProjectModal')">&times;</span>
+      </div>
+      <div id="createProjectError"></div>
+      <form onsubmit="handleCreateProject(event)">
+        <div class="form-group">
+          <label>Project Title</label>
+          <input type="text" name="title" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" rows="4" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Required Skills (comma-separated)</label>
+          <input type="text" name="skills" placeholder="JavaScript, Design, Marketing">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Post Project</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Apply to Project Modal -->
+  <div class="modal" id="applyProjectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Apply to Project</h2>
+        <span class="close-modal" onclick="closeModal('applyProjectModal')">&times;</span>
+      </div>
+      <div id="projectDetails"></div>
+      <div id="applyError"></div>
+      <form onsubmit="handleApplyProject(event)">
+        <div class="form-group">
+          <label>Why are you interested in this project?</label>
+          <textarea name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%;">Submit Application</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Contribution Modal -->
+  <div class="modal" id="addContributionModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Log Contribution</h2>
+        <span class="close-modal" onclick="closeModal('addContributionModal')">&times;</span>
+      </div>
+      <div id="contributionError"></div>
+      <form onsubmit="handleAddContribution(event)">
+        <div class="form-group">
+          <label>Describe your contribution</label>
+          <textarea name="description" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%;">Log Contribution</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5000/api' 
+      : '/api';
+    
+    let currentUser = null;
+    let currentProjectId = null;
+    let authToken = localStorage.getItem('authToken');
+
+    // Initialize app
+    if (authToken) {
+      loadUserData();
+    }
+
+    // Auth functions
+    async function handleSignup(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password')
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          authToken = result.token;
+          localStorage.setItem('authToken', authToken);
+          currentUser = result.user;
+          showDashboard();
+          loadDashboardData();
+        } else {
+          document.getElementById('signupError').innerHTML = 
+            `<div class="error-message">${result.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('signupError').innerHTML = 
+          `<div class="error-message">Failed to sign up. Please try again.</div>`;
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = {
+        email: formData.get('email'),
+        password: formData.get('password')
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          authToken = result.token;
+          localStorage.setItem('authToken', authToken);
+          currentUser = result.user;
+          showDashboard();
+          loadDashboardData();
+        } else {
+          document.getElementById('loginError').innerHTML = 
+            `<div class="error-message">${result.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('loginError').innerHTML = 
+          `<div class="error-message">Failed to login. Please try again.</div>`;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      authToken = null;
+      currentUser = null;
+      showHome();
+    }
+
+    async function loadUserData() {
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (response.ok) {
+          currentUser = await response.json();
+          showDashboard();
+          loadDashboardData();
+        } else {
+          logout();
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      }
+    }
+
+    // Navigation functions
+    function showHome() {
+      document.getElementById('heroSection').style.display = 'block';
+      document.getElementById('loginForm').classList.remove('active');
+      document.getElementById('signupForm').classList.remove('active');
+      document.getElementById('dashboardSection').classList.remove('active');
+      
+      if (authToken) {
+        document.getElementById('authButtons').classList.add('hidden');
+        document.getElementById('userMenu').classList.remove('hidden');
+      } else {
+        document.getElementById('authButtons').classList.remove('hidden');
+        document.getElementById('userMenu').classList.add('hidden');
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('heroSection').style.display = 'none';
+      document.getElementById('loginForm').classList.add('active');
+      document.getElementById('signupForm').classList.remove('active');
+      document.getElementById('dashboardSection').classList.remove('active');
+    }
+
+    function showSignup() {
+      document.getElementById('heroSection').style.display = 'none';
+      document.getElementById('loginForm').classList.remove('active');
+      document.getElementById('signupForm').classList.add('active');
+      document.getElementById('dashboardSection').classList.remove('active');
+    }
+
+    function showDashboard() {
+      document.getElementById('heroSection').style.display = 'none';
+      document.getElementById('loginForm').classList.remove('active');
+      document.getElementById('signupForm').classList.remove('active');
+      document.getElementById('dashboardSection').classList.add('active');
+      document.getElementById('authButtons').classList.add('hidden');
+      document.getElementById('userMenu').classList.remove('hidden');
+    }
+
+    function showProjects() {
+      if (authToken) {
+        showDashboard();
+      } else {
+        showLogin();
+      }
+    }
+
+    // Dashboard functions
+    async function loadDashboardData() {
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('reputationPoints').textContent = currentUser.reputation_points;
+
+      // Load badges
+      const badgesContainer = document.getElementById('userBadges');
+      badgesContainer.innerHTML = '';
+      if (currentUser.badges && currentUser.badges.length > 0) {
+        currentUser.badges.forEach(badge => {
+          badgesContainer.innerHTML += `<span class="badge">${badge}</span>`;
+        });
+      }
+
+      // Load projects
+      await loadProjects();
+
+      // Load contributions
+      await loadContributions();
+    }
+
+    async function loadProjects() {
+      try {
+        const response = await fetch(`${API_URL}/projects`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (response.ok) {
+          const projects = await response.json();
+          const projectsList = document.getElementById('projectsList');
+          projectsList.innerHTML = '';
+
+          if (projects.length === 0) {
+            projectsList.innerHTML = '<p>No projects available yet. Be the first to post one!</p>';
+          } else {
+            projects.forEach(project => {
+              const skillsHtml = project.required_skills
+                .map(skill => `<span class="skill-tag">${skill}</span>`)
+                .join('');
+
+              projectsList.innerHTML += `
+                <div class="card">
+                  <h3>${project.title}</h3>
+                  <div class="card-meta">
+                    <span>Posted by ${project.owner_name}</span>
+                    <span>${new Date(project.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p>${project.description}</p>
+                  ${skillsHtml ? `<div class="skills-list">${skillsHtml}</div>` : ''}
+                  <button class="btn btn-primary" onclick="showApplyModal(${project.id})">Apply</button>
+                  <button class="btn btn-secondary" onclick="showAddContributionModal(${project.id})">Log Contribution</button>
+                </div>
+              `;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load projects:', error);
+      }
+    }
+
+    async function loadContributions() {
+      try {
+        const response = await fetch(`${API_URL}/users/${currentUser.id}/contributions`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (response.ok) {
+          const contributions = await response.json();
+          const contributionsList = document.getElementById('contributionsList');
+          const contributionCount = document.getElementById('contributionCount');
+          contributionCount.textContent = contributions.length;
+
+          contributionsList.innerHTML = '';
+
+          if (contributions.length === 0) {
+            contributionsList.innerHTML = '<p>No contributions yet. Start contributing to projects!</p>';
+          } else {
+            contributions.forEach(contribution => {
+              contributionsList.innerHTML += `
+                <div class="timeline-item">
+                  <strong>${contribution.project_title}</strong>
+                  <p>${contribution.description}</p>
+                  <div class="timeline-meta">
+                    +${contribution.points} points • ${new Date(contribution.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              `;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load contributions:', error);
+      }
+    }
+
+    // Project functions
+    function showCreateProject() {
+      document.getElementById('createProjectModal').classList.add('active');
+    }
+
+    async function handleCreateProject(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const skills = formData.get('skills')
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
+
+      const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        required_skills: skills
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/projects`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          closeModal('createProjectModal');
+          e.target.reset();
+          loadProjects();
+        } else {
+          const result = await response.json();
+          document.getElementById('createProjectError').innerHTML = 
+            `<div class="error-message">${result.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('createProjectError').innerHTML = 
+          `<div class="error-message">Failed to create project. Please try again.</div>`;
+      }
+    }
+
+    function showApplyModal(projectId) {
+      currentProjectId = projectId;
+      document.getElementById('applyProjectModal').classList.add('active');
+    }
+
+    async function handleApplyProject(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = {
+        message: formData.get('message')
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/projects/${currentProjectId}/apply`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          closeModal('applyProjectModal');
+          e.target.reset();
+          alert(`Application submitted! Match score: ${result.match_score}%`);
+        } else {
+          document.getElementById('applyError').innerHTML = 
+            `<div class="error-message">${result.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('applyError').innerHTML = 
+          `<div class="error-message">Failed to submit application. Please try again.</div>`;
+      }
+    }
+
+    function showAddContributionModal(projectId) {
+      currentProjectId = projectId;
+      document.getElementById('addContributionModal').classList.add('active');
+    }
+
+    async function handleAddContribution(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = {
+        description: formData.get('description')
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/projects/${currentProjectId}/contributions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          closeModal('addContributionModal');
+          e.target.reset();
+          loadDashboardData();
+          alert('Contribution logged successfully! +10 reputation points');
+        } else {
+          const result = await response.json();
+          document.getElementById('contributionError').innerHTML = 
+            `<div class="error-message">${result.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('contributionError').innerHTML = 
+          `<div class="error-message">Failed to log contribution. Please try again.</div>`;
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // Close modal on outside click
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
