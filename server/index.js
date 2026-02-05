@@ -1,24 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+const supabase = require('./supabase');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// Validate JWT_SECRET is set
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
-  console.error('Please set JWT_SECRET in your .env file before starting the server.');
-  process.exit(1);
-}
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
@@ -43,81 +33,8 @@ app.use(bodyParser.json());
 app.use('/api/', apiLimiter);
 app.use(express.static(path.join(__dirname, '../client/public')));
 
-// Database setup
-const db = new sqlite3.Database('./thexempt.db', (err) => {
-  if (err) {
-    console.error('Error opening database:', err);
-  } else {
-    console.log('Database connected');
-    initializeDatabase();
-  }
-});
-
-// Initialize database tables
-function initializeDatabase() {
-  db.serialize(() => {
-    // Users table
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      name TEXT NOT NULL,
-      role TEXT DEFAULT 'member',
-      reputation_points INTEGER DEFAULT 0,
-      badges TEXT DEFAULT '[]',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-
-    // Projects table
-    db.run(`CREATE TABLE IF NOT EXISTS projects (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      owner_id INTEGER NOT NULL,
-      status TEXT DEFAULT 'open',
-      required_skills TEXT DEFAULT '[]',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (owner_id) REFERENCES users(id)
-    )`);
-
-    // Applications table
-    db.run(`CREATE TABLE IF NOT EXISTS applications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      project_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      status TEXT DEFAULT 'pending',
-      message TEXT,
-      match_score INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects(id),
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )`);
-
-    // Contributions table
-    db.run(`CREATE TABLE IF NOT EXISTS contributions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      project_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      description TEXT NOT NULL,
-      points INTEGER DEFAULT 10,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (project_id) REFERENCES projects(id),
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )`);
-
-    // User skills table
-    db.run(`CREATE TABLE IF NOT EXISTS user_skills (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      skill TEXT NOT NULL,
-      proficiency INTEGER DEFAULT 1,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )`);
-  });
-}
-
 // Authentication middleware
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -125,13 +42,18 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Authentication required - No token provided' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
-    req.user = user;
+    
+    req.user = { id: user.id, email: user.email };
     next();
-  });
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
 };
 
 // Auth routes
@@ -143,350 +65,486 @@ app.post('/api/auth/signup', authLimiter, async (req, res) => {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    db.run(
-      'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
-      [email, hashedPassword, name],
-      function(err) {
-        if (err) {
-          if (err.message.includes('UNIQUE')) {
-            return res.status(400).json({ error: 'Email already exists' });
-          }
-          return res.status(500).json({ error: 'Failed to create user' });
+    // Sign up with Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name
         }
-
-        const token = jwt.sign({ id: this.lastID, email }, JWT_SECRET, { expiresIn: '7d' });
-        res.json({
-          token,
-          user: { id: this.lastID, email, name, reputation_points: 0, badges: [] }
-        });
       }
-    );
+    });
+
+    if (error) {
+      if (error.message.includes('already registered')) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+      return res.status(400).json({ error: error.message });
+    }
+
+    if (!data.user || !data.session) {
+      return res.status(500).json({ error: 'Failed to create user' });
+    }
+
+    // Get or create profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    res.json({
+      token: data.session.access_token,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name: profile?.name || name,
+        reputation_points: profile?.reputation_points || 0,
+        badges: profile?.badges || []
+      }
+    });
   } catch (error) {
+    console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-app.post('/api/auth/login', authLimiter, (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-    if (err || !user) {
+  try {
+    // Sign in with Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
+    if (!data.user || !data.session) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    // Fetch user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
     res.json({
-      token,
+      token: data.session.access_token,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        reputation_points: user.reputation_points,
-        badges: JSON.parse(user.badges || '[]')
+        id: data.user.id,
+        email: data.user.email,
+        name: profile?.name || data.user.user_metadata?.name || '',
+        role: profile?.role || 'member',
+        reputation_points: profile?.reputation_points || 0,
+        badges: profile?.badges || []
       }
     });
-  });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // User routes
-app.get('/api/users/me', authenticateToken, (req, res) => {
-  db.get('SELECT id, email, name, role, reputation_points, badges FROM users WHERE id = ?',
-    [req.user.id],
-    (err, user) => {
-      if (err || !user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      res.json({
-        ...user,
-        badges: JSON.parse(user.badges || '[]')
-      });
+app.get('/api/users/me', authenticateToken, async (req, res) => {
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, email, name, role, reputation_points, badges')
+      .eq('id', req.user.id)
+      .single();
+
+    if (error || !profile) {
+      return res.status(404).json({ error: 'User not found' });
     }
-  );
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/users/:id/skills', (req, res) => {
-  db.all('SELECT skill, proficiency FROM user_skills WHERE user_id = ?',
-    [req.params.id],
-    (err, skills) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to fetch skills' });
-      }
-      res.json(skills);
+app.get('/api/users/:id/skills', async (req, res) => {
+  try {
+    const { data: skills, error } = await supabase
+      .from('user_skills')
+      .select('skill, proficiency')
+      .eq('user_id', req.params.id);
+
+    if (error) {
+      return res.status(500).json({ error: 'Failed to fetch skills' });
     }
-  );
+
+    res.json(skills || []);
+  } catch (error) {
+    console.error('Get skills error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/users/skills', authenticateToken, (req, res) => {
+app.post('/api/users/skills', authenticateToken, async (req, res) => {
   const { skill, proficiency } = req.body;
   
-  db.run(
-    'INSERT INTO user_skills (user_id, skill, proficiency) VALUES (?, ?, ?)',
-    [req.user.id, skill, proficiency || 1],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to add skill' });
-      }
-      res.json({ id: this.lastID, skill, proficiency });
+  try {
+    const { data, error } = await supabase
+      .from('user_skills')
+      .insert({
+        user_id: req.user.id,
+        skill,
+        proficiency: proficiency || 1
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ error: 'Failed to add skill' });
     }
-  );
+
+    res.json(data);
+  } catch (error) {
+    console.error('Add skill error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Project routes
-app.get('/api/projects', (req, res) => {
-  const query = `
-    SELECT p.*, u.name as owner_name
-    FROM projects p
-    JOIN users u ON p.owner_id = u.id
-    WHERE p.status = 'open'
-    ORDER BY p.created_at DESC
-  `;
-  
-  db.all(query, [], (err, projects) => {
-    if (err) {
+app.get('/api/projects', async (req, res) => {
+  try {
+    const { data: projects, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        profiles!projects_owner_id_fkey(name)
+      `)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Get projects error:', error);
       return res.status(500).json({ error: 'Failed to fetch projects' });
     }
-    res.json(projects.map(p => ({
+
+    // Format response to match expected structure
+    const formattedProjects = projects.map(p => ({
       ...p,
-      required_skills: JSON.parse(p.required_skills || '[]')
-    })));
-  });
+      owner_name: p.profiles?.name || 'Unknown'
+    }));
+
+    res.json(formattedProjects);
+  } catch (error) {
+    console.error('Get projects error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/projects/:id', (req, res) => {
-  const query = `
-    SELECT p.*, u.name as owner_name
-    FROM projects p
-    JOIN users u ON p.owner_id = u.id
-    WHERE p.id = ?
-  `;
-  
-  db.get(query, [req.params.id], (err, project) => {
-    if (err || !project) {
+app.get('/api/projects/:id', async (req, res) => {
+  try {
+    const { data: project, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        profiles!projects_owner_id_fkey(name)
+      `)
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !project) {
       return res.status(404).json({ error: 'Project not found' });
     }
+
+    // Format response to match expected structure
     res.json({
       ...project,
-      required_skills: JSON.parse(project.required_skills || '[]')
+      owner_name: project.profiles?.name || 'Unknown'
     });
-  });
+  } catch (error) {
+    console.error('Get project error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/projects', authenticateToken, (req, res) => {
+app.post('/api/projects', authenticateToken, async (req, res) => {
   const { title, description, required_skills } = req.body;
 
   if (!title || !description) {
     return res.status(400).json({ error: 'Title and description are required' });
   }
 
-  db.run(
-    'INSERT INTO projects (title, description, owner_id, required_skills) VALUES (?, ?, ?, ?)',
-    [title, description, req.user.id, JSON.stringify(required_skills || [])],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to create project' });
-      }
-      res.json({
-        id: this.lastID,
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
         title,
         description,
         owner_id: req.user.id,
         required_skills: required_skills || [],
         status: 'open'
-      });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Create project error:', error);
+      return res.status(500).json({ error: 'Failed to create project' });
     }
-  );
+
+    res.json(data);
+  } catch (error) {
+    console.error('Create project error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Application routes
-app.get('/api/projects/:id/applications', authenticateToken, (req, res) => {
-  const query = `
-    SELECT a.*, u.name as applicant_name, u.reputation_points
-    FROM applications a
-    JOIN users u ON a.user_id = u.id
-    WHERE a.project_id = ?
-    ORDER BY a.match_score DESC, a.created_at DESC
-  `;
-  
-  db.all(query, [req.params.id], (err, applications) => {
-    if (err) {
+app.get('/api/projects/:id/applications', authenticateToken, async (req, res) => {
+  try {
+    const { data: applications, error } = await supabase
+      .from('applications')
+      .select(`
+        *,
+        profiles!applications_user_id_fkey(name, reputation_points)
+      `)
+      .eq('project_id', req.params.id)
+      .order('match_score', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Get applications error:', error);
       return res.status(500).json({ error: 'Failed to fetch applications' });
     }
-    res.json(applications);
-  });
+
+    // Format response to match expected structure
+    const formattedApplications = applications.map(a => ({
+      ...a,
+      applicant_name: a.profiles?.name || 'Unknown',
+      reputation_points: a.profiles?.reputation_points || 0
+    }));
+
+    res.json(formattedApplications);
+  } catch (error) {
+    console.error('Get applications error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/projects/:id/apply', authenticateToken, (req, res) => {
+app.post('/api/projects/:id/apply', authenticateToken, async (req, res) => {
   const { message } = req.body;
   const projectId = req.params.id;
 
-  // Calculate match score using AI-assisted matching (basic rule engine)
-  db.get('SELECT required_skills FROM projects WHERE id = ?', [projectId], (err, project) => {
-    if (err || !project) {
+  try {
+    // Get project required skills
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('required_skills')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const requiredSkills = JSON.parse(project.required_skills || '[]');
+    const requiredSkills = project.required_skills || [];
     
-    db.all('SELECT skill FROM user_skills WHERE user_id = ?', [req.user.id], (err, userSkills) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to calculate match' });
-      }
+    // Get user skills
+    const { data: userSkills, error: skillsError } = await supabase
+      .from('user_skills')
+      .select('skill')
+      .eq('user_id', req.user.id);
 
-      // Simple matching algorithm: count matching skills
-      const userSkillSet = new Set(userSkills.map(s => s.skill.toLowerCase()));
-      const matchingSkills = requiredSkills.filter(skill => 
-        userSkillSet.has(skill.toLowerCase())
-      );
-      const matchScore = requiredSkills.length > 0 
-        ? Math.round((matchingSkills.length / requiredSkills.length) * 100)
-        : 50;
+    if (skillsError) {
+      return res.status(500).json({ error: 'Failed to calculate match' });
+    }
 
-      db.run(
-        'INSERT INTO applications (project_id, user_id, message, match_score) VALUES (?, ?, ?, ?)',
-        [projectId, req.user.id, message, matchScore],
-        function(err) {
-          if (err) {
-            return res.status(500).json({ error: 'Failed to submit application' });
-          }
-          res.json({
-            id: this.lastID,
-            project_id: projectId,
-            user_id: req.user.id,
-            message,
-            match_score: matchScore,
-            status: 'pending'
-          });
-        }
-      );
-    });
-  });
+    // Calculate match score
+    const userSkillSet = new Set((userSkills || []).map(s => s.skill.toLowerCase()));
+    const matchingSkills = requiredSkills.filter(skill => 
+      userSkillSet.has(skill.toLowerCase())
+    );
+    const matchScore = requiredSkills.length > 0 
+      ? Math.round((matchingSkills.length / requiredSkills.length) * 100)
+      : 50;
+
+    // Insert application
+    const { data, error } = await supabase
+      .from('applications')
+      .insert({
+        project_id: projectId,
+        user_id: req.user.id,
+        message,
+        match_score: matchScore,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Create application error:', error);
+      return res.status(500).json({ error: 'Failed to submit application' });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('Apply error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.put('/api/applications/:id/status', authenticateToken, (req, res) => {
+app.put('/api/applications/:id/status', authenticateToken, async (req, res) => {
   const { status } = req.body;
   
-  db.run(
-    'UPDATE applications SET status = ? WHERE id = ?',
-    [status, req.params.id],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to update application' });
-      }
-      res.json({ success: true });
+  try {
+    const { error } = await supabase
+      .from('applications')
+      .update({ status })
+      .eq('id', req.params.id);
+
+    if (error) {
+      console.error('Update application error:', error);
+      return res.status(500).json({ error: 'Failed to update application' });
     }
-  );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update application status error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Contribution routes
-app.get('/api/projects/:id/contributions', (req, res) => {
-  const query = `
-    SELECT c.*, u.name as contributor_name
-    FROM contributions c
-    JOIN users u ON c.user_id = u.id
-    WHERE c.project_id = ?
-    ORDER BY c.created_at DESC
-  `;
-  
-  db.all(query, [req.params.id], (err, contributions) => {
-    if (err) {
+app.get('/api/projects/:id/contributions', async (req, res) => {
+  try {
+    const { data: contributions, error } = await supabase
+      .from('contributions')
+      .select(`
+        *,
+        profiles!contributions_user_id_fkey(name)
+      `)
+      .eq('project_id', req.params.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Get contributions error:', error);
       return res.status(500).json({ error: 'Failed to fetch contributions' });
     }
-    res.json(contributions);
-  });
+
+    // Format response to match expected structure
+    const formattedContributions = contributions.map(c => ({
+      ...c,
+      contributor_name: c.profiles?.name || 'Unknown'
+    }));
+
+    res.json(formattedContributions);
+  } catch (error) {
+    console.error('Get contributions error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.get('/api/users/:id/contributions', (req, res) => {
-  const query = `
-    SELECT c.*, p.title as project_title
-    FROM contributions c
-    JOIN projects p ON c.project_id = p.id
-    WHERE c.user_id = ?
-    ORDER BY c.created_at DESC
-  `;
-  
-  db.all(query, [req.params.id], (err, contributions) => {
-    if (err) {
+app.get('/api/users/:id/contributions', async (req, res) => {
+  try {
+    const { data: contributions, error } = await supabase
+      .from('contributions')
+      .select(`
+        *,
+        projects!contributions_project_id_fkey(title)
+      `)
+      .eq('user_id', req.params.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Get user contributions error:', error);
       return res.status(500).json({ error: 'Failed to fetch contributions' });
     }
-    res.json(contributions);
-  });
+
+    // Format response to match expected structure
+    const formattedContributions = contributions.map(c => ({
+      ...c,
+      project_title: c.projects?.title || 'Unknown'
+    }));
+
+    res.json(formattedContributions);
+  } catch (error) {
+    console.error('Get user contributions error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/projects/:id/contributions', authenticateToken, (req, res) => {
+app.post('/api/projects/:id/contributions', authenticateToken, async (req, res) => {
   const { description, points } = req.body;
   const projectId = req.params.id;
   const contributionPoints = points || 10;
 
-  db.run(
-    'INSERT INTO contributions (project_id, user_id, description, points) VALUES (?, ?, ?, ?)',
-    [projectId, req.user.id, description, contributionPoints],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to add contribution' });
-      }
-
-      // Update user reputation points
-      db.run(
-        'UPDATE users SET reputation_points = reputation_points + ? WHERE id = ?',
-        [contributionPoints, req.user.id],
-        (err) => {
-          if (err) {
-            console.error('Failed to update reputation:', err);
-          }
-
-          // Check for badges
-          db.get('SELECT reputation_points, badges FROM users WHERE id = ?',
-            [req.user.id],
-            (err, user) => {
-              if (!err && user) {
-                const badges = JSON.parse(user.badges || '[]');
-                let updated = false;
-
-                // Award badges based on reputation
-                if (user.reputation_points >= 100 && !badges.includes('Contributor')) {
-                  badges.push('Contributor');
-                  updated = true;
-                }
-                if (user.reputation_points >= 500 && !badges.includes('Expert')) {
-                  badges.push('Expert');
-                  updated = true;
-                }
-                if (user.reputation_points >= 1000 && !badges.includes('Master')) {
-                  badges.push('Master');
-                  updated = true;
-                }
-
-                if (updated) {
-                  db.run('UPDATE users SET badges = ? WHERE id = ?',
-                    [JSON.stringify(badges), req.user.id]);
-                }
-              }
-            }
-          );
-        }
-      );
-
-      res.json({
-        id: this.lastID,
+  try {
+    // Insert contribution
+    const { data: contribution, error: contributionError } = await supabase
+      .from('contributions')
+      .insert({
         project_id: projectId,
         user_id: req.user.id,
         description,
         points: contributionPoints
-      });
+      })
+      .select()
+      .single();
+
+    if (contributionError) {
+      console.error('Create contribution error:', contributionError);
+      return res.status(500).json({ error: 'Failed to add contribution' });
     }
-  );
+
+    // Update user reputation points
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('reputation_points, badges')
+      .eq('id', req.user.id)
+      .single();
+
+    if (!profileError && profile) {
+      const newReputation = (profile.reputation_points || 0) + contributionPoints;
+      const badges = profile.badges || [];
+      let updated = false;
+
+      // Award badges based on reputation
+      if (newReputation >= 100 && !badges.includes('Contributor')) {
+        badges.push('Contributor');
+        updated = true;
+      }
+      if (newReputation >= 500 && !badges.includes('Expert')) {
+        badges.push('Expert');
+        updated = true;
+      }
+      if (newReputation >= 1000 && !badges.includes('Master')) {
+        badges.push('Master');
+        updated = true;
+      }
+
+      // Update profile
+      await supabase
+        .from('profiles')
+        .update({
+          reputation_points: newReputation,
+          badges: updated ? badges : profile.badges
+        })
+        .eq('id', req.user.id);
+    }
+
+    res.json(contribution);
+  } catch (error) {
+    console.error('Add contribution error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Serve frontend for root path
