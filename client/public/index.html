@@ -616,6 +616,169 @@
       color: var(--text-secondary);
       font-size: 0.9rem;
     }
+
+    /* Media upload area styling */
+    .media-attach-zone {
+      margin: 1.5rem 0;
+    }
+
+    .file-drop-area {
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      background: var(--primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-drop-area:hover {
+      border-color: var(--highlight);
+      background: var(--secondary);
+    }
+
+    .file-drop-area.drag-active {
+      border-color: var(--highlight);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .upload-instruction {
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-constraints {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .transfer-indicator {
+      margin-top: 1rem;
+    }
+
+    .indicator-track {
+      width: 100%;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .indicator-bar {
+      height: 100%;
+      background: var(--highlight);
+      transition: width 0.3s ease;
+    }
+
+    .media-preview-box {
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .preview-element {
+      width: 100%;
+      max-height: 300px;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .clear-media-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .clear-media-btn:hover {
+      background: var(--highlight);
+    }
+
+    /* Video display in project cards */
+    .media-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 1rem;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .thumb-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .play-control {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .play-control:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .play-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--highlight);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .play-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .fullscreen-player {
+      width: 100%;
+      max-height: 400px;
+    }
+
+    /* Video viewing modal */
+    .video-modal .modal-content {
+      max-width: 900px;
+      padding: 1rem;
+    }
+
+    .video-modal video {
+      width: 100%;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -856,6 +1019,34 @@
           <label>Required Skills (comma-separated)</label>
           <input type="text" name="skills" placeholder="JavaScript, Design, Marketing">
         </div>
+        
+        <!-- Media Upload Area -->
+        <div class="form-group">
+          <label>Project Video (Optional)</label>
+          <div class="media-attach-zone">
+            <div class="file-drop-area" id="mediaDropArea" onclick="document.getElementById('mediaFileInput').click()">
+              <div class="upload-icon">🎥</div>
+              <div class="upload-instruction">Drop video here or click to browse</div>
+              <div class="upload-constraints">MP4, WebM, or MOV • Max 50MB</div>
+            </div>
+            <input type="file" id="mediaFileInput" accept="video/mp4,video/webm,video/quicktime" style="display: none;">
+            
+            <div id="transferProgress" style="display: none;" class="transfer-indicator">
+              <div class="indicator-track">
+                <div class="indicator-bar" id="progressIndicator" style="width: 0%;"></div>
+              </div>
+              <div style="text-align: center; margin-top: 0.5rem; color: var(--text-secondary);">
+                <span id="progressLabel">Uploading... 0%</span>
+              </div>
+            </div>
+            
+            <div id="mediaPreviewBox" style="display: none;" class="media-preview-box">
+              <video id="previewPlayer" class="preview-element" controls></video>
+              <button type="button" class="clear-media-btn" onclick="clearMediaSelection()">&times;</button>
+            </div>
+          </div>
+        </div>
+        
         <button type="submit" class="btn btn-primary" style="width: 100%;">Post Project</button>
       </form>
     </div>
@@ -895,6 +1086,19 @@
         </div>
         <button type="submit" class="btn btn-success" style="width: 100%;">Log Contribution</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Media Playback Modal -->
+  <div class="modal video-modal" id="mediaViewModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="mediaViewTitle">Project Video</h2>
+        <span class="close-modal" onclick="closeModal('mediaViewModal')">&times;</span>
+      </div>
+      <video id="fullscreenMediaPlayer" class="fullscreen-player" controls>
+        Your browser does not support the video tag.
+      </video>
     </div>
   </div>
 
@@ -1071,46 +1275,6 @@
       await loadContributions();
     }
 
-    async function loadProjects() {
-      try {
-        const response = await fetch(`${API_URL}/projects`, {
-          headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-
-        if (response.ok) {
-          const projects = await response.json();
-          const projectsList = document.getElementById('projectsList');
-          projectsList.innerHTML = '';
-
-          if (projects.length === 0) {
-            projectsList.innerHTML = '<p>No projects available yet. Be the first to post one!</p>';
-          } else {
-            projects.forEach(project => {
-              const skillsHtml = project.required_skills
-                .map(skill => `<span class="skill-tag">${skill}</span>`)
-                .join('');
-
-              projectsList.innerHTML += `
-                <div class="card">
-                  <h3>${project.title}</h3>
-                  <div class="card-meta">
-                    <span>Posted by ${project.owner_name}</span>
-                    <span>${new Date(project.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <p>${project.description}</p>
-                  ${skillsHtml ? `<div class="skills-list">${skillsHtml}</div>` : ''}
-                  <button class="btn btn-primary" onclick="showApplyModal(${project.id})">Apply</button>
-                  <button class="btn btn-secondary" onclick="showAddContributionModal(${project.id})">Log Contribution</button>
-                </div>
-              `;
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load projects:', error);
-      }
-    }
-
     async function loadContributions() {
       try {
         const response = await fetch(`${API_URL}/users/${currentUser.id}/contributions`, {
@@ -1149,45 +1313,6 @@
     // Project functions
     function showCreateProject() {
       document.getElementById('createProjectModal').classList.add('active');
-    }
-
-    async function handleCreateProject(e) {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const skills = formData.get('skills')
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s);
-
-      const data = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        required_skills: skills
-      };
-
-      try {
-        const response = await fetch(`${API_URL}/projects`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-          closeModal('createProjectModal');
-          e.target.reset();
-          loadProjects();
-        } else {
-          const result = await response.json();
-          document.getElementById('createProjectError').innerHTML = 
-            `<div class="error-message">${result.error}</div>`;
-        }
-      } catch (error) {
-        document.getElementById('createProjectError').innerHTML = 
-          `<div class="error-message">Failed to create project. Please try again.</div>`;
-      }
     }
 
     function showApplyModal(projectId) {
@@ -1263,10 +1388,6 @@
         document.getElementById('contributionError').innerHTML = 
           `<div class="error-message">Failed to log contribution. Please try again.</div>`;
       }
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('active');
     }
 
     // Close modal on outside click
@@ -1533,6 +1654,262 @@
         searchUsers();
       }
     });
+
+    // Video Media Management
+    let attachedMedia = null;
+    let mediaBlob = null;
+    let targetProjectForMedia = null;
+
+    const mediaInput = document.getElementById('mediaFileInput');
+    if (mediaInput) {
+      mediaInput.addEventListener('change', (evt) => {
+        const selectedFile = evt.target.files[0];
+        if (selectedFile) processMediaFile(selectedFile);
+      });
+    }
+
+    const dropArea = document.getElementById('mediaDropArea');
+    if (dropArea) {
+      dropArea.addEventListener('dragover', (evt) => {
+        evt.preventDefault();
+        dropArea.classList.add('drag-active');
+      });
+
+      dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('drag-active');
+      });
+
+      dropArea.addEventListener('drop', (evt) => {
+        evt.preventDefault();
+        dropArea.classList.remove('drag-active');
+        const droppedFiles = evt.dataTransfer.files;
+        if (droppedFiles.length > 0) processMediaFile(droppedFiles[0]);
+      });
+    }
+
+    function processMediaFile(file) {
+      const acceptedTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+      if (!acceptedTypes.includes(file.type)) {
+        alert('Invalid file type. Please use MP4, WebM, or MOV.');
+        return;
+      }
+
+      const sizeLimit = 50 * 1024 * 1024;
+      if (file.size > sizeLimit) {
+        alert('File too large. Maximum size is 50MB.');
+        return;
+      }
+
+      attachedMedia = file;
+
+      const fileReader = new FileReader();
+      fileReader.onload = (evt) => {
+        mediaBlob = evt.target.result;
+        const player = document.getElementById('previewPlayer');
+        player.src = evt.target.result;
+        
+        document.getElementById('mediaDropArea').style.display = 'none';
+        document.getElementById('mediaPreviewBox').style.display = 'block';
+      };
+      fileReader.readAsDataURL(file);
+    }
+
+    function clearMediaSelection() {
+      attachedMedia = null;
+      mediaBlob = null;
+      document.getElementById('mediaFileInput').value = '';
+      document.getElementById('previewPlayer').src = '';
+      document.getElementById('mediaDropArea').style.display = 'block';
+      document.getElementById('mediaPreviewBox').style.display = 'none';
+    }
+
+    async function attachMediaToProject(projId) {
+      if (!attachedMedia || !mediaBlob) return null;
+
+      try {
+        document.getElementById('transferProgress').style.display = 'block';
+        setProgressValue(30);
+
+        const thumbData = await extractThumbnail(document.getElementById('previewPlayer'));
+
+        const uploadResponse = await fetch(`${API_URL}/projects/${projId}/video`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({
+            base64Video: mediaBlob,
+            fileName: attachedMedia.name,
+            thumbnailBase64: thumbData
+          })
+        });
+
+        setProgressValue(100);
+
+        if (uploadResponse.ok) {
+          const result = await uploadResponse.json();
+          
+          setTimeout(() => {
+            document.getElementById('transferProgress').style.display = 'none';
+            setProgressValue(0);
+          }, 1000);
+          
+          return result;
+        } else {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.error || 'Upload failed');
+        }
+
+      } catch (err) {
+        console.error('Media upload error:', err);
+        document.getElementById('transferProgress').style.display = 'none';
+        setProgressValue(0);
+        alert('Failed to upload video: ' + err.message);
+        return null;
+      }
+    }
+
+    function setProgressValue(percentage) {
+      document.getElementById('progressIndicator').style.width = percentage + '%';
+      document.getElementById('progressLabel').textContent = `Uploading... ${percentage}%`;
+    }
+
+    async function extractThumbnail(videoElem) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        canvas.width = videoElem.videoWidth || 640;
+        canvas.height = videoElem.videoHeight || 360;
+        
+        context.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+        
+        const thumbData = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(thumbData);
+      });
+    }
+
+    async function handleCreateProject(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const skills = formData.get('skills')
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
+
+      const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        required_skills: skills
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/projects`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          const project = await response.json();
+          
+          if (attachedMedia) {
+            await attachMediaToProject(project.id);
+          }
+          
+          closeModal('createProjectModal');
+          e.target.reset();
+          clearMediaSelection();
+          loadProjects();
+        } else {
+          const result = await response.json();
+          document.getElementById('createProjectError').innerHTML = 
+            `<div class="error-message">${result.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('createProjectError').innerHTML = 
+          `<div class="error-message">Failed to create project. Please try again.</div>`;
+      }
+    }
+
+    async function loadProjects() {
+      try {
+        const response = await fetch(`${API_URL}/projects`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (response.ok) {
+          const projects = await response.json();
+          const projectsList = document.getElementById('projectsList');
+          projectsList.innerHTML = '';
+
+          if (projects.length === 0) {
+            projectsList.innerHTML = '<p>No projects available yet. Be the first to post one!</p>';
+          } else {
+            projects.forEach(project => {
+              const skillsHtml = project.required_skills
+                .map(skill => `<span class="skill-tag">${skill}</span>`)
+                .join('');
+
+              let videoSection = '';
+              if (project.video_url) {
+                const thumbSource = project.video_thumbnail_url || project.video_url;
+                videoSection = `
+                  <div class="media-wrapper" onclick="openMediaViewer('${project.video_url}', '${project.title}')">
+                    <img src="${thumbSource}" alt="Video thumbnail" class="thumb-img" onerror="this.style.display='none'">
+                    <div class="play-control">
+                      <div class="play-icon">▶</div>
+                    </div>
+                  </div>
+                `;
+              }
+
+              projectsList.innerHTML += `
+                <div class="card">
+                  ${videoSection}
+                  <h3>${project.title}</h3>
+                  <div class="card-meta">
+                    <span>Posted by ${project.owner_name}</span>
+                    <span>${new Date(project.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p>${project.description}</p>
+                  ${skillsHtml ? `<div class="skills-list">${skillsHtml}</div>` : ''}
+                  <button class="btn btn-primary" onclick="showApplyModal(${project.id})">Apply</button>
+                  <button class="btn btn-secondary" onclick="showAddContributionModal(${project.id})">Log Contribution</button>
+                </div>
+              `;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load projects:', error);
+      }
+    }
+
+    function openMediaViewer(videoSource, projectName) {
+      const player = document.getElementById('fullscreenMediaPlayer');
+      const titleElem = document.getElementById('mediaViewTitle');
+      
+      player.src = videoSource;
+      titleElem.textContent = projectName;
+      
+      document.getElementById('mediaViewModal').classList.add('active');
+      player.play();
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+      
+      if (modalId === 'mediaViewModal') {
+        const player = document.getElementById('fullscreenMediaPlayer');
+        player.pause();
+        player.src = '';
+      }
+    }
   </script>
 </body>
 </html>

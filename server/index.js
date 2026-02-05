@@ -29,7 +29,8 @@ const apiLimiter = rateLimit({
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '60mb' }));
+app.use(bodyParser.urlencoded({ limit: '60mb', extended: true }));
 app.use('/api/', apiLimiter);
 app.use(express.static(path.join(__dirname, '../client/public')));
 
@@ -421,6 +422,167 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Create project error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Video attachment endpoint for projects
+app.post('/api/projects/:id/video', authenticateToken, async (req, res) => {
+  const { base64Video, fileName, thumbnailBase64 } = req.body;
+  const projectId = req.params.id;
+
+  try {
+    const { data: projectData, error: fetchErr } = await supabase
+      .from('projects')
+      .select('owner_id, video_url')
+      .eq('id', projectId)
+      .single();
+
+    if (fetchErr || !projectData) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (projectData.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const mimeTypeMatch = base64Video.match(/^data:(.+);base64,/);
+    if (!mimeTypeMatch) {
+      return res.status(400).json({ error: 'Invalid video format' });
+    }
+    
+    const contentType = mimeTypeMatch[1];
+    const acceptedTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+    
+    if (!acceptedTypes.includes(contentType)) {
+      return res.status(400).json({ error: 'Invalid video format. Use MP4, WebM, or MOV.' });
+    }
+
+    const videoData = base64Video.replace(/^data:video\/\w+;base64,/, '');
+    const videoBuffer = Buffer.from(videoData, 'base64');
+
+    const sizeLimit = 50 * 1024 * 1024;
+    if (videoBuffer.length > sizeLimit) {
+      return res.status(400).json({ error: 'Video file too large. Max 50MB.' });
+    }
+
+    if (projectData.video_url) {
+      const existingPath = projectData.video_url.split('/project-videos/')[1];
+      if (existingPath) {
+        await supabase.storage.from('project-videos').remove([existingPath]);
+      }
+    }
+
+    const extension = contentType.split('/')[1] === 'quicktime' ? 'mov' : contentType.split('/')[1];
+    const storagePath = `videos/${projectId}/${Date.now()}.${extension}`;
+    
+    const { error: uploadErr } = await supabase.storage
+      .from('project-videos')
+      .upload(storagePath, videoBuffer, {
+        contentType: contentType,
+        upsert: false
+      });
+
+    if (uploadErr) {
+      console.error('Video upload error:', uploadErr);
+      return res.status(500).json({ error: 'Failed to upload video' });
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('project-videos')
+      .getPublicUrl(storagePath);
+
+    let thumbUrl = null;
+
+    if (thumbnailBase64) {
+      const thumbData = thumbnailBase64.replace(/^data:image\/\w+;base64,/, '');
+      const thumbBuffer = Buffer.from(thumbData, 'base64');
+      const thumbPath = `thumbnails/${projectId}/${Date.now()}.jpg`;
+
+      const { error: thumbErr } = await supabase.storage
+        .from('project-videos')
+        .upload(thumbPath, thumbBuffer, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+
+      if (!thumbErr) {
+        const { data: thumbUrlData } = supabase.storage
+          .from('project-videos')
+          .getPublicUrl(thumbPath);
+        thumbUrl = thumbUrlData.publicUrl;
+      }
+    }
+
+    await supabase
+      .from('projects')
+      .update({
+        video_url: urlData.publicUrl,
+        video_thumbnail_url: thumbUrl,
+        video_file_size: videoBuffer.length,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', projectId);
+
+    res.json({
+      video_url: urlData.publicUrl,
+      thumbnail_url: thumbUrl
+    });
+
+  } catch (error) {
+    console.error('Video upload error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Remove video attachment from project
+app.delete('/api/projects/:id/video', authenticateToken, async (req, res) => {
+  const projectId = req.params.id;
+
+  try {
+    const { data: projectData, error: fetchErr } = await supabase
+      .from('projects')
+      .select('owner_id, video_url, video_thumbnail_url')
+      .eq('id', projectId)
+      .single();
+
+    if (fetchErr || !projectData) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (projectData.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (projectData.video_url) {
+      const videoStoragePath = projectData.video_url.split('/project-videos/')[1];
+      if (videoStoragePath) {
+        await supabase.storage.from('project-videos').remove([videoStoragePath]);
+      }
+    }
+
+    if (projectData.video_thumbnail_url) {
+      const thumbStoragePath = projectData.video_thumbnail_url.split('/project-videos/')[1];
+      if (thumbStoragePath) {
+        await supabase.storage.from('project-videos').remove([thumbStoragePath]);
+      }
+    }
+
+    await supabase
+      .from('projects')
+      .update({
+        video_url: null,
+        video_thumbnail_url: null,
+        video_file_size: null,
+        video_duration: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', projectId);
+
+    res.json({ message: 'Video deleted successfully' });
+
+  } catch (error) {
+    console.error('Video delete error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
