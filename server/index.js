@@ -478,7 +478,8 @@ app.post('/api/projects/:id/video', authenticateToken, async (req, res) => {
       }
     }
 
-    const extension = contentType.split('/')[1] === 'quicktime' ? 'mov' : contentType.split('/')[1];
+    const mimeSubtype = contentType.split('/')[1];
+    const extension = mimeSubtype === 'quicktime' ? 'mov' : mimeSubtype;
     const storagePath = `videos/${projectId}/${Date.now()}.${extension}`;
     
     const { error: uploadErr } = await supabase.storage
