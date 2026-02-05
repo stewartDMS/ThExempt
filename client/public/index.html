@@ -739,7 +739,7 @@
       </div>
       <div class="profile-info">
         <h1 id="profileName">Loading...</h1>
-        <p id="profileUsername" class="text-secondary">@username</p>
+        <p id="profileUsername" class="profile-username">@username</p>
         <p id="profileBio" class="profile-bio"></p>
         <div class="profile-meta">
           <span id="profileLocation"></span>
@@ -1298,9 +1298,7 @@
 
       // Load profile data
       try {
-        const response = await fetch(`${API_URL}/users/${userId}`, {
-          headers: { 'Authorization': `Bearer ${authToken}` }
-        });
+        const response = await fetch(`${API_URL}/users/${userId}`);
 
         if (response.ok) {
           const profile = await response.json();
@@ -1486,7 +1484,7 @@
       document.getElementById('profileSection').style.display = 'none';
       document.getElementById('discoverySection').style.display = 'block';
 
-      // Load initial users
+      // Load initial users with search
       searchUsers('');
     }
 

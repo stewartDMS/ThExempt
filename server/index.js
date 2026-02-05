@@ -224,7 +224,7 @@ app.get('/api/users/:id', async (req, res) => {
   try {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, name, username, email, bio, avatar_url, location, industry, skills, role, reputation_points, badges, created_at')
+      .select('id, name, username, bio, avatar_url, location, industry, skills, role, reputation_points, badges, created_at')
       .eq('id', req.params.id)
       .single();
 
@@ -271,13 +271,16 @@ app.put('/api/users/me', authenticateToken, async (req, res) => {
 
 // Search users
 app.get('/api/users/search', async (req, res) => {
-  const { query, limit = 10 } = req.query;
+  const { query = '', limit = 10 } = req.query;
 
   try {
+    // Sanitize query to prevent SQL injection
+    const sanitizedQuery = query.replace(/[%_]/g, '\\$&');
+    
     const { data: users, error } = await supabase
       .from('profiles')
       .select('id, name, username, bio, avatar_url, location, industry, reputation_points, badges')
-      .or(`name.ilike.%${query}%,username.ilike.%${query}%,bio.ilike.%${query}%,industry.ilike.%${query}%`)
+      .or(`name.ilike.%${sanitizedQuery}%,username.ilike.%${sanitizedQuery}%,bio.ilike.%${sanitizedQuery}%,industry.ilike.%${sanitizedQuery}%`)
       .limit(limit);
 
     if (error) {
@@ -295,6 +298,11 @@ app.post('/api/users/avatar', authenticateToken, async (req, res) => {
   const { base64Image, fileName } = req.body;
 
   try {
+    // Extract content type from base64 data
+    const matches = base64Image.match(/^data:image\/(\w+);base64,/);
+    const imageType = matches ? matches[1] : 'png';
+    const contentType = `image/${imageType}`;
+    
     // Convert base64 to buffer
     const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
@@ -304,7 +312,7 @@ app.post('/api/users/avatar', authenticateToken, async (req, res) => {
     const { data, error } = await supabase.storage
       .from('user-uploads')
       .upload(filePath, buffer, {
-        contentType: 'image/png',
+        contentType: contentType,
         upsert: true
       });
 
