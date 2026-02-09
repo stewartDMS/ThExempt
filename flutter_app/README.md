@@ -38,8 +38,8 @@ Simple Flutter mobile app with authentication for ThExempt.
    - **Physical Device:** `'http://YOUR_COMPUTER_IP:5000/api'`
    
    Update it in TWO places:
-   - Line ~77 (LoginScreen)
-   - Line ~245 (SignupScreen)
+   - Line 89 (LoginScreen)
+   - Line 319 (SignupScreen)
 
 4. Run the app:
    ```bash
