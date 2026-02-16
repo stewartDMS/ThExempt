@@ -48,9 +48,9 @@ class ProjectCard extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        project.company.isNotEmpty
-                            ? project.company[0].toUpperCase()
-                            : 'C',
+                        project.ownerName.isNotEmpty
+                            ? project.ownerName[0].toUpperCase()
+                            : 'U',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -65,7 +65,7 @@ class ProjectCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          project.company,
+                          project.ownerName,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -114,65 +114,31 @@ class ProjectCard extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Skills
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: project.skills.take(3).map((skill) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6366F1).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      skill,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6366F1),
-                        fontWeight: FontWeight.w500,
+              if (project.requiredSkills.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: project.requiredSkills.take(3).map((skill) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-
-              // Footer
-              Row(
-                children: [
-                  Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    project.duration,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(Icons.attach_money, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    project.budget,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const Spacer(),
-                  if (project.applicantsCount > 0)
-                    Text(
-                      '${project.applicantsCount} applicants',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ),
-                ],
-              ),
+                      child: Text(
+                        skill,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6366F1),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
             ],
           ),
         ),

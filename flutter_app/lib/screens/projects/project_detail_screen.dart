@@ -191,9 +191,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          _project!.company.isNotEmpty
-                              ? _project!.company[0].toUpperCase()
-                              : 'C',
+                          _project!.ownerName.isNotEmpty
+                              ? _project!.ownerName[0].toUpperCase()
+                              : 'U',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -208,7 +208,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _project!.company,
+                            _project!.ownerName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -237,27 +237,27 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
-                // Stats
-                Row(
-                  children: [
-                    _StatChip(
-                      icon: Icons.access_time,
-                      label: _project!.duration,
+                // Status badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _project!.status == 'open' 
+                        ? Colors.green[100] 
+                        : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _project!.status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: _project!.status == 'open' 
+                          ? Colors.green[700] 
+                          : Colors.grey[700],
                     ),
-                    const SizedBox(width: 12),
-                    _StatChip(
-                      icon: Icons.attach_money,
-                      label: _project!.budget,
-                    ),
-                    const SizedBox(width: 12),
-                    if (_project!.applicantsCount > 0)
-                      _StatChip(
-                        icon: Icons.people,
-                        label: '${_project!.applicantsCount} applicants',
-                      ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -288,79 +288,45 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 const SizedBox(height: 32),
 
                 // Skills required
-                const Text(
-                  'Skills Required',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                if (_project!.requiredSkills.isNotEmpty) ...[
+                  const Text(
+                    'Skills Required',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _project!.skills.map((skill) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFF6366F1).withOpacity(0.3),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _project!.requiredSkills.map((skill) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
-                      ),
-                      child: Text(
-                        skill,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF6366F1),
-                          fontWeight: FontWeight.w500,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFF6366F1).withOpacity(0.3),
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        child: Text(
+                          skill,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6366F1),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
                 const SizedBox(height: 80), // Space for bottom button
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _StatChip({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.grey[700]),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],

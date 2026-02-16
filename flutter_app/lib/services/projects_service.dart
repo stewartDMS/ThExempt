@@ -25,8 +25,7 @@ class ProjectsService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> projectsJson = data['projects'] ?? [];
+        final List<dynamic> projectsJson = jsonDecode(response.body);
         return projectsJson.map((json) => Project.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load projects');
@@ -52,7 +51,7 @@ class ProjectsService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return Project.fromJson(data['project']);
+        return Project.fromJson(data);
       } else {
         throw Exception('Failed to load project');
       }
