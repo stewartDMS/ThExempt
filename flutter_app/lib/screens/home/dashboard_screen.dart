@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../placeholder_screen.dart';
 import '../projects/projects_feed_screen.dart';
+import '../projects/create_project_screen.dart';
+import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,9 +17,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _screens = [
     const ProjectsFeedScreen(),
     const PlaceholderScreen(title: 'Discover', icon: Icons.explore),
-    const PlaceholderScreen(title: 'Create', icon: Icons.add_circle),
+    const CreateProjectScreen(),
     const PlaceholderScreen(title: 'Activity', icon: Icons.notifications),
-    const PlaceholderScreen(title: 'Profile', icon: Icons.person),
+    const ProfileScreen(),
   ];
 
   @override

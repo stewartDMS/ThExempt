@@ -90,10 +90,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
           _videoBase64 = null;
           _thumbnailBase64 = null;
         });
-
-        // Navigate to home feed (index 0)
-        // The parent DashboardScreen will handle this
-        Navigator.of(context).pop();
       }
     } catch (e) {
       _showError('Failed to create project: $e');
