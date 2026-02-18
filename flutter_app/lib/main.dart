@@ -120,12 +120,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['token'];
+        final userId = data['user']['id']?.toString() ?? '';
         final userName = data['user']['name'];
         final userEmail = data['user']['email'];
 
         // Save auth data
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', token);
+        await prefs.setString('userId', userId);
         await prefs.setString('userName', userName);
         await prefs.setString('userEmail', userEmail);
 
@@ -358,12 +360,14 @@ class _SignupScreenState extends State<SignupScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         final token = data['token'];
+        final userId = data['user']['id']?.toString() ?? '';
         final userName = data['user']['name'];
         final userEmail = data['user']['email'];
 
         // Save auth data
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', token);
+        await prefs.setString('userId', userId);
         await prefs.setString('userName', userName);
         await prefs.setString('userEmail', userEmail);
 
