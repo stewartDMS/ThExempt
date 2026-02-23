@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/project_model.dart';
 import '../../../utils/time_ago.dart';
 import '../project_detail_screen.dart';
+import '../../../widgets/video_player_dialog.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -10,6 +11,18 @@ class ProjectCard extends StatelessWidget {
     super.key,
     required this.project,
   });
+
+  void _playVideo(BuildContext context) {
+    if (project.videoUrl != null) {
+      showDialog(
+        context: context,
+        builder: (context) => VideoPlayerDialog(
+          videoUrl: project.videoUrl!,
+          projectTitle: project.title,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,51 +105,54 @@ class ProjectCard extends StatelessWidget {
 
               // Video thumbnail
               if (project.videoUrl != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      project.thumbnailUrl != null
-                          ? Image.network(
-                              project.thumbnailUrl!,
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 180,
-                                  color: Colors.grey[200],
-                                  child: const Icon(
-                                    Icons.video_library,
-                                    size: 50,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              },
-                            )
-                          : Container(
-                              height: 180,
-                              color: Colors.grey[200],
-                              child: const Icon(
-                                Icons.video_library,
-                                size: 50,
-                                color: Colors.grey,
+                GestureDetector(
+                  onTap: () => _playVideo(context),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        project.thumbnailUrl != null
+                            ? Image.network(
+                                project.thumbnailUrl!,
+                                height: 180,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 180,
+                                    color: Colors.grey[200],
+                                    child: const Icon(
+                                      Icons.video_library,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
+                                height: 180,
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.video_library,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
                               ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.black54,
+                            child: const Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                              size: 24,
                             ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.black54,
-                          child: const Icon(
-                            Icons.play_arrow,
-                            color: Colors.white,
-                            size: 24,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 

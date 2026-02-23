@@ -4,6 +4,7 @@ import '../../services/user_service.dart';
 import '../../services/projects_service.dart';
 import '../../models/project_model.dart';
 import '../../main.dart';
+import '../../widgets/video_player_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -323,51 +324,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // Video thumbnail
           if (project.videoUrl != null)
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  project.thumbnailUrl != null
-                      ? Image.network(
-                          project.thumbnailUrl!,
-                          height: 160,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 160,
-                              color: Colors.grey[200],
-                              child: const Icon(
-                                Icons.video_library,
-                                size: 50,
-                                color: Colors.grey,
-                              ),
-                            );
-                          },
-                        )
-                      : Container(
-                          height: 160,
-                          color: Colors.grey[200],
-                          child: const Icon(
-                            Icons.video_library,
-                            size: 50,
-                            color: Colors.grey,
+            GestureDetector(
+              onTap: () => showDialog(
+                context: context,
+                builder: (context) => VideoPlayerDialog(
+                  videoUrl: project.videoUrl!,
+                  projectTitle: project.title,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    project.thumbnailUrl != null
+                        ? Image.network(
+                            project.thumbnailUrl!,
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 160,
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.video_library,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                          )
+                        : Container(
+                            height: 160,
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.video_library,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
                           ),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.black54,
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
                         ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.black54,
-                      child: const Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                        size: 20,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           Padding(
