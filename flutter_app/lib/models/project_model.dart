@@ -8,6 +8,8 @@ class Project {
   final String status;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final String? videoUrl;
+  final String? thumbnailUrl;
 
   Project({
     required this.id,
@@ -19,6 +21,8 @@ class Project {
     required this.status,
     required this.createdAt,
     this.updatedAt,
+    this.videoUrl,
+    this.thumbnailUrl,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -36,6 +40,8 @@ class Project {
       updatedAt: json['updated_at'] != null 
           ? DateTime.parse(json['updated_at']) 
           : null,
+      videoUrl: json['video_url'] as String?,
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
   }
 
@@ -50,6 +56,8 @@ class Project {
       'status': status,
       'created_at': createdAt.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+      if (videoUrl != null) 'video_url': videoUrl,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
     };
   }
 }

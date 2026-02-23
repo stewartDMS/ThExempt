@@ -7,10 +7,10 @@ class ProjectsFeedScreen extends StatefulWidget {
   const ProjectsFeedScreen({super.key});
 
   @override
-  State<ProjectsFeedScreen> createState() => _ProjectsFeedScreenState();
+  State<ProjectsFeedScreen> createState() => ProjectsFeedScreenState();
 }
 
-class _ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
+class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
   List<Project> _projects = [];
   bool _isLoading = true;
   bool _hasError = false;
@@ -46,6 +46,8 @@ class _ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
       }
     }
   }
+
+  Future<void> refreshProjects() => _loadProjects();
 
   @override
   Widget build(BuildContext context) {

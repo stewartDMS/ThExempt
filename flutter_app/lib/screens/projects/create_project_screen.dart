@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:html' as html;
 import '../../services/projects_service.dart';
 import '../../services/video_service.dart';
+import '../home/dashboard_screen.dart';
 import 'widgets/skills_input_widget.dart';
 import 'widgets/video_picker_widget.dart';
 
@@ -74,22 +75,18 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       }
 
       if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const DashboardScreen(initialIndex: 0),
+          ),
+          (route) => false,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Project created successfully!'),
             backgroundColor: Colors.green,
           ),
         );
-
-        // Clear form
-        _titleController.clear();
-        _descriptionController.clear();
-        setState(() {
-          _selectedSkills = [];
-          _videoFile = null;
-          _videoBase64 = null;
-          _thumbnailBase64 = null;
-        });
       }
     } catch (e) {
       _showError('Failed to create project: $e');
