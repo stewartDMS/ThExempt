@@ -5,22 +5,35 @@ import '../projects/create_project_screen.dart';
 import '../profile/profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final int initialIndex;
+
+  const DashboardScreen({super.key, this.initialIndex = 0});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+  final GlobalKey<ProjectsFeedScreenState> _feedKey = GlobalKey();
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const ProjectsFeedScreen(),
-    const PlaceholderScreen(title: 'Discover', icon: Icons.explore),
-    const CreateProjectScreen(),
-    const PlaceholderScreen(title: 'Activity', icon: Icons.notifications),
-    const ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _screens = [
+      ProjectsFeedScreen(key: _feedKey),
+      const PlaceholderScreen(title: 'Discover', icon: Icons.explore),
+      const CreateProjectScreen(),
+      const PlaceholderScreen(title: 'Activity', icon: Icons.notifications),
+      const ProfileScreen(),
+    ];
+  }
+
+  void _refreshFeed() {
+    _feedKey.currentState?.refreshProjects();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +42,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
+          final wasOnHome = _currentIndex == 0;
           setState(() {
             _currentIndex = index;
           });
+          if (index == 0 && !wasOnHome) {
+            _refreshFeed();
+          }
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).colorScheme.primary,

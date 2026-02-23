@@ -90,6 +90,58 @@ class ProjectCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
+              // Video thumbnail
+              if (project.videoUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      project.thumbnailUrl != null
+                          ? Image.network(
+                              project.thumbnailUrl!,
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 180,
+                                  color: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.video_library,
+                                    size: 50,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
+                              height: 180,
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.video_library,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                            ),
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.black54,
+                          child: const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              if (project.videoUrl != null) const SizedBox(height: 12),
+
               // Title
               Text(
                 project.title,
