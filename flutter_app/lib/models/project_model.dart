@@ -10,6 +10,7 @@ class Project {
   final DateTime? updatedAt;
   final String? videoUrl;
   final String? thumbnailUrl;
+  final String? ownerAvatarUrl;
 
   Project({
     required this.id,
@@ -23,6 +24,7 @@ class Project {
     this.updatedAt,
     this.videoUrl,
     this.thumbnailUrl,
+    this.ownerAvatarUrl,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class Project {
           : null,
       videoUrl: json['video_url'] as String?,
       thumbnailUrl: json['thumbnail_url'] as String?,
+      ownerAvatarUrl: json['owner_avatar_url'] as String?,
     );
   }
 
@@ -58,6 +61,7 @@ class Project {
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
       if (videoUrl != null) 'video_url': videoUrl,
       if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (ownerAvatarUrl != null) 'owner_avatar_url': ownerAvatarUrl,
     };
   }
 }

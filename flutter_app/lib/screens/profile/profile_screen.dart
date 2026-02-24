@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/user_service.dart';
 import '../../services/projects_service.dart';
+import '../../models/user_model.dart';
 import '../../models/project_model.dart';
 import '../../main.dart';
 import '../../widgets/video_player_dialog.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,7 +18,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _userName = '';
   String _userEmail = '';
-  String _userId = '';
+  User? _userProfile;
   List<Project> _userProjects = [];
   bool _isLoading = true;
 
@@ -35,21 +37,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final userEmail = prefs.getString('userEmail') ?? 'user@example.com';
       final userId = prefs.getString('userId') ?? '';
 
-      // Fetch user's projects
+      User? profile;
       List<Project> projects = [];
       if (userId.isNotEmpty) {
         try {
-          projects = await ProjectsService.getUserProjects(userId);
+          final results = await Future.wait([
+            UserService.getProfile(userId),
+            ProjectsService.getUserProjects(userId),
+          ]);
+          profile = results[0] as User;
+          projects = results[1] as List<Project>;
         } catch (e) {
-          // Projects fetch failed, continue with empty list
-          debugPrint('Failed to load projects: $e');
+          debugPrint('Failed to load profile data: $e');
         }
       }
 
       setState(() {
         _userName = userName;
         _userEmail = userEmail;
-        _userId = userId;
+        _userProfile = profile;
         _userProjects = projects;
         _isLoading = false;
       });
@@ -93,6 +99,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _handleEditProfile() async {
+    if (_userProfile == null) return;
+
+    final updated = await Navigator.of(context).push<User>(
+      MaterialPageRoute(
+        builder: (_) => EditProfileScreen(user: _userProfile!),
+      ),
+    );
+
+    if (updated != null && mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userName', updated.name);
+      setState(() {
+        _userProfile = updated;
+        _userName = updated.name;
+      });
+    }
+  }
+
   int get _activeProjectsCount {
     return _userProjects.where((p) => p.status == 'open').length;
   }
@@ -104,6 +129,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile'),
         automaticallyImplyLeading: false,
         actions: [
+          if (_userProfile != null)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: _handleEditProfile,
+              tooltip: 'Edit Profile',
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _handleLogout,
@@ -138,37 +169,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileHeader() {
-    // Get first letter of username for avatar
-    final initial = _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U';
+    final displayName = _userProfile?.name ?? _userName;
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
+    final avatarUrl = _userProfile?.avatarUrl;
 
     return Column(
       children: [
         // Avatar
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-            ),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              initial,
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
+        CircleAvatar(
+          radius: 50,
+          backgroundColor: const Color(0xFF6366F1),
+          backgroundImage:
+              avatarUrl != null ? NetworkImage(avatarUrl) : null,
+          onBackgroundImageError: avatarUrl != null ? (_, __) {} : null,
+          child: avatarUrl == null
+              ? Text(
+                  initial,
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )
+              : null,
         ),
         const SizedBox(height: 16),
 
         // Name
         Text(
-          _userName,
+          displayName,
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -184,6 +213,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Colors.grey[600],
           ),
         ),
+
+        // Bio
+        if (_userProfile?.bio != null && _userProfile!.bio!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            _userProfile!.bio!,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+
+        // Location
+        if (_userProfile?.location != null &&
+            _userProfile!.location!.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.location_on_outlined,
+                  size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 4),
+              Text(
+                _userProfile!.location!,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

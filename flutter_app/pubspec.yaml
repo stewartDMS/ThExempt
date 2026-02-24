@@ -21,6 +21,12 @@ dependencies:
   
   # Video playback
   video_player: ^2.8.2
+  
+  # Open social links in browser
+  url_launcher: ^6.2.4
+  
+  # Upload avatar image
+  file_picker: ^6.1.1
 
 dev_dependencies:
   flutter_test:
