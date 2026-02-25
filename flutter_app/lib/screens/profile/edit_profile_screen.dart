@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
+import '../../widgets/categorized_skill_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -23,7 +24,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _githubController;
   late TextEditingController _linkedinController;
   late TextEditingController _websiteController;
-  late TextEditingController _skillsController;
 
   String _availabilityStatus = 'available';
   List<String> _skills = [];
@@ -46,7 +46,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextEditingController(text: widget.user.linkedinUrl ?? '');
     _websiteController =
         TextEditingController(text: widget.user.websiteUrl ?? '');
-    _skillsController = TextEditingController();
     _availabilityStatus = widget.user.availabilityStatus;
     _skills = List<String>.from(widget.user.skills);
     _previewAvatarUrl = widget.user.avatarUrl;
@@ -61,7 +60,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _githubController.dispose();
     _linkedinController.dispose();
     _websiteController.dispose();
-    _skillsController.dispose();
     super.dispose();
   }
 
@@ -104,20 +102,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     }
-  }
-
-  void _addSkill() {
-    final skill = _skillsController.text.trim();
-    if (skill.isNotEmpty && !_skills.contains(skill)) {
-      setState(() {
-        _skills.add(skill);
-        _skillsController.clear();
-      });
-    }
-  }
-
-  void _removeSkill(String skill) {
-    setState(() => _skills.remove(skill));
   }
 
   Future<void> _saveProfile() async {
@@ -311,44 +295,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Skills
               _buildSectionHeader('Skills'),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _skillsController,
-                      decoration:
-                          _inputDecoration('Add a skill', Icons.psychology_outlined),
-                      onFieldSubmitted: (_) => _addSkill(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _addSkill,
-                    child: const Text('Add'),
-                  ),
-                ],
+              CategorizedSkillPicker(
+                selectedSkills: _skills,
+                onSkillsChanged: (newSkills) {
+                  setState(() {
+                    _skills = newSkills;
+                  });
+                },
               ),
-              if (_skills.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _skills.map((skill) {
-                    return Chip(
-                      label: Text(skill),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () => _removeSkill(skill),
-                      backgroundColor:
-                          const Color(0xFF6366F1).withOpacity(0.1),
-                      labelStyle:
-                          const TextStyle(color: Color(0xFF6366F1)),
-                      deleteIconColor: const Color(0xFF6366F1),
-                      side: BorderSide(
-                          color: const Color(0xFF6366F1).withOpacity(0.3)),
-                    );
-                  }).toList(),
-                ),
-              ],
               const SizedBox(height: 32),
             ],
           ),

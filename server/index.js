@@ -249,7 +249,7 @@ app.get('/api/users/username/:username', async (req, res) => {
   try {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, name, username, bio, avatar_url, cover_image_url, location, github_url, linkedin_url, website_url, availability_status, profile_views, industry, skills, role, reputation_points, badges, created_at')
+      .select('id, name, username, bio, avatar_url, cover_image_url, location, github_url, linkedin_url, website_url, availability_status, profile_views, industry, skills, role, reputation_points, badges, primary_expertise, expertise_level, created_at')
       .eq('username', req.params.username)
       .single();
 
@@ -268,7 +268,7 @@ app.get('/api/users/:id', async (req, res) => {
   try {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, name, username, bio, avatar_url, cover_image_url, location, github_url, linkedin_url, website_url, availability_status, profile_views, industry, skills, role, reputation_points, badges, created_at')
+      .select('id, name, username, bio, avatar_url, cover_image_url, location, github_url, linkedin_url, website_url, availability_status, profile_views, industry, skills, role, reputation_points, badges, primary_expertise, expertise_level, created_at')
       .eq('id', req.params.id)
       .single();
 
@@ -927,6 +927,105 @@ app.post('/api/projects/:id/contributions', authenticateToken, async (req, res) 
   } catch (error) {
     console.error('Add contribution error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Skill category routes
+
+// Get all skill categories grouped by parent category
+app.get('/api/skills/categories', async (req, res) => {
+  try {
+    const { data: categories, error } = await supabase
+      .from('skill_categories')
+      .select('*')
+      .order('parent_category', { ascending: true })
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+
+    const grouped = {};
+    categories.forEach(skill => {
+      if (!grouped[skill.parent_category]) {
+        grouped[skill.parent_category] = [];
+      }
+      grouped[skill.parent_category].push(skill);
+    });
+
+    res.json(grouped);
+  } catch (error) {
+    console.error('Get skill categories error:', error);
+    res.status(500).json({ error: 'Failed to fetch skill categories' });
+  }
+});
+
+// Get skills by parent category
+app.get('/api/skills/categories/:parentCategory', async (req, res) => {
+  try {
+    const { parentCategory } = req.params;
+
+    const { data: skills, error } = await supabase
+      .from('skill_categories')
+      .select('*')
+      .eq('parent_category', parentCategory)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+
+    res.json(skills);
+  } catch (error) {
+    console.error('Get skills by category error:', error);
+    res.status(500).json({ error: 'Failed to fetch skills' });
+  }
+});
+
+// Search skills
+app.get('/api/skills/search', async (req, res) => {
+  try {
+    const { query = '', limit = 20 } = req.query;
+
+    // Sanitize query to prevent SQL injection - escape special characters
+    const sanitizedQuery = query.replace(/[\\%_]/g, '\\$&');
+
+    const { data: skills, error } = await supabase
+      .from('skill_categories')
+      .select('*')
+      .or(`name.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`)
+      .limit(limit);
+
+    if (error) throw error;
+
+    res.json(skills);
+  } catch (error) {
+    console.error('Search skills error:', error);
+    res.status(500).json({ error: 'Failed to search skills' });
+  }
+});
+
+// Update user's primary expertise
+app.put('/api/users/me/expertise', authenticateToken, async (req, res) => {
+  try {
+    const { primary_expertise, expertise_level } = req.body;
+
+    if (!primary_expertise) {
+      return res.status(400).json({ error: 'Primary expertise is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        primary_expertise,
+        expertise_level: expertise_level || 'intermediate'
+      })
+      .eq('id', req.user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error) {
+    console.error('Update expertise error:', error);
+    res.status(500).json({ error: 'Failed to update expertise' });
   }
 });
 
