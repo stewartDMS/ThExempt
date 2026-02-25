@@ -3,6 +3,7 @@ import '../../../models/project_model.dart';
 import '../../../utils/time_ago.dart';
 import '../project_detail_screen.dart';
 import '../../../widgets/video_player_dialog.dart';
+import '../../profile/user_profile_screen.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -22,6 +23,14 @@ class ProjectCard extends StatelessWidget {
         ),
       );
     }
+  }
+
+  void _openOwnerProfile(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => UserProfileScreen(userId: project.ownerId),
+      ),
+    );
   }
 
   @override
@@ -50,38 +59,54 @@ class ProjectCard extends StatelessWidget {
               // Header
               Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        project.ownerName.isNotEmpty
-                            ? project.ownerName[0].toUpperCase()
-                            : 'U',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                  GestureDetector(
+                    onTap: () => _openOwnerProfile(context),
+                    child: project.ownerAvatarUrl != null
+                        ? CircleAvatar(
+                            radius: 24,
+                            backgroundImage:
+                                NetworkImage(project.ownerAvatarUrl!),
+                            onBackgroundImageError: (_, __) {},
+                          )
+                        : Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF6366F1),
+                                  Color(0xFF8B5CF6)
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                project.ownerName.isNotEmpty
+                                    ? project.ownerName[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          project.ownerName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        GestureDetector(
+                          onTap: () => _openOwnerProfile(context),
+                          child: Text(
+                            project.ownerName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 4),

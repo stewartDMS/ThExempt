@@ -220,57 +220,7 @@ app.post('/api/users/skills', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user profile by ID
-app.get('/api/users/:id', async (req, res) => {
-  try {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('id, name, username, bio, avatar_url, location, industry, skills, role, reputation_points, badges, created_at')
-      .eq('id', req.params.id)
-      .single();
-
-    if (error || !profile) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json(profile);
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Update user profile
-app.put('/api/users/me', authenticateToken, async (req, res) => {
-  const { name, username, bio, location, industry, skills, avatar_url } = req.body;
-
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        name,
-        username,
-        bio,
-        location,
-        industry,
-        skills,
-        avatar_url,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', req.user.id)
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(500).json({ error: 'Failed to update profile' });
-    }
-
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Search users
+// Search users (must be before /api/users/:id to avoid route conflict)
 app.get('/api/users/search', async (req, res) => {
   const { query = '', limit = 10 } = req.query;
 
@@ -289,6 +239,141 @@ app.get('/api/users/search', async (req, res) => {
     }
 
     res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user profile by username (must be before /api/users/:id)
+app.get('/api/users/username/:username', async (req, res) => {
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, name, username, bio, avatar_url, cover_image_url, location, github_url, linkedin_url, website_url, availability_status, profile_views, industry, skills, role, reputation_points, badges, created_at')
+      .eq('username', req.params.username)
+      .single();
+
+    if (error || !profile) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user profile by ID
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, name, username, bio, avatar_url, cover_image_url, location, github_url, linkedin_url, website_url, availability_status, profile_views, industry, skills, role, reputation_points, badges, created_at')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !profile) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Increment profile views (non-blocking)
+    supabase
+      .from('profiles')
+      .update({ profile_views: (profile.profile_views || 0) + 1 })
+      .eq('id', req.params.id)
+      .then(() => {}).catch(() => {});
+
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user profile
+app.put('/api/users/me', authenticateToken, async (req, res) => {
+  const { name, username, bio, location, industry, skills, avatar_url, cover_image_url, github_url, linkedin_url, website_url, availability_status } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        name,
+        username,
+        bio,
+        location,
+        industry,
+        skills,
+        avatar_url,
+        cover_image_url,
+        github_url,
+        linkedin_url,
+        website_url,
+        availability_status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', req.user.id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ error: 'Failed to update profile' });
+    }
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user stats
+app.get('/api/users/:id/stats', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const [projectsResult, likesResult, profileResult] = await Promise.all([
+      supabase
+        .from('projects')
+        .select('id', { count: 'exact' })
+        .eq('owner_id', userId),
+      supabase
+        .from('contributions')
+        .select('points')
+        .eq('user_id', userId),
+      supabase
+        .from('profiles')
+        .select('profile_views')
+        .eq('id', userId)
+        .single()
+    ]);
+
+    const totalProjects = projectsResult.count || 0;
+    const totalLikes = (likesResult.data || []).reduce((sum, c) => sum + (c.points || 0), 0);
+    const profileViews = profileResult.data?.profile_views || 0;
+
+    res.json({
+      total_projects: totalProjects,
+      total_likes: totalLikes,
+      profile_views: profileViews
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user's projects
+app.get('/api/users/:id/projects', async (req, res) => {
+  try {
+    const { data: projects, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('owner_id', req.params.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return res.status(500).json({ error: 'Failed to fetch user projects' });
+    }
+
+    res.json(projects || []);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -345,7 +430,7 @@ app.get('/api/projects', async (req, res) => {
       .from('projects')
       .select(`
         *,
-        profiles!projects_owner_id_fkey(name)
+        profiles!projects_owner_id_fkey(name, avatar_url)
       `)
       .eq('status', 'open')
       .order('created_at', { ascending: false });
@@ -358,7 +443,8 @@ app.get('/api/projects', async (req, res) => {
     // Format response to match expected structure
     const formattedProjects = projects.map(p => ({
       ...p,
-      owner_name: p.profiles?.name || 'Unknown'
+      owner_name: p.profiles?.name || 'Unknown',
+      owner_avatar_url: p.profiles?.avatar_url || null
     }));
 
     res.json(formattedProjects);
@@ -374,7 +460,7 @@ app.get('/api/projects/:id', async (req, res) => {
       .from('projects')
       .select(`
         *,
-        profiles!projects_owner_id_fkey(name)
+        profiles!projects_owner_id_fkey(name, avatar_url)
       `)
       .eq('id', req.params.id)
       .single();
@@ -386,7 +472,8 @@ app.get('/api/projects/:id', async (req, res) => {
     // Format response to match expected structure
     res.json({
       ...project,
-      owner_name: project.profiles?.name || 'Unknown'
+      owner_name: project.profiles?.name || 'Unknown',
+      owner_avatar_url: project.profiles?.avatar_url || null
     });
   } catch (error) {
     console.error('Get project error:', error);
