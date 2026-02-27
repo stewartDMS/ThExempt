@@ -122,6 +122,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _userProjects.where((p) => p.status == 'open').length;
   }
 
+  Color _getExpertiseColor(String expertise) {
+    switch (expertise) {
+      case 'Technical': return Colors.blue;
+      case 'Business': return Colors.green;
+      case 'Marketing': return Colors.orange;
+      case 'Operations': return Colors.purple;
+      case 'Creative': return Colors.pink;
+      case 'Legal': return Colors.indigo;
+      case 'Domain': return Colors.red;
+      case 'Soft Skills': return Colors.cyan;
+      default: return Colors.grey;
+    }
+  }
+
+  String _getExpertiseIcon(String expertise) {
+    switch (expertise) {
+      case 'Technical': return '💻';
+      case 'Business': return '💼';
+      case 'Marketing': return '📢';
+      case 'Operations': return '⚙️';
+      case 'Creative': return '🎨';
+      case 'Legal': return '⚖️';
+      case 'Domain': return '🎯';
+      case 'Soft Skills': return '🤝';
+      default: return '📌';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,6 +241,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: Colors.grey[600],
           ),
         ),
+
+        // Primary expertise badge
+        if (_userProfile?.primaryExpertise != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _getExpertiseColor(_userProfile!.primaryExpertise!),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${_getExpertiseIcon(_userProfile!.primaryExpertise!)} ${_userProfile!.primaryExpertise!}',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
 
         // Bio
         if (_userProfile?.bio != null && _userProfile!.bio!.isNotEmpty) ...[

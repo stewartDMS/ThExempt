@@ -15,6 +15,8 @@ class User {
   final List<String> skills;
   final int reputationPoints;
   final List<String> badges;
+  final String? primaryExpertise;
+  final String expertiseLevel;
   final DateTime? createdAt;
 
   User({
@@ -34,6 +36,8 @@ class User {
     this.skills = const [],
     this.reputationPoints = 0,
     this.badges = const [],
+    this.primaryExpertise,
+    this.expertiseLevel = 'intermediate',
     this.createdAt,
   });
 
@@ -55,6 +59,8 @@ class User {
       skills: List<String>.from(json['skills'] ?? []),
       reputationPoints: json['reputation_points'] ?? 0,
       badges: List<String>.from(json['badges'] ?? []),
+      primaryExpertise: json['primary_expertise'] as String?,
+      expertiseLevel: json['expertise_level'] ?? 'intermediate',
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -79,6 +85,8 @@ class User {
       'skills': skills,
       'reputation_points': reputationPoints,
       'badges': badges,
+      if (primaryExpertise != null) 'primary_expertise': primaryExpertise,
+      'expertise_level': expertiseLevel,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
     };
   }
