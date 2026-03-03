@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/project_model.dart';
 import '../../services/projects_service.dart';
 import '../../utils/time_ago.dart';
 import 'widgets/apply_dialog.dart';
+import 'widgets/project_roles_manager.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
@@ -21,11 +23,22 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _loadProject();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _currentUserId = prefs.getString('userId');
+      });
+    }
   }
 
   Future<void> _loadProject() async {
@@ -72,13 +85,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isOwner = _currentUserId != null &&
+        _project != null &&
+        _currentUserId == _project!.ownerId;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Project Details'),
         elevation: 0,
       ),
       body: _buildBody(),
-      bottomNavigationBar: _project != null
+      bottomNavigationBar: (_project != null && !isOwner)
           ? SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -325,6 +342,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     }).toList(),
                   ),
                 ],
+                const SizedBox(height: 32),
+
+                // Roles section
+                ProjectRolesManager(
+                  projectId: _project!.id,
+                  isOwner: _currentUserId != null &&
+                      _currentUserId == _project!.ownerId,
+                  onRolesChanged: _loadProject,
+                ),
+
                 const SizedBox(height: 80), // Space for bottom button
               ],
             ),

@@ -11,6 +11,8 @@ class Project {
   final String? videoUrl;
   final String? thumbnailUrl;
   final String? ownerAvatarUrl;
+  final int totalRolesNeeded;
+  final int rolesFilled;
 
   Project({
     required this.id,
@@ -25,6 +27,8 @@ class Project {
     this.videoUrl,
     this.thumbnailUrl,
     this.ownerAvatarUrl,
+    this.totalRolesNeeded = 0,
+    this.rolesFilled = 0,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -45,6 +49,8 @@ class Project {
       videoUrl: json['video_url'] as String?,
       thumbnailUrl: json['thumbnail_url'] as String?,
       ownerAvatarUrl: json['owner_avatar_url'] as String?,
+      totalRolesNeeded: json['total_roles_needed'] ?? 0,
+      rolesFilled: json['roles_filled'] ?? 0,
     );
   }
 
@@ -62,6 +68,8 @@ class Project {
       if (videoUrl != null) 'video_url': videoUrl,
       if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
       if (ownerAvatarUrl != null) 'owner_avatar_url': ownerAvatarUrl,
+      'total_roles_needed': totalRolesNeeded,
+      'roles_filled': rolesFilled,
     };
   }
 }

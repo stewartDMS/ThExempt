@@ -930,6 +930,215 @@ app.post('/api/projects/:id/contributions', authenticateToken, async (req, res) 
   }
 });
 
+// Project roles routes
+
+// Get all roles for a project, grouped by category
+app.get('/api/projects/:id/roles', async (req, res) => {
+  try {
+    const { data: roles, error } = await supabase
+      .from('project_roles')
+      .select('*')
+      .eq('project_id', req.params.id)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Get project roles error:', error);
+      return res.status(500).json({ error: 'Failed to fetch project roles' });
+    }
+
+    // Group by category
+    const grouped = {};
+    (roles || []).forEach(role => {
+      if (!grouped[role.role_category]) {
+        grouped[role.role_category] = [];
+      }
+      grouped[role.role_category].push(role);
+    });
+
+    res.json(grouped);
+  } catch (error) {
+    console.error('Get project roles error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add a role to a project (owner only)
+app.post('/api/projects/:id/roles', authenticateToken, async (req, res) => {
+  const projectId = req.params.id;
+  const { role_category, role_title, description, skills_required, display_order } = req.body;
+
+  if (!role_category || !role_title) {
+    return res.status(400).json({ error: 'role_category and role_title are required' });
+  }
+
+  try {
+    // Verify ownership
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('owner_id, total_roles_needed')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { data: role, error: insertError } = await supabase
+      .from('project_roles')
+      .insert({
+        project_id: projectId,
+        role_category,
+        role_title,
+        description: description || null,
+        skills_required: skills_required || [],
+        display_order: display_order || 0,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Create project role error:', insertError);
+      return res.status(500).json({ error: 'Failed to create role' });
+    }
+
+    // Update total_roles_needed count
+    await supabase
+      .from('projects')
+      .update({ total_roles_needed: (project.total_roles_needed || 0) + 1 })
+      .eq('id', projectId);
+
+    res.json(role);
+  } catch (error) {
+    console.error('Create project role error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update a role (owner only)
+app.put('/api/projects/:id/roles/:roleId', authenticateToken, async (req, res) => {
+  const { id: projectId, roleId } = req.params;
+  const { role_category, role_title, description, skills_required, is_filled, filled_by, display_order } = req.body;
+
+  try {
+    // Verify ownership
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('owner_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const updateFields = {};
+    if (role_category !== undefined) updateFields.role_category = role_category;
+    if (role_title !== undefined) updateFields.role_title = role_title;
+    if (description !== undefined) updateFields.description = description;
+    if (skills_required !== undefined) updateFields.skills_required = skills_required;
+    if (is_filled !== undefined) updateFields.is_filled = is_filled;
+    if (filled_by !== undefined) updateFields.filled_by = filled_by;
+    if (display_order !== undefined) updateFields.display_order = display_order;
+
+    const { data: role, error: updateError } = await supabase
+      .from('project_roles')
+      .update(updateFields)
+      .eq('id', roleId)
+      .eq('project_id', projectId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Update project role error:', updateError);
+      return res.status(500).json({ error: 'Failed to update role' });
+    }
+
+    // Recalculate roles_filled count
+    const { count } = await supabase
+      .from('project_roles')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', projectId)
+      .eq('is_filled', true);
+
+    await supabase
+      .from('projects')
+      .update({ roles_filled: count || 0 })
+      .eq('id', projectId);
+
+    res.json(role);
+  } catch (error) {
+    console.error('Update project role error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete a role (owner only)
+app.delete('/api/projects/:id/roles/:roleId', authenticateToken, async (req, res) => {
+  const { id: projectId, roleId } = req.params;
+
+  try {
+    // Verify ownership
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('owner_id, total_roles_needed')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { error: deleteError } = await supabase
+      .from('project_roles')
+      .delete()
+      .eq('id', roleId)
+      .eq('project_id', projectId);
+
+    if (deleteError) {
+      console.error('Delete project role error:', deleteError);
+      return res.status(500).json({ error: 'Failed to delete role' });
+    }
+
+    // Recalculate counts
+    const { count: filledCount } = await supabase
+      .from('project_roles')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', projectId)
+      .eq('is_filled', true);
+
+    const { count: totalCount } = await supabase
+      .from('project_roles')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', projectId);
+
+    await supabase
+      .from('projects')
+      .update({
+        total_roles_needed: totalCount || 0,
+        roles_filled: filledCount || 0,
+      })
+      .eq('id', projectId);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete project role error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Skill category routes
 
 // Get all skill categories grouped by parent category
