@@ -116,3 +116,22 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS expertise_level TEXT DEFAULT 'inte
 
 -- Create index on primary_expertise for filtering
 CREATE INDEX IF NOT EXISTS idx_profiles_primary_expertise ON profiles(primary_expertise);
+
+-- Project roles table
+CREATE TABLE IF NOT EXISTS project_roles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  role_category TEXT NOT NULL,
+  role_title TEXT NOT NULL,
+  description TEXT,
+  skills_required TEXT[],
+  is_filled BOOLEAN DEFAULT FALSE,
+  filled_by UUID REFERENCES profiles(id),
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_project_roles_project_id ON project_roles(project_id);
+
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS total_roles_needed INTEGER DEFAULT 0;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS roles_filled INTEGER DEFAULT 0;

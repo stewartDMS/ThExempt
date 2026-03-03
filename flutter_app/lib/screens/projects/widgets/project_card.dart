@@ -232,6 +232,44 @@ class ProjectCard extends StatelessWidget {
                     );
                   }).toList(),
                 ),
+
+              // Roles summary
+              if (project.totalRolesNeeded > 0) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.group_outlined,
+                        size: 14, color: Color(0xFF6366F1)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${project.rolesFilled}/${project.totalRolesNeeded} roles filled',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6366F1),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (project.totalRolesNeeded - project.rolesFilled > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${project.totalRolesNeeded - project.rolesFilled} open',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
