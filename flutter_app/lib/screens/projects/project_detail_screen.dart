@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/project_model.dart';
 import '../../services/projects_service.dart';
 import '../../utils/time_ago.dart';
+import '../../widgets/team_members_widget.dart';
+import 'applications_screen.dart';
 import 'widgets/apply_dialog.dart';
 import 'widgets/project_roles_manager.dart';
 
@@ -93,6 +95,23 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       appBar: AppBar(
         title: const Text('Project Details'),
         elevation: 0,
+        actions: [
+          if (_project != null && isOwner)
+            IconButton(
+              icon: const Icon(Icons.inbox_outlined),
+              tooltip: 'Applications',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ApplicationsInboxScreen(
+                      projectId: _project!.id,
+                      projectTitle: _project!.title,
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
       body: _buildBody(),
       bottomNavigationBar: (_project != null && !isOwner)
@@ -350,6 +369,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   isOwner: _currentUserId != null &&
                       _currentUserId == _project!.ownerId,
                   onRolesChanged: _loadProject,
+                ),
+
+                const SizedBox(height: 32),
+
+                // Team members section
+                TeamMembersWidget(
+                  key: ValueKey(_project!.id),
+                  projectId: _project!.id,
                 ),
 
                 const SizedBox(height: 80), // Space for bottom button

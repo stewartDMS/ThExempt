@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/project_model.dart';
 import '../models/project_role_model.dart';
+import '../models/role_application_model.dart';
+import '../models/project_member_model.dart';
 
 class ProjectsService {
   // API URL - Update this based on your setup:
@@ -356,6 +358,204 @@ class ProjectsService {
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       throw Exception('Failed to delete role: $e');
+    }
+  }
+
+  // Apply for a specific role
+  static Future<RoleApplication> applyForRole({
+    required String projectId,
+    required String roleId,
+    required String message,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.post(
+        Uri.parse('$apiUrl/projects/$projectId/roles/$roleId/apply'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'message': message}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return RoleApplication.fromJson(jsonDecode(response.body));
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Failed to submit application');
+      }
+    } catch (e) {
+      throw Exception('Failed to apply: $e');
+    }
+  }
+
+  // Get all role applications for a project (owner only), grouped by role
+  static Future<List<RoleApplicationGroup>> getProjectRoleApplications(
+      String projectId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.get(
+        Uri.parse('$apiUrl/projects/$projectId/role-applications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map((g) =>
+                RoleApplicationGroup.fromJson(g as Map<String, dynamic>))
+            .toList();
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Failed to load applications');
+      }
+    } catch (e) {
+      throw Exception('Failed to load applications: $e');
+    }
+  }
+
+  // Get current user's own role applications
+  static Future<List<RoleApplication>> getMyApplications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.get(
+        Uri.parse('$apiUrl/users/me/applications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map((a) => RoleApplication.fromJson(a as Map<String, dynamic>))
+            .toList();
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Failed to load applications');
+      }
+    } catch (e) {
+      throw Exception('Failed to load applications: $e');
+    }
+  }
+
+  // Accept a role application
+  static Future<void> acceptApplication(String applicationId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.put(
+        Uri.parse('$apiUrl/role-applications/$applicationId/accept'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Failed to accept application');
+      }
+    } catch (e) {
+      throw Exception('Failed to accept: $e');
+    }
+  }
+
+  // Reject a role application
+  static Future<void> rejectApplication(String applicationId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.put(
+        Uri.parse('$apiUrl/role-applications/$applicationId/reject'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Failed to reject application');
+      }
+    } catch (e) {
+      throw Exception('Failed to reject: $e');
+    }
+  }
+
+  // Withdraw own pending application
+  static Future<void> withdrawApplication(String applicationId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await http.delete(
+        Uri.parse('$apiUrl/role-applications/$applicationId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Failed to withdraw application');
+      }
+    } catch (e) {
+      throw Exception('Failed to withdraw: $e');
+    }
+  }
+
+  // Get project team members
+  static Future<List<ProjectMember>> getProjectMembers(
+      String projectId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      final response = await http.get(
+        Uri.parse('$apiUrl/projects/$projectId/members'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map((m) =>
+                ProjectMember.fromJson(m as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Failed to load members');
+      }
+    } catch (e) {
+      throw Exception('Failed to load members: $e');
     }
   }
 }

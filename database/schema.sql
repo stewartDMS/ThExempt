@@ -135,3 +135,35 @@ CREATE INDEX IF NOT EXISTS idx_project_roles_project_id ON project_roles(project
 
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS total_roles_needed INTEGER DEFAULT 0;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS roles_filled INTEGER DEFAULT 0;
+
+-- Role applications table
+CREATE TABLE IF NOT EXISTS role_applications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  role_id UUID REFERENCES project_roles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  message TEXT NOT NULL,
+  match_score INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(role_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_role_applications_project ON role_applications(project_id);
+CREATE INDEX IF NOT EXISTS idx_role_applications_user ON role_applications(user_id);
+CREATE INDEX IF NOT EXISTS idx_role_applications_status ON role_applications(status);
+
+-- Project members table
+CREATE TABLE IF NOT EXISTS project_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  role_id UUID REFERENCES project_roles(id) ON DELETE SET NULL,
+  role_title TEXT NOT NULL,
+  joined_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(project_id, user_id, role_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_project_members_project ON project_members(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_members_user ON project_members(user_id);
