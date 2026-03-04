@@ -309,8 +309,15 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
               'Category: ${role.roleCategory}',
               style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
+            if (role.skillsRequired.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Skills Required: ${role.skillsRequired.join(', ')}',
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              ),
+            ],
             const SizedBox(height: 12),
-            const Text('Message (optional)',
+            const Text('Message *',
                 style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             TextField(
@@ -331,7 +338,10 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () {
+              if (msgCtrl.text.trim().isEmpty) return;
+              Navigator.pop(ctx, true);
+            },
             child: const Text('Apply'),
           ),
         ],
@@ -341,13 +351,17 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
     if (confirmed != true) return;
 
     try {
-      final message = msgCtrl.text.trim().isEmpty
-          ? 'Applying for ${role.roleTitle} (${role.roleCategory})'
-          : '${role.roleTitle} (${role.roleCategory}): ${msgCtrl.text.trim()}';
-      await ProjectsService.applyToProject(widget.projectId, message);
+      await ProjectsService.applyForRole(
+        projectId: widget.projectId,
+        roleId: role.id,
+        message: msgCtrl.text.trim(),
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Application submitted!')),
+          const SnackBar(
+            content: Text('Application submitted!'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {

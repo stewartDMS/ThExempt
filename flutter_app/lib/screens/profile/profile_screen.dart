@@ -7,6 +7,7 @@ import '../../models/project_model.dart';
 import '../../main.dart';
 import '../../widgets/video_player_dialog.dart';
 import 'edit_profile_screen.dart';
+import 'my_applications_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -189,6 +190,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Projects section
                     _buildProjectsSection(),
+                    const SizedBox(height: 16),
+
+                    // My Applications shortcut
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MyApplicationsScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.description_outlined),
+                        label: const Text('My Applications'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -1139,6 +1139,417 @@ app.delete('/api/projects/:id/roles/:roleId', authenticateToken, async (req, res
   }
 });
 
+// Role-specific application routes
+
+// Apply for a specific role
+app.post('/api/projects/:projectId/roles/:roleId/apply', authenticateToken, async (req, res) => {
+  const { projectId, roleId } = req.params;
+  const { message } = req.body;
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  try {
+    // Verify project and role exist
+    const { data: role, error: roleError } = await supabase
+      .from('project_roles')
+      .select('id, role_title, skills_required, is_filled, project_id')
+      .eq('id', roleId)
+      .eq('project_id', projectId)
+      .single();
+
+    if (roleError || !role) {
+      return res.status(404).json({ error: 'Role not found' });
+    }
+
+    if (role.is_filled) {
+      return res.status(400).json({ error: 'This role is already filled' });
+    }
+
+    // Prevent owner from applying to own project
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('owner_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.owner_id === req.user.id) {
+      return res.status(400).json({ error: 'Project owners cannot apply to their own project' });
+    }
+
+    // Get user skills
+    const { data: userSkills } = await supabase
+      .from('user_skills')
+      .select('skill')
+      .eq('user_id', req.user.id);
+
+    // Calculate match score
+    const requiredSkills = role.skills_required || [];
+    const userSkillSet = new Set((userSkills || []).map(s => s.skill.toLowerCase()));
+    const matchingSkills = requiredSkills.filter(skill =>
+      userSkillSet.has(skill.toLowerCase())
+    );
+    const matchScore = requiredSkills.length > 0
+      ? Math.round((matchingSkills.length / requiredSkills.length) * 100)
+      : 50;
+
+    // Insert application (UNIQUE constraint on role_id+user_id prevents duplicates)
+    const { data, error } = await supabase
+      .from('role_applications')
+      .insert({
+        project_id: projectId,
+        role_id: roleId,
+        user_id: req.user.id,
+        message: message.trim(),
+        match_score: matchScore,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'You have already applied for this role' });
+      }
+      console.error('Create role application error:', error);
+      return res.status(500).json({ error: 'Failed to submit application' });
+    }
+
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('Apply for role error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get all role applications for a project (owner only), grouped by role
+app.get('/api/projects/:projectId/role-applications', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+
+  try {
+    // Verify ownership
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('owner_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (project.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { data: applications, error } = await supabase
+      .from('role_applications')
+      .select(`
+        *,
+        profiles!role_applications_user_id_fkey(id, name, avatar_url, reputation_points),
+        project_roles!role_applications_role_id_fkey(id, role_title, role_category, skills_required)
+      `)
+      .eq('project_id', projectId)
+      .order('status', { ascending: true })
+      .order('match_score', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Get role applications error:', error);
+      return res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+
+    // Format and group by role
+    const grouped = {};
+    (applications || []).forEach(a => {
+      const roleId = a.role_id;
+      if (!grouped[roleId]) {
+        grouped[roleId] = {
+          role_id: roleId,
+          role_title: a.project_roles?.role_title || '',
+          role_category: a.project_roles?.role_category || '',
+          skills_required: a.project_roles?.skills_required || [],
+          applications: [],
+        };
+      }
+      grouped[roleId].applications.push({
+        id: a.id,
+        project_id: a.project_id,
+        role_id: a.role_id,
+        user_id: a.user_id,
+        message: a.message,
+        match_score: a.match_score,
+        status: a.status,
+        created_at: a.created_at,
+        updated_at: a.updated_at,
+        applicant_name: a.profiles?.name || 'Unknown',
+        applicant_avatar_url: a.profiles?.avatar_url || null,
+        applicant_id: a.profiles?.id || a.user_id,
+        reputation_points: a.profiles?.reputation_points || 0,
+      });
+    });
+
+    res.json(Object.values(grouped));
+  } catch (error) {
+    console.error('Get role applications error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get current user's own role applications
+app.get('/api/users/me/applications', authenticateToken, async (req, res) => {
+  try {
+    const { data: applications, error } = await supabase
+      .from('role_applications')
+      .select(`
+        *,
+        projects!role_applications_project_id_fkey(id, title, owner_id),
+        project_roles!role_applications_role_id_fkey(id, role_title, role_category)
+      `)
+      .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Get my applications error:', error);
+      return res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+
+    const formatted = (applications || []).map(a => ({
+      id: a.id,
+      project_id: a.project_id,
+      role_id: a.role_id,
+      message: a.message,
+      match_score: a.match_score,
+      status: a.status,
+      created_at: a.created_at,
+      updated_at: a.updated_at,
+      project_title: a.projects?.title || '',
+      role_title: a.project_roles?.role_title || '',
+      role_category: a.project_roles?.role_category || '',
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error('Get my applications error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Accept a role application (owner only)
+app.put('/api/role-applications/:applicationId/accept', authenticateToken, async (req, res) => {
+  const { applicationId } = req.params;
+
+  try {
+    // Fetch application with role and project info
+    const { data: application, error: appError } = await supabase
+      .from('role_applications')
+      .select(`
+        *,
+        project_roles!role_applications_role_id_fkey(id, role_title, is_filled),
+        projects!role_applications_project_id_fkey(id, owner_id)
+      `)
+      .eq('id', applicationId)
+      .single();
+
+    if (appError || !application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    if (application.projects?.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(400).json({ error: 'Application is no longer pending' });
+    }
+
+    if (application.project_roles?.is_filled) {
+      return res.status(400).json({ error: 'Role is already filled' });
+    }
+
+    const roleTitle = application.project_roles?.role_title || '';
+    const projectId = application.project_id;
+    const roleId = application.role_id;
+    const userId = application.user_id;
+
+    // Accept application
+    const { error: updateError } = await supabase
+      .from('role_applications')
+      .update({ status: 'accepted', updated_at: new Date().toISOString() })
+      .eq('id', applicationId);
+
+    if (updateError) {
+      console.error('Accept application update error:', updateError);
+      return res.status(500).json({ error: 'Failed to accept application' });
+    }
+
+    // Mark role as filled
+    await supabase
+      .from('project_roles')
+      .update({ is_filled: true, filled_by: userId })
+      .eq('id', roleId);
+
+    // Add to project_members (ignore duplicate)
+    const { error: memberError } = await supabase
+      .from('project_members')
+      .upsert({
+        project_id: projectId,
+        user_id: userId,
+        role_id: roleId,
+        role_title: roleTitle,
+      }, { onConflict: 'project_id,user_id,role_id', ignoreDuplicates: true });
+
+    if (memberError) {
+      console.error('Add project member error:', memberError);
+    }
+
+    // Auto-reject other pending applications for the same role
+    await supabase
+      .from('role_applications')
+      .update({ status: 'rejected', updated_at: new Date().toISOString() })
+      .eq('role_id', roleId)
+      .eq('status', 'pending')
+      .neq('id', applicationId);
+
+    // Recalculate roles_filled on project
+    const { count: filledCount } = await supabase
+      .from('project_roles')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', projectId)
+      .eq('is_filled', true);
+
+    await supabase
+      .from('projects')
+      .update({ roles_filled: filledCount || 0 })
+      .eq('id', projectId);
+
+    res.json({ success: true, message: `${roleTitle} has been filled!` });
+  } catch (error) {
+    console.error('Accept application error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Reject a role application (owner only)
+app.put('/api/role-applications/:applicationId/reject', authenticateToken, async (req, res) => {
+  const { applicationId } = req.params;
+
+  try {
+    // Fetch application with project info
+    const { data: application, error: appError } = await supabase
+      .from('role_applications')
+      .select(`
+        *,
+        projects!role_applications_project_id_fkey(id, owner_id)
+      `)
+      .eq('id', applicationId)
+      .single();
+
+    if (appError || !application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    if (application.projects?.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { error: updateError } = await supabase
+      .from('role_applications')
+      .update({ status: 'rejected', updated_at: new Date().toISOString() })
+      .eq('id', applicationId);
+
+    if (updateError) {
+      console.error('Reject application error:', updateError);
+      return res.status(500).json({ error: 'Failed to reject application' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Reject application error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Withdraw (cancel) own pending application
+app.delete('/api/role-applications/:applicationId', authenticateToken, async (req, res) => {
+  const { applicationId } = req.params;
+
+  try {
+    const { data: application, error: appError } = await supabase
+      .from('role_applications')
+      .select('id, user_id, status')
+      .eq('id', applicationId)
+      .single();
+
+    if (appError || !application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    if (application.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(400).json({ error: 'Can only withdraw pending applications' });
+    }
+
+    await supabase
+      .from('role_applications')
+      .delete()
+      .eq('id', applicationId);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Withdraw application error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get project team members
+app.get('/api/projects/:projectId/members', async (req, res) => {
+  const { projectId } = req.params;
+
+  try {
+    const { data: members, error } = await supabase
+      .from('project_members')
+      .select(`
+        *,
+        profiles!project_members_user_id_fkey(id, name, avatar_url, bio),
+        project_roles!project_members_role_id_fkey(id, role_category)
+      `)
+      .eq('project_id', projectId)
+      .order('joined_at', { ascending: true });
+
+    if (error) {
+      console.error('Get project members error:', error);
+      return res.status(500).json({ error: 'Failed to fetch members' });
+    }
+
+    const formatted = (members || []).map(m => ({
+      id: m.id,
+      project_id: m.project_id,
+      user_id: m.user_id,
+      role_id: m.role_id,
+      role_title: m.role_title,
+      role_category: m.project_roles?.role_category || '',
+      joined_at: m.joined_at,
+      name: m.profiles?.name || 'Unknown',
+      avatar_url: m.profiles?.avatar_url || null,
+      bio: m.profiles?.bio || null,
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error('Get project members error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Skill category routes
 
 // Get all skill categories grouped by parent category
