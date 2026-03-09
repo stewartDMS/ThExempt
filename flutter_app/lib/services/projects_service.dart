@@ -530,6 +530,73 @@ class ProjectsService {
     }
   }
 
+  // Discover projects with optional role-category filter, open-roles toggle, and sort
+  static Future<List<Project>> discoverProjects({
+    String? roleCategory,
+    bool hasOpenRoles = false,
+    String sort = 'recent',
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      final queryParams = <String, String>{
+        if (roleCategory != null) 'role_category': roleCategory,
+        if (hasOpenRoles) 'has_open_roles': 'true',
+        'sort': sort,
+      };
+
+      final uri = Uri.parse('$apiUrl/projects/discover')
+          .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> projectsJson = jsonDecode(response.body);
+        return projectsJson.map((json) => Project.fromJson(json)).toList();
+      } else {
+        // Fall back to all projects if the discover endpoint is not available
+        return getProjects();
+      }
+    } catch (e) {
+      // Fall back to all projects on error
+      return getProjects();
+    }
+  }
+
+  // Get open roles for a project (used on discovery cards)
+  static Future<List<ProjectRole>> getOpenRoles(String projectId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('authToken');
+
+      final response = await http.get(
+        Uri.parse('$apiUrl/projects/$projectId/open-roles'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map((r) => ProjectRole.fromJson(r as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
   // Get project team members
   static Future<List<ProjectMember>> getProjectMembers(
       String projectId) async {
