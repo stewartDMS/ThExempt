@@ -28,6 +28,15 @@ dependencies:
   # Upload avatar image
   file_picker: ^6.1.1
 
+  # Real-time communication
+  web_socket_channel: ^2.4.0
+
+  # Rich text rendering
+  flutter_markdown: ^0.6.18
+
+  # Image selection for discussions
+  image_picker: ^1.0.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
