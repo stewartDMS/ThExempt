@@ -1649,6 +1649,640 @@ app.put('/api/users/me/expertise', authenticateToken, async (req, res) => {
   }
 });
 
+// ─── DISCUSSION ENDPOINTS ────────────────────────────────────────────────────
+
+// Create discussion
+app.post('/api/discussions', authenticateToken, async (req, res) => {
+  try {
+    const { category, title, content, tags, image_url } = req.body;
+    if (!category || !title || !content) {
+      return res.status(400).json({ error: 'category, title, and content are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('discussions')
+      .insert({
+        author_id: req.user.id,
+        category,
+        title,
+        content,
+        tags: tags || [],
+        image_url: image_url || null,
+      })
+      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('Create discussion error:', error);
+    res.status(500).json({ error: 'Failed to create discussion' });
+  }
+});
+
+// List discussions
+app.get('/api/discussions', async (req, res) => {
+  try {
+    const { category, search, sort = 'recent' } = req.query;
+    const rawPage = parseInt(req.query.page, 10);
+    const rawLimit = parseInt(req.query.limit, 10);
+    const page = (Number.isFinite(rawPage) && rawPage > 0) ? rawPage : 1;
+    const limit = (Number.isFinite(rawLimit) && rawLimit > 0 && rawLimit <= 100) ? rawLimit : 20;
+
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = null;
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) userId = user.id;
+    }
+
+    const offset = (page - 1) * limit;
+    let query = supabase
+      .from('discussions')
+      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .range(offset, offset + limit - 1);
+
+    if (category) query = query.eq('category', category);
+    if (search) {
+      // Escape special PostgREST filter characters to prevent injection
+      const safeSearch = search.replace(/[%_\\]/g, '\\$&');
+      query = query.or(`title.ilike.%${safeSearch}%,content.ilike.%${safeSearch}%`);
+    }
+
+    if (sort === 'popular') query = query.order('likes_count', { ascending: false });
+    else if (sort === 'trending') query = query.order('views_count', { ascending: false });
+    else query = query.order('created_at', { ascending: false });
+
+    const { data: discussions, error } = await query;
+    if (error) throw error;
+
+    let likedIds = new Set();
+    if (userId) {
+      const { data: likes } = await supabase
+        .from('discussion_likes')
+        .select('discussion_id')
+        .eq('user_id', userId)
+        .is('reply_id', null);
+      if (likes) likes.forEach(l => likedIds.add(l.discussion_id));
+    }
+
+    const result = (discussions || []).map(d => ({
+      ...d,
+      is_liked_by_user: likedIds.has(d.id),
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('List discussions error:', error);
+    res.status(500).json({ error: 'Failed to fetch discussions' });
+  }
+});
+
+// Get single discussion
+app.get('/api/discussions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = null;
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) userId = user.id;
+    }
+
+    const { data: discussion, error } = await supabase
+      .from('discussions')
+      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .eq('id', id)
+      .single();
+
+    if (error || !discussion) return res.status(404).json({ error: 'Discussion not found' });
+
+    // Increment views (fire and forget)
+    supabase.from('discussions')
+      .update({ views_count: (discussion.views_count || 0) + 1 })
+      .eq('id', id)
+      .then(() => {});
+
+    let isLiked = false;
+    if (userId) {
+      const { data: like } = await supabase
+        .from('discussion_likes')
+        .select('id')
+        .eq('discussion_id', id)
+        .eq('user_id', userId)
+        .is('reply_id', null)
+        .single();
+      isLiked = !!like;
+    }
+
+    res.json({ ...discussion, is_liked_by_user: isLiked });
+  } catch (error) {
+    console.error('Get discussion error:', error);
+    res.status(500).json({ error: 'Failed to fetch discussion' });
+  }
+});
+
+// Add reply to discussion
+app.post('/api/discussions/:id/replies', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, parent_reply_id } = req.body;
+    if (!content) return res.status(400).json({ error: 'content is required' });
+
+    const { data: reply, error } = await supabase
+      .from('discussion_replies')
+      .insert({
+        discussion_id: id,
+        author_id: req.user.id,
+        parent_reply_id: parent_reply_id || null,
+        content,
+      })
+      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .single();
+
+    if (error) throw error;
+
+    // Increment replies_count (fire and forget)
+    supabase.from('discussions').select('replies_count').eq('id', id).single()
+      .then(({ data }) => {
+        if (data) {
+          supabase.from('discussions')
+            .update({ replies_count: (data.replies_count || 0) + 1 })
+            .eq('id', id).then(() => {});
+        }
+      });
+
+    res.status(201).json(reply);
+  } catch (error) {
+    console.error('Add reply error:', error);
+    res.status(500).json({ error: 'Failed to add reply' });
+  }
+});
+
+// Get replies for a discussion
+app.get('/api/discussions/:id/replies', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = null;
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) userId = user.id;
+    }
+
+    const { data: replies, error } = await supabase
+      .from('discussion_replies')
+      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .eq('discussion_id', id)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    let likedReplyIds = new Set();
+    if (userId) {
+      const { data: likes } = await supabase
+        .from('discussion_likes')
+        .select('reply_id')
+        .eq('user_id', userId)
+        .not('reply_id', 'is', null);
+      if (likes) likes.forEach(l => likedReplyIds.add(l.reply_id));
+    }
+
+    // Build nested structure
+    const topLevel = [];
+    const byId = {};
+    (replies || []).forEach(r => {
+      byId[r.id] = { ...r, is_liked_by_user: likedReplyIds.has(r.id), replies: [] };
+    });
+    (replies || []).forEach(r => {
+      if (r.parent_reply_id && byId[r.parent_reply_id]) {
+        byId[r.parent_reply_id].replies.push(byId[r.id]);
+      } else {
+        topLevel.push(byId[r.id]);
+      }
+    });
+
+    res.json(topLevel);
+  } catch (error) {
+    console.error('Get replies error:', error);
+    res.status(500).json({ error: 'Failed to fetch replies' });
+  }
+});
+
+// Like a discussion or reply
+app.post('/api/discussions/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reply_id } = req.body;
+
+    // Check for existing like
+    let query = supabase
+      .from('discussion_likes')
+      .select('id')
+      .eq('user_id', req.user.id);
+
+    if (reply_id) {
+      query = query.eq('reply_id', reply_id);
+    } else {
+      query = query.eq('discussion_id', id).is('reply_id', null);
+    }
+
+    const { data: existing } = await query.single();
+    if (existing) return res.status(409).json({ error: 'Already liked' });
+
+    const { error: insertError } = await supabase
+      .from('discussion_likes')
+      .insert({
+        discussion_id: id,
+        reply_id: reply_id || null,
+        user_id: req.user.id,
+      });
+
+    if (insertError) throw insertError;
+
+    if (reply_id) {
+      const { data: reply } = await supabase.from('discussion_replies').select('likes_count').eq('id', reply_id).single();
+      if (reply) await supabase.from('discussion_replies').update({ likes_count: (reply.likes_count || 0) + 1 }).eq('id', reply_id);
+    } else {
+      const { data: disc } = await supabase.from('discussions').select('likes_count').eq('id', id).single();
+      if (disc) await supabase.from('discussions').update({ likes_count: (disc.likes_count || 0) + 1 }).eq('id', id);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Like discussion error:', error);
+    res.status(500).json({ error: 'Failed to like' });
+  }
+});
+
+// Unlike a discussion or reply
+app.delete('/api/discussions/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reply_id } = req.query;
+
+    let query = supabase
+      .from('discussion_likes')
+      .delete()
+      .eq('user_id', req.user.id);
+
+    if (reply_id) {
+      query = query.eq('reply_id', reply_id);
+    } else {
+      query = query.eq('discussion_id', id).is('reply_id', null);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+
+    if (reply_id) {
+      const { data: reply } = await supabase.from('discussion_replies').select('likes_count').eq('id', reply_id).single();
+      if (reply) await supabase.from('discussion_replies').update({ likes_count: Math.max(0, (reply.likes_count || 0) - 1) }).eq('id', reply_id);
+    } else {
+      const { data: disc } = await supabase.from('discussions').select('likes_count').eq('id', id).single();
+      if (disc) await supabase.from('discussions').update({ likes_count: Math.max(0, (disc.likes_count || 0) - 1) }).eq('id', id);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Unlike discussion error:', error);
+    res.status(500).json({ error: 'Failed to unlike' });
+  }
+});
+
+// ─── LIVE EVENT ENDPOINTS ────────────────────────────────────────────────────
+
+// Create live event
+app.post('/api/live-events', authenticateToken, async (req, res) => {
+  try {
+    const {
+      title, description, category, event_type,
+      scheduled_start, scheduled_end, timezone,
+      meeting_link, max_attendees, allow_chat, allow_reactions,
+    } = req.body;
+
+    if (!title || !category || !event_type) {
+      return res.status(400).json({ error: 'title, category, and event_type are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('live_events')
+      .insert({
+        host_id: req.user.id,
+        title,
+        description: description || null,
+        category,
+        event_type,
+        scheduled_start: scheduled_start || null,
+        scheduled_end: scheduled_end || null,
+        timezone: timezone || 'UTC',
+        meeting_link: meeting_link || null,
+        max_attendees: max_attendees || 100,
+        allow_chat: allow_chat !== false,
+        allow_reactions: allow_reactions !== false,
+      })
+      .select(`*, profiles:host_id (id, name, avatar_url)`)
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('Create live event error:', error);
+    res.status(500).json({ error: 'Failed to create live event' });
+  }
+});
+
+// List live events
+app.get('/api/live-events', async (req, res) => {
+  try {
+    const { status, category, host_id } = req.query;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = null;
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) userId = user.id;
+    }
+
+    let query = supabase
+      .from('live_events')
+      .select(`*, profiles:host_id (id, name, avatar_url)`);
+
+    if (category) query = query.eq('category', category);
+    if (host_id) query = query.eq('host_id', host_id);
+
+    if (status === 'live') {
+      query = query.eq('is_live', true);
+    } else if (status === 'upcoming') {
+      // Events not yet started and not ended (scheduled in future or with no scheduled time yet)
+      query = query.eq('is_live', false).is('ended_at', null)
+        .or('scheduled_start.is.null,scheduled_start.gt.' + new Date().toISOString());
+    } else if (status === 'past') {
+      query = query.not('ended_at', 'is', null);
+    }
+
+    // Live events first, then by scheduled_start
+    query = query.order('is_live', { ascending: false }).order('scheduled_start', { ascending: true });
+
+    const { data: events, error } = await query;
+    if (error) throw error;
+
+    // Attach RSVP counts
+    const eventIds = (events || []).map(e => e.id);
+    let rsvpCounts = {};
+    let userRsvps = {};
+    if (eventIds.length) {
+      const { data: rsvps } = await supabase
+        .from('event_rsvps')
+        .select('event_id, status, user_id')
+        .in('event_id', eventIds);
+      if (rsvps) {
+        rsvps.forEach(r => {
+          if (!rsvpCounts[r.event_id]) rsvpCounts[r.event_id] = 0;
+          rsvpCounts[r.event_id]++;
+          if (userId && r.user_id === userId) userRsvps[r.event_id] = r.status;
+        });
+      }
+    }
+
+    const result = (events || []).map(e => ({
+      ...e,
+      rsvp_count: rsvpCounts[e.id] || 0,
+      user_rsvp_status: userRsvps[e.id] || null,
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('List live events error:', error);
+    res.status(500).json({ error: 'Failed to fetch live events' });
+  }
+});
+
+// Get single live event
+app.get('/api/live-events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId = null;
+    if (token) {
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) userId = user.id;
+    }
+
+    const { data: event, error } = await supabase
+      .from('live_events')
+      .select(`*, profiles:host_id (id, name, avatar_url)`)
+      .eq('id', id)
+      .single();
+
+    if (error || !event) return res.status(404).json({ error: 'Event not found' });
+
+    // Increment total_views if not the host (fire and forget)
+    if (!userId || userId !== event.host_id) {
+      supabase.from('live_events')
+        .update({ total_views: (event.total_views || 0) + 1 })
+        .eq('id', id).then(() => {});
+    }
+
+    // Get RSVP count and user's RSVP status
+    const { data: rsvps } = await supabase.from('event_rsvps').select('user_id, status').eq('event_id', id);
+    const rsvpCount = (rsvps || []).length;
+    const userRsvp = userId ? (rsvps || []).find(r => r.user_id === userId) : null;
+
+    res.json({
+      ...event,
+      rsvp_count: rsvpCount,
+      user_rsvp_status: userRsvp ? userRsvp.status : null,
+    });
+  } catch (error) {
+    console.error('Get live event error:', error);
+    res.status(500).json({ error: 'Failed to fetch live event' });
+  }
+});
+
+// Go live
+app.post('/api/live-events/:id/go-live', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { stream_url } = req.body;
+
+    const { data: event } = await supabase.from('live_events').select('host_id').eq('id', id).single();
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    if (event.host_id !== req.user.id) return res.status(403).json({ error: 'Only the host can go live' });
+
+    const { data, error } = await supabase
+      .from('live_events')
+      .update({ is_live: true, started_at: new Date().toISOString(), stream_url: stream_url || null })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Go live error:', error);
+    res.status(500).json({ error: 'Failed to start live stream' });
+  }
+});
+
+// End stream
+app.post('/api/live-events/:id/end', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { recording_url } = req.body;
+
+    const { data: event } = await supabase.from('live_events').select('host_id, viewers_count, peak_viewers').eq('id', id).single();
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    if (event.host_id !== req.user.id) return res.status(403).json({ error: 'Only the host can end the stream' });
+
+    const { data, error } = await supabase
+      .from('live_events')
+      .update({
+        is_live: false,
+        ended_at: new Date().toISOString(),
+        recording_url: recording_url || null,
+        peak_viewers: Math.max(event.viewers_count || 0, event.peak_viewers || 0),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('End stream error:', error);
+    res.status(500).json({ error: 'Failed to end stream' });
+  }
+});
+
+// RSVP to event
+app.post('/api/live-events/:id/rsvp', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status = 'attending' } = req.body;
+
+    if (!['attending', 'maybe', 'not_attending'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const { data, error } = await supabase
+      .from('event_rsvps')
+      .upsert({ event_id: id, user_id: req.user.id, status, updated_at: new Date().toISOString() })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('RSVP error:', error);
+    res.status(500).json({ error: 'Failed to RSVP' });
+  }
+});
+
+// Remove RSVP
+app.delete('/api/live-events/:id/rsvp', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase
+      .from('event_rsvps')
+      .delete()
+      .eq('event_id', id)
+      .eq('user_id', req.user.id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Remove RSVP error:', error);
+    res.status(500).json({ error: 'Failed to remove RSVP' });
+  }
+});
+
+// Get chat messages
+app.get('/api/live-events/:id/chat', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('live_chat_messages')
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
+      .eq('event_id', id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+    res.json((data || []).reverse());
+  } catch (error) {
+    console.error('Get chat error:', error);
+    res.status(500).json({ error: 'Failed to fetch chat' });
+  }
+});
+
+// Send chat message
+app.post('/api/live-events/:id/chat', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ error: 'message is required' });
+
+    const { data, error } = await supabase
+      .from('live_chat_messages')
+      .insert({ event_id: id, user_id: req.user.id, message })
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('Send chat error:', error);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Send reaction
+app.post('/api/live-events/:id/reaction', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reaction_type } = req.body;
+    const validTypes = ['like', 'love', 'fire', 'clap', 'think'];
+    if (!reaction_type || !validTypes.includes(reaction_type)) {
+      return res.status(400).json({ error: 'Valid reaction_type required' });
+    }
+
+    const { data, error } = await supabase
+      .from('live_reactions')
+      .insert({ event_id: id, user_id: req.user.id, reaction_type })
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (error) {
+    console.error('Send reaction error:', error);
+    res.status(500).json({ error: 'Failed to send reaction' });
+  }
+});
+
+// Get viewer count
+app.get('/api/live-events/:id/viewers', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('live_events')
+      .select('viewers_count')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    res.json({ viewers_count: data?.viewers_count || 0 });
+  } catch (error) {
+    console.error('Get viewers error:', error);
+    res.status(500).json({ error: 'Failed to get viewer count' });
+  }
+});
+
 // Serve frontend for root path
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/public/index.html'));

@@ -4,6 +4,7 @@ import '../projects/projects_feed_screen.dart';
 import '../projects/create_project_screen.dart';
 import '../profile/profile_screen.dart';
 import '../feed/discovery_screen.dart';
+import '../community/community_hub_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -27,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ProjectsFeedScreen(key: _feedKey),
       const DiscoveryScreen(),
       const CreateProjectScreen(),
-      const PlaceholderScreen(title: 'Activity', icon: Icons.notifications),
+      const CommunityHubScreen(),
       const ProfileScreen(),
     ];
   }
@@ -73,9 +74,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Create',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            activeIcon: Icon(Icons.notifications),
-            label: 'Activity',
+            icon: Icon(Icons.forum_outlined),
+            activeIcon: Icon(Icons.forum),
+            label: 'Community',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
