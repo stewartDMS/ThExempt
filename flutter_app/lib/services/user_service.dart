@@ -1,15 +1,15 @@
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
+import '../utils/base64_utils.dart';
 
 class UserService {
-  static const String apiUrl = 'http://localhost:5000/api';
+  static final _supabase = Supabase.instance.client;
 
   // Clear user session (logout)
   static Future<void> logout() async {
+    await _supabase.auth.signOut();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('authToken');
     await prefs.remove('userId');
     await prefs.remove('userName');
     await prefs.remove('userEmail');
@@ -17,22 +17,13 @@ class UserService {
 
   // Get user profile by ID
   static Future<User> getProfile(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final response = await _supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .single();
 
-    final response = await http.get(
-      Uri.parse('$apiUrl/users/$userId'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load profile');
-    }
+    return User.fromJson(response);
   }
 
   // Update own profile
@@ -49,92 +40,81 @@ class UserService {
     String? avatarUrl,
     String? coverImageUrl,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-    if (token == null) throw Exception('Not authenticated');
-
-    final response = await http.put(
-      Uri.parse('$apiUrl/users/me'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'name': name,
-        if (username != null) 'username': username,
-        if (bio != null) 'bio': bio,
-        if (location != null) 'location': location,
-        if (githubUrl != null) 'github_url': githubUrl,
-        if (linkedinUrl != null) 'linkedin_url': linkedinUrl,
-        if (websiteUrl != null) 'website_url': websiteUrl,
-        if (availabilityStatus != null) 'availability_status': availabilityStatus,
-        if (skills != null) 'skills': skills,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
-        if (coverImageUrl != null) 'cover_image_url': coverImageUrl,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Failed to update profile');
+    final body = <String, dynamic>{'name': name};
+    if (username != null) body['username'] = username;
+    if (bio != null) body['bio'] = bio;
+    if (location != null) body['location'] = location;
+    if (githubUrl != null) body['github_url'] = githubUrl;
+    if (linkedinUrl != null) body['linkedin_url'] = linkedinUrl;
+    if (websiteUrl != null) body['website_url'] = websiteUrl;
+    if (availabilityStatus != null) {
+      body['availability_status'] = availabilityStatus;
     }
+    if (skills != null) body['skills'] = skills;
+    if (avatarUrl != null) body['avatar_url'] = avatarUrl;
+    if (coverImageUrl != null) body['cover_image_url'] = coverImageUrl;
+
+    final response = await _supabase
+        .from('profiles')
+        .update(body)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    return User.fromJson(response);
   }
 
-  // Upload avatar (base64 encoded image)
+  // Upload avatar to Supabase Storage
   static Future<String> uploadAvatar({
     required String base64Image,
     required String fileName,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-    if (token == null) throw Exception('Not authenticated');
+    final bytes = base64DataUrlToBytes(base64Image);
+    final path = '$userId/$fileName';
 
-    final response = await http.post(
-      Uri.parse('$apiUrl/users/avatar'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'base64Image': base64Image,
-        'fileName': fileName,
-      }),
-    );
+    await _supabase.storage.from('avatars').uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['avatar_url'] as String;
-    } else {
-      throw Exception('Failed to upload avatar');
-    }
+    final avatarUrl = _supabase.storage.from('avatars').getPublicUrl(path);
+
+    // Update profile with new avatar URL
+    await _supabase
+        .from('profiles')
+        .update({'avatar_url': avatarUrl})
+        .eq('id', userId);
+
+    return avatarUrl;
   }
 
   // Get user stats
   static Future<Map<String, int>> getUserStats(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final profileResponse = await _supabase
+        .from('profiles')
+        .select('profile_views, reputation_points')
+        .eq('id', userId)
+        .single();
 
-    final response = await http.get(
-      Uri.parse('$apiUrl/users/$userId/stats'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
+    final projectsResponse = await _supabase
+        .from('projects')
+        .select('id')
+        .eq('owner_id', userId);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return {
-        'total_projects': data['total_projects'] ?? 0,
-        'total_likes': data['total_likes'] ?? 0,
-        'profile_views': data['profile_views'] ?? 0,
-      };
-    } else {
-      throw Exception('Failed to load stats');
-    }
+    return {
+      'total_projects': projectsResponse.length,
+      'total_likes':
+          (profileResponse['reputation_points'] as num?)?.toInt() ?? 0,
+      'profile_views':
+          (profileResponse['profile_views'] as num?)?.toInt() ?? 0,
+    };
   }
 }
+

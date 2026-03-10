@@ -1,49 +1,44 @@
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SkillsService {
-  static const String apiUrl = 'http://localhost:5000/api';
+  static final _supabase = Supabase.instance.client;
 
   // Get all skill categories grouped by parent
   static Future<Map<String, List<Map<String, dynamic>>>> getSkillCategories() async {
-    final response = await http.get(
-      Uri.parse('$apiUrl/skills/categories'),
-    );
+    final response = await _supabase
+        .from('skill_categories')
+        .select()
+        .order('display_order');
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> raw = json.decode(response.body);
-      return raw.map((key, value) =>
-          MapEntry(key, List<Map<String, dynamic>>.from(value)));
-    } else {
-      throw Exception('Failed to load skill categories');
+    final result = <String, List<Map<String, dynamic>>>{};
+    for (final skill in response) {
+      final parent = skill['parent_category'] as String? ?? 'Other';
+      result.putIfAbsent(parent, () => []).add(skill as Map<String, dynamic>);
     }
+    return result;
   }
 
   // Get skills by parent category
   static Future<List<Map<String, dynamic>>> getSkillsByCategory(String parentCategory) async {
-    final response = await http.get(
-      Uri.parse('$apiUrl/skills/categories/$parentCategory'),
-    );
+    final response = await _supabase
+        .from('skill_categories')
+        .select()
+        .eq('parent_category', parentCategory)
+        .order('name');
 
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
-    } else {
-      throw Exception('Failed to load skills');
-    }
+    return List<Map<String, dynamic>>.from(response);
   }
 
   // Search skills
   static Future<List<Map<String, dynamic>>> searchSkills(String query) async {
-    final response = await http.get(
-      Uri.parse('$apiUrl/skills/search?query=${Uri.encodeQueryComponent(query)}'),
-    );
+    final response = await _supabase
+        .from('skill_categories')
+        .select()
+        .ilike('name', '%$query%')
+        .order('name')
+        .limit(20);
 
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
-    } else {
-      throw Exception('Failed to search skills');
-    }
+    return List<Map<String, dynamic>>.from(response);
   }
 
   // Update user's primary expertise
@@ -51,26 +46,13 @@ class SkillsService {
     required String primaryExpertise,
     String expertiseLevel = 'intermediate',
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-    if (token == null) throw Exception('Not authenticated');
-
-    final response = await http.put(
-      Uri.parse('$apiUrl/users/me/expertise'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'primary_expertise': primaryExpertise,
-        'expertise_level': expertiseLevel,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Failed to update expertise');
-    }
+    await _supabase.from('profiles').update({
+      'primary_expertise': primaryExpertise,
+      'expertise_level': expertiseLevel,
+    }).eq('id', userId);
   }
 }
+

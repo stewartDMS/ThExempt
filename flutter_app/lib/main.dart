@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
 import 'screens/home/dashboard_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  assert(
+    SupabaseConfig.supabaseUrl.isNotEmpty,
+    'SUPABASE_URL is not set. Run with: flutter run '
+    '--dart-define=SUPABASE_URL=https://xxx.supabase.co '
+    '--dart-define=SUPABASE_ANON_KEY=your-anon-key',
+  );
+
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+
   runApp(const ThExemptApp());
 }
 
@@ -48,11 +62,25 @@ class _AuthCheckState extends State<AuthCheck> {
   }
 
   Future<void> _checkAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
-    
+    final session = Supabase.instance.client.auth.currentSession;
+
+    if (session != null) {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+        final existingName = prefs.getString('userName') ?? '';
+        await prefs.setString('userId', user.id);
+        await prefs.setString(
+          'userName',
+          user.userMetadata?['name'] as String? ??
+              (existingName.isNotEmpty ? existingName : ''),
+        );
+        await prefs.setString('userEmail', user.email ?? '');
+      }
+    }
+
     setState(() {
-      _isLoggedIn = token != null;
+      _isLoggedIn = session != null;
       _isLoading = false;
     });
   }
@@ -83,12 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  // API URL - Update this based on your setup:
-  // iOS Simulator: 'http://localhost:5000/api'
-  // Android Emulator: 'http://10.0.2.2:5000/api'
-  // Physical device: 'http://YOUR_IP:5000/api'
-  final String apiUrl = 'http://localhost:5000/api';
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -108,40 +130,31 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('$apiUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+      final response =
+          await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final token = data['token'];
-        final userId = data['user']['id']?.toString() ?? '';
-        final userName = data['user']['name'];
-        final userEmail = data['user']['email'];
-
-        // Save auth data
+      if (response.user != null) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', token);
-        await prefs.setString('userId', userId);
-        await prefs.setString('userName', userName);
-        await prefs.setString('userEmail', userEmail);
+        await prefs.setString('userId', response.user!.id);
+        await prefs.setString(
+          'userName',
+          response.user!.userMetadata?['name'] as String? ?? '',
+        );
+        await prefs.setString('userEmail', response.user!.email ?? '');
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
         }
-      } else {
-        final error = jsonDecode(response.body);
-        _showError(error['error'] ?? 'Login failed');
       }
+    } on AuthException catch (e) {
+      _showError(e.message);
     } catch (e) {
-      _showError('Cannot connect to server. Check your connection and API URL.');
+      _showError('Login failed. Please check your connection and try again.');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -319,8 +332,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  final String apiUrl = 'http://localhost:5000/api';
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -347,29 +358,24 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('$apiUrl/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': name,
-          'email': email,
-          'password': password,
-        }),
+      final response = await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+        data: {'name': name},
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        final token = data['token'];
-        final userId = data['user']['id']?.toString() ?? '';
-        final userName = data['user']['name'];
-        final userEmail = data['user']['email'];
+      if (response.user != null) {
+        // Create profile row in profiles table
+        await Supabase.instance.client.from('profiles').upsert({
+          'id': response.user!.id,
+          'name': name,
+          'email': email,
+        });
 
-        // Save auth data
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', token);
-        await prefs.setString('userId', userId);
-        await prefs.setString('userName', userName);
-        await prefs.setString('userEmail', userEmail);
+        await prefs.setString('userId', response.user!.id);
+        await prefs.setString('userName', name);
+        await prefs.setString('userEmail', email);
 
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -377,12 +383,11 @@ class _SignupScreenState extends State<SignupScreen> {
             (route) => false,
           );
         }
-      } else {
-        final error = jsonDecode(response.body);
-        _showError(error['error'] ?? 'Signup failed');
       }
+    } on AuthException catch (e) {
+      _showError(e.message);
     } catch (e) {
-      _showError('Cannot connect to server. Check your connection and API URL.');
+      _showError('Signup failed. Please check your connection and try again.');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
