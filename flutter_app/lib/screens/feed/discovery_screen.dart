@@ -7,6 +7,10 @@ import '../../models/user_model.dart';
 import '../../widgets/role_category_filter.dart';
 import '../../widgets/best_matches_section.dart';
 import '../../widgets/discovery_project_card.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
+import '../../theme/text_styles.dart';
+import '../../widgets/common/skeleton_loader.dart';
 
 /// Calculates how well a user profile matches a given project.
 /// Returns an integer score in the range [0, 100].
@@ -167,7 +171,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         elevation: 0,
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
+            icon: const Icon(Icons.tune_outlined),
             tooltip: 'Sort',
             onSelected: _onSortChanged,
             itemBuilder: (_) => const [
@@ -202,8 +206,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Search hint bar ───────────────────────────────────────────
+          _buildSearchHint(),
+
           // ── Category filter chips ──────────────────────────────────────
-          const SizedBox(height: 8),
           RoleCategoryFilter(
             selectedCategory: _selectedCategory,
             onCategoryChanged: _onCategoryChanged,
@@ -211,18 +217,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
           // ── "Only open roles" toggle ───────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
             child: Row(
               children: [
                 Icon(Icons.work_outline,
-                    size: 16, color: Colors.green[700]),
-                const SizedBox(width: 6),
+                    size: AppSpacing.iconSm + 2,
+                    color: AppColors.success),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   'Only show projects with open roles',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[800],
-                  ),
+                  style: AppTextStyles.body2
+                      .copyWith(color: AppColors.grey700, fontSize: 13),
                 ),
                 const Spacer(),
                 Switch.adaptive(
@@ -231,7 +237,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     setState(() => _onlyOpenRoles = v);
                     _loadData();
                   },
-                  activeColor: Colors.green[600],
+                  activeColor: AppColors.success,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ],
@@ -250,6 +256,39 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     );
   }
 
+  Widget _buildSearchHint() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.xs,
+      ),
+      child: GestureDetector(
+        onTap: () {}, // Future: open search
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.grey100,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(color: AppColors.grey200),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: Row(
+            children: [
+              const Icon(Icons.search, color: AppColors.grey400, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Search projects, skills...',
+                style: AppTextStyles.body2.copyWith(color: AppColors.grey400),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSortChips() {
     final labels = {
       'recent': 'Recent',
@@ -257,29 +296,31 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       'needed': 'Most Needed',
     };
     return SizedBox(
-      height: 40,
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
         children: labels.entries.map((e) {
           final isSelected = _sort == e.key;
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(e.value),
               selected: isSelected,
               onSelected: (_) => _onSortChanged(e.key),
-              selectedColor: Theme.of(context).colorScheme.primary,
-              labelStyle: TextStyle(
+              selectedColor: AppColors.primary,
+              backgroundColor: AppColors.grey100,
+              labelStyle: AppTextStyles.captionMedium.copyWith(
+                color: isSelected ? AppColors.white : AppColors.primary,
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: isSelected
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.primary,
               ),
               showCheckmark: false,
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               visualDensity: VisualDensity.compact,
+              side: BorderSide(
+                color: isSelected ? AppColors.primary : AppColors.grey200,
+              ),
             ),
           );
         }).toList(),
@@ -289,7 +330,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 4,
+        itemBuilder: (_, __) => const ProjectCardSkeleton(),
+      );
     }
 
     if (_hasError) {
@@ -332,28 +377,35 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
+              ),
+              child: const Icon(Icons.search_off,
+                  size: AppSpacing.iconXxl, color: AppColors.primary),
+            ),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               'No projects found',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                  ),
+              style: AppTextStyles.heading4,
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               _selectedCategory != null
                   ? 'No ${_selectedCategory!} projects match your filters.\nTry a different category or turn off the open-roles filter.'
                   : 'No projects match your current filters.\nTry adjusting them.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             ElevatedButton.icon(
               onPressed: () {
                 setState(() {
@@ -367,8 +419,10 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               label: const Text('Reset Filters'),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                 ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl, vertical: AppSpacing.md),
               ),
             ),
           ],
@@ -380,32 +434,38 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   Widget _buildErrorState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
-            const SizedBox(height: 16),
-            const Text(
-              'Failed to Load Projects',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
+              ),
+              child: const Icon(Icons.error_outline,
+                  size: AppSpacing.iconXxl, color: AppColors.error),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.xl),
+            Text('Failed to Load Projects', style: AppTextStyles.heading4),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               _errorMessage,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
             ElevatedButton.icon(
               onPressed: _loadData,
               icon: const Icon(Icons.refresh),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 12),
+                    horizontal: AppSpacing.xl, vertical: AppSpacing.md),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                 ),
               ),
             ),
