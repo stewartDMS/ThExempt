@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
@@ -7,12 +8,23 @@ import 'screens/home/dashboard_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  assert(
-    SupabaseConfig.supabaseUrl.isNotEmpty,
-    'SUPABASE_URL is not set. Run with: flutter run '
-    '--dart-define=SUPABASE_URL=https://xxx.supabase.co '
-    '--dart-define=SUPABASE_ANON_KEY=your-anon-key',
-  );
+  // Load .env file (ignore error if file doesn't exist — fall back to --dart-define)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('Warning: .env file not found. Using --dart-define values if provided.');
+  }
+
+  if (SupabaseConfig.supabaseUrl.isEmpty || SupabaseConfig.supabaseAnonKey.isEmpty) {
+    throw Exception(
+      'Supabase credentials not configured.\n\n'
+      'Option 1 (Recommended): Create a .env file:\n'
+      '  1. Copy .env.example to .env\n'
+      '  2. Add your Supabase URL and anon key\n\n'
+      'Option 2: Use --dart-define:\n'
+      '  flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...',
+    );
+  }
 
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
