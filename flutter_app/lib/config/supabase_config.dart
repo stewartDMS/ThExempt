@@ -1,11 +1,14 @@
-class SupabaseConfig {
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: '', // Set at build time via --dart-define=SUPABASE_URL=...
-  );
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue: '', // Set at build time via --dart-define=SUPABASE_ANON_KEY=...
-  );
+class SupabaseConfig {
+  // Try .env file first, fallback to --dart-define
+  static String get supabaseUrl {
+    return dotenv.env['SUPABASE_URL'] ??
+        const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+  }
+
+  static String get supabaseAnonKey {
+    return dotenv.env['SUPABASE_ANON_KEY'] ??
+        const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+  }
 }
