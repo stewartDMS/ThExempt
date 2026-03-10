@@ -7,7 +7,7 @@ import '../../services/user_service.dart';
 import '../../widgets/categorized_skill_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final User user;
+  final UserProfile user;
 
   const EditProfileScreen({super.key, required this.user});
 

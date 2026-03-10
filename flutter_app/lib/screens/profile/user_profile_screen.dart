@@ -16,7 +16,7 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  User? _user;
+  UserProfile? _user;
   List<Project> _projects = [];
   Map<String, int> _stats = {};
   bool _isLoading = true;
@@ -38,7 +38,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
       if (mounted) {
         setState(() {
-          _user = results[0] as User;
+          _user = results[0] as UserProfile;
           _projects = results[1] as List<Project>;
           _stats = results[2] as Map<String, int>;
           _isLoading = false;
