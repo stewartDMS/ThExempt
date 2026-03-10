@@ -10,7 +10,7 @@ import '../../widgets/discovery_project_card.dart';
 
 /// Calculates how well a user profile matches a given project.
 /// Returns an integer score in the range [0, 100].
-int _calculateMatchScore(User user, Project project) {
+int _calculateMatchScore(UserProfile user, Project project) {
   final userSkills = user.skills.map((s) => s.toLowerCase()).toSet();
   if (userSkills.isEmpty || project.requiredSkills.isEmpty) return 0;
 
@@ -30,7 +30,7 @@ class DiscoveryScreen extends StatefulWidget {
 class _DiscoveryScreenState extends State<DiscoveryScreen> {
   // ─── State ────────────────────────────────────────────────────────────────
   List<Project> _allProjects = [];
-  User? _currentUser;
+  UserProfile? _currentUser;
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';

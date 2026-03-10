@@ -1,4 +1,4 @@
-class User {
+class UserProfile {
   final String id;
   final String name;
   final String email;
@@ -19,7 +19,7 @@ class User {
   final String expertiseLevel;
   final DateTime? createdAt;
 
-  User({
+  UserProfile({
     required this.id,
     required this.name,
     required this.email,
@@ -41,8 +41,8 @@ class User {
     this.createdAt,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',

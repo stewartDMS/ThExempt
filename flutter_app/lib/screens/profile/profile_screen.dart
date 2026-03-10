@@ -19,7 +19,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _userName = '';
   String _userEmail = '';
-  User? _userProfile;
+  UserProfile? _userProfile;
   List<Project> _userProjects = [];
   bool _isLoading = true;
 
@@ -38,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final userEmail = prefs.getString('userEmail') ?? 'user@example.com';
       final userId = prefs.getString('userId') ?? '';
 
-      User? profile;
+      UserProfile? profile;
       List<Project> projects = [];
       if (userId.isNotEmpty) {
         try {
@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             UserService.getProfile(userId),
             ProjectsService.getUserProjects(userId),
           ]);
-          profile = results[0] as User;
+          profile = results[0] as UserProfile;
           projects = results[1] as List<Project>;
         } catch (e) {
           debugPrint('Failed to load profile data: $e');
@@ -103,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleEditProfile() async {
     if (_userProfile == null) return;
 
-    final updated = await Navigator.of(context).push<User>(
+    final updated = await Navigator.of(context).push<UserProfile>(
       MaterialPageRoute(
         builder: (_) => EditProfileScreen(user: _userProfile!),
       ),

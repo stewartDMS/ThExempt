@@ -16,18 +16,18 @@ class UserService {
   }
 
   // Get user profile by ID
-  static Future<User> getProfile(String userId) async {
+  static Future<UserProfile> getProfile(String userId) async {
     final response = await _supabase
         .from('profiles')
         .select()
         .eq('id', userId)
         .single();
 
-    return User.fromJson(response);
+    return UserProfile.fromJson(response);
   }
 
   // Update own profile
-  static Future<User> updateProfile({
+  static Future<UserProfile> updateProfile({
     required String name,
     String? username,
     String? bio,
@@ -64,7 +64,7 @@ class UserService {
         .select()
         .single();
 
-    return User.fromJson(response);
+    return UserProfile.fromJson(response);
   }
 
   // Upload avatar to Supabase Storage
