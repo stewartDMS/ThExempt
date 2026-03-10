@@ -52,7 +52,7 @@ class BadgeChip extends StatelessWidget {
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w600,
-              color: outlined ? effectiveColor : effectiveColor,
+              color: outlined ? effectiveColor : effectiveTextColor,
             ),
           ),
         ],
