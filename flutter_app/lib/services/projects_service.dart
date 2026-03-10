@@ -1,93 +1,45 @@
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/project_model.dart';
 import '../models/project_role_model.dart';
 import '../models/role_application_model.dart';
 import '../models/project_member_model.dart';
 
 class ProjectsService {
-  // API URL - Update this based on your setup:
-  // iOS Simulator: 'http://localhost:5000/api'
-  // Android Emulator: 'http://10.0.2.2:5000/api'
-  // Physical device: 'http://YOUR_IP:5000/api'
-  static const String apiUrl = 'http://localhost:5000/api';
+  static final _supabase = Supabase.instance.client;
 
   // Get all projects
   static Future<List<Project>> getProjects() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final response = await _supabase
+        .from('projects')
+        .select('*, profiles!owner_id(name, avatar_url)')
+        .order('created_at', ascending: false);
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/projects'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> projectsJson = jsonDecode(response.body);
-        return projectsJson.map((json) => Project.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load projects');
-      }
-    } catch (e) {
-      throw Exception('Cannot connect to server: $e');
-    }
+    return response.map((json) => Project.fromJson(json)).toList();
   }
 
   // Get single project by ID
   static Future<Project> getProject(String id) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final response = await _supabase
+        .from('projects')
+        .select('*, profiles!owner_id(name, avatar_url)')
+        .eq('id', id)
+        .single();
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/projects/$id'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return Project.fromJson(data);
-      } else {
-        throw Exception('Failed to load project');
-      }
-    } catch (e) {
-      throw Exception('Cannot connect to server: $e');
-    }
+    return Project.fromJson(response);
   }
 
-  // Apply to a project
+  // Apply to a project (general application)
   static Future<bool> applyToProject(String projectId, String message) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
+    await _supabase.from('applications').insert({
+      'project_id': projectId,
+      'user_id': userId,
+      'message': message,
+    });
 
-      final response = await http.post(
-        Uri.parse('$apiUrl/projects/$projectId/apply'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'message': message,
-        }),
-      );
-
-      return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      throw Exception('Failed to apply: $e');
-    }
+    return true;
   }
 
   // Create a new project
@@ -96,37 +48,17 @@ class ProjectsService {
     required String description,
     required List<String> skills,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
+    final response = await _supabase.from('projects').insert({
+      'owner_id': userId,
+      'title': title,
+      'description': description,
+      'required_skills': skills,
+    }).select('*, profiles!owner_id(name, avatar_url)').single();
 
-      final response = await http.post(
-        Uri.parse('$apiUrl/projects'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'title': title,
-          'description': description,
-          'required_skills': skills,
-        }),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return Project.fromJson(data);
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to create project');
-      }
-    } catch (e) {
-      throw Exception('Failed to create project: $e');
-    }
+    return Project.fromJson(response);
   }
 
   // Update a project
@@ -136,116 +68,65 @@ class ProjectsService {
     required String description,
     required List<String> skills,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
-
-      final response = await http.put(
-        Uri.parse('$apiUrl/projects/$projectId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
+    final response = await _supabase
+        .from('projects')
+        .update({
           'title': title,
           'description': description,
           'required_skills': skills,
-        }),
-      );
+        })
+        .eq('id', projectId)
+        .eq('owner_id', userId)
+        .select('*, profiles!owner_id(name, avatar_url)')
+        .single();
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return Project.fromJson(data);
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to update project');
-      }
-    } catch (e) {
-      throw Exception('Failed to update project: $e');
-    }
+    return Project.fromJson(response);
   }
 
   // Delete a project
   static Future<bool> deleteProject(String projectId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
+    await _supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId)
+        .eq('owner_id', userId);
 
-      final response = await http.delete(
-        Uri.parse('$apiUrl/projects/$projectId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      return response.statusCode == 200 || response.statusCode == 204;
-    } catch (e) {
-      throw Exception('Failed to delete project: $e');
-    }
+    return true;
   }
 
   // Get user's projects
   static Future<List<Project>> getUserProjects(String userId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final response = await _supabase
+        .from('projects')
+        .select('*, profiles!owner_id(name, avatar_url)')
+        .eq('owner_id', userId)
+        .order('created_at', ascending: false);
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/users/$userId/projects'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> projectsJson = jsonDecode(response.body);
-        return projectsJson.map((json) => Project.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load user projects');
-      }
-    } catch (e) {
-      throw Exception('Cannot connect to server: $e');
-    }
+    return response.map((json) => Project.fromJson(json)).toList();
   }
 
   // Get all roles for a project, grouped by category
-  static Future<Map<String, List<ProjectRole>>> getProjectRoles(String projectId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+  static Future<Map<String, List<ProjectRole>>> getProjectRoles(
+      String projectId) async {
+    final response = await _supabase
+        .from('project_roles')
+        .select()
+        .eq('project_id', projectId)
+        .order('display_order');
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/projects/$projectId/roles'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+    final roles = response.map((r) => ProjectRole.fromJson(r)).toList();
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        return data.map((category, rolesJson) => MapEntry(
-          category,
-          (rolesJson as List<dynamic>)
-              .map((r) => ProjectRole.fromJson(r as Map<String, dynamic>))
-              .toList(),
-        ));
-      } else {
-        throw Exception('Failed to load project roles');
-      }
-    } catch (e) {
-      throw Exception('Cannot connect to server: $e');
+    final grouped = <String, List<ProjectRole>>{};
+    for (final role in roles) {
+      grouped.putIfAbsent(role.roleCategory, () => []).add(role);
     }
+    return grouped;
   }
 
   // Add a role to a project
@@ -257,36 +138,19 @@ class ProjectsService {
     List<String> skillsRequired = const [],
     int displayOrder = 0,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
+    final response = await _supabase.from('project_roles').insert({
+      'project_id': projectId,
+      'role_category': roleCategory,
+      'role_title': roleTitle,
+      if (description != null) 'description': description,
+      'skills_required': skillsRequired,
+      'display_order': displayOrder,
+    }).select().single();
 
-      final response = await http.post(
-        Uri.parse('$apiUrl/projects/$projectId/roles'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'role_category': roleCategory,
-          'role_title': roleTitle,
-          if (description != null) 'description': description,
-          'skills_required': skillsRequired,
-          'display_order': displayOrder,
-        }),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return ProjectRole.fromJson(jsonDecode(response.body));
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to add role');
-      }
-    } catch (e) {
-      throw Exception('Failed to add role: $e');
-    }
+    return ProjectRole.fromJson(response);
   }
 
   // Update a project role
@@ -301,39 +165,27 @@ class ProjectsService {
     String? filledBy,
     int? displayOrder,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
+    final body = <String, dynamic>{};
+    if (roleCategory != null) body['role_category'] = roleCategory;
+    if (roleTitle != null) body['role_title'] = roleTitle;
+    if (description != null) body['description'] = description;
+    if (skillsRequired != null) body['skills_required'] = skillsRequired;
+    if (isFilled != null) body['is_filled'] = isFilled;
+    if (filledBy != null) body['filled_by'] = filledBy;
+    if (displayOrder != null) body['display_order'] = displayOrder;
 
-      final body = <String, dynamic>{};
-      if (roleCategory != null) body['role_category'] = roleCategory;
-      if (roleTitle != null) body['role_title'] = roleTitle;
-      if (description != null) body['description'] = description;
-      if (skillsRequired != null) body['skills_required'] = skillsRequired;
-      if (isFilled != null) body['is_filled'] = isFilled;
-      if (filledBy != null) body['filled_by'] = filledBy;
-      if (displayOrder != null) body['display_order'] = displayOrder;
+    final response = await _supabase
+        .from('project_roles')
+        .update(body)
+        .eq('id', roleId)
+        .eq('project_id', projectId)
+        .select()
+        .single();
 
-      final response = await http.put(
-        Uri.parse('$apiUrl/projects/$projectId/roles/$roleId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(body),
-      );
-
-      if (response.statusCode == 200) {
-        return ProjectRole.fromJson(jsonDecode(response.body));
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to update role');
-      }
-    } catch (e) {
-      throw Exception('Failed to update role: $e');
-    }
+    return ProjectRole.fromJson(response);
   }
 
   // Delete a project role
@@ -341,24 +193,16 @@ class ProjectsService {
     required String projectId,
     required String roleId,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
+    await _supabase
+        .from('project_roles')
+        .delete()
+        .eq('id', roleId)
+        .eq('project_id', projectId);
 
-      final response = await http.delete(
-        Uri.parse('$apiUrl/projects/$projectId/roles/$roleId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      return response.statusCode == 200 || response.statusCode == 204;
-    } catch (e) {
-      throw Exception('Failed to delete role: $e');
-    }
+    return true;
   }
 
   // Apply for a specific role
@@ -367,167 +211,121 @@ class ProjectsService {
     required String roleId,
     required String message,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
+    final response = await _supabase.from('role_applications').insert({
+      'project_id': projectId,
+      'role_id': roleId,
+      'user_id': userId,
+      'message': message,
+    }).select().single();
 
-      final response = await http.post(
-        Uri.parse('$apiUrl/projects/$projectId/roles/$roleId/apply'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'message': message}),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return RoleApplication.fromJson(jsonDecode(response.body));
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to submit application');
-      }
-    } catch (e) {
-      throw Exception('Failed to apply: $e');
-    }
+    return RoleApplication.fromJson(response);
   }
 
   // Get all role applications for a project (owner only), grouped by role
   static Future<List<RoleApplicationGroup>> getProjectRoleApplications(
       String projectId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
+    final rolesResponse = await _supabase
+        .from('project_roles')
+        .select()
+        .eq('project_id', projectId);
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/projects/$projectId/role-applications'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+    final appsResponse = await _supabase
+        .from('role_applications')
+        .select('*, profiles!user_id(name, avatar_url, reputation_points)')
+        .eq('project_id', projectId);
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data
-            .map((g) =>
-                RoleApplicationGroup.fromJson(g as Map<String, dynamic>))
-            .toList();
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to load applications');
-      }
-    } catch (e) {
-      throw Exception('Failed to load applications: $e');
+    // Pre-group applications by role_id for O(n) lookup
+    final appsByRole = <String, List<Map<String, dynamic>>>{};
+    for (final app in appsResponse) {
+      final rid = app['role_id']?.toString() ?? '';
+      appsByRole.putIfAbsent(rid, () => []).add(app as Map<String, dynamic>);
     }
+
+    return rolesResponse.map((role) {
+      final roleId = role['id']?.toString() ?? '';
+      final roleApps = appsByRole[roleId] ?? [];
+      final apps = roleApps.map((app) {
+        final profiles = app['profiles'] as Map<String, dynamic>?;
+        return RoleApplication.fromJson({
+          ...app,
+          'applicant_name': profiles?['name'],
+          'applicant_avatar_url': profiles?['avatar_url'],
+          'applicant_id': app['user_id'],
+          'reputation_points': profiles?['reputation_points'] ?? 0,
+        });
+      }).toList();
+
+      return RoleApplicationGroup(
+        roleId: roleId,
+        roleTitle: role['role_title'] ?? '',
+        roleCategory: role['role_category'] ?? '',
+        skillsRequired: List<String>.from(role['skills_required'] ?? []),
+        applications: apps,
+      );
+    }).toList();
   }
 
   // Get current user's own role applications
   static Future<List<RoleApplication>> getMyApplications() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
+    final response = await _supabase
+        .from('role_applications')
+        .select(
+            '*, projects!project_id(title), project_roles!role_id(role_title, role_category)')
+        .eq('user_id', userId);
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/users/me/applications'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data
-            .map((a) => RoleApplication.fromJson(a as Map<String, dynamic>))
-            .toList();
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to load applications');
-      }
-    } catch (e) {
-      throw Exception('Failed to load applications: $e');
-    }
+    return response.map((app) {
+      final project = app['projects'] as Map<String, dynamic>?;
+      final projectRole = app['project_roles'] as Map<String, dynamic>?;
+      return RoleApplication.fromJson({
+        ...app,
+        'project_title': project?['title'],
+        'role_title': projectRole?['role_title'],
+        'role_category': projectRole?['role_category'],
+      });
+    }).toList();
   }
 
   // Accept a role application
   static Future<void> acceptApplication(String applicationId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
-
-      final response = await http.put(
-        Uri.parse('$apiUrl/role-applications/$applicationId/accept'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to accept application');
-      }
-    } catch (e) {
-      throw Exception('Failed to accept: $e');
-    }
+    await _supabase
+        .from('role_applications')
+        .update({'status': 'accepted'})
+        .eq('id', applicationId);
   }
 
   // Reject a role application
   static Future<void> rejectApplication(String applicationId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
-
-      final response = await http.put(
-        Uri.parse('$apiUrl/role-applications/$applicationId/reject'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to reject application');
-      }
-    } catch (e) {
-      throw Exception('Failed to reject: $e');
-    }
+    await _supabase
+        .from('role_applications')
+        .update({'status': 'rejected'})
+        .eq('id', applicationId);
   }
 
   // Withdraw own pending application
   static Future<void> withdrawApplication(String applicationId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) throw Exception('Not authenticated');
-
-      final response = await http.delete(
-        Uri.parse('$apiUrl/role-applications/$applicationId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Failed to withdraw application');
-      }
-    } catch (e) {
-      throw Exception('Failed to withdraw: $e');
-    }
+    await _supabase
+        .from('role_applications')
+        .delete()
+        .eq('id', applicationId)
+        .eq('user_id', userId);
   }
 
   // Discover projects with optional role-category filter, open-roles toggle, and sort
@@ -537,35 +335,50 @@ class ProjectsService {
     String sort = 'recent',
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+      if (roleCategory != null) {
+        // Get project IDs that have open roles in this category
+        final rolesResponse = await _supabase
+            .from('project_roles')
+            .select('project_id')
+            .eq('role_category', roleCategory)
+            .eq('is_filled', false);
 
-      final queryParams = <String, String>{
-        if (roleCategory != null) 'role_category': roleCategory,
-        if (hasOpenRoles) 'has_open_roles': 'true',
-        'sort': sort,
-      };
+        final projectIds = rolesResponse
+            .map((r) => r['project_id']?.toString() ?? '')
+            .where((id) => id.isNotEmpty)
+            .toSet()
+            .toList();
 
-      final uri = Uri.parse('$apiUrl/projects/discover')
-          .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+        if (projectIds.isEmpty) return [];
 
-      final response = await http.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+        var query = _supabase
+            .from('projects')
+            .select('*, profiles!owner_id(name, avatar_url)')
+            .inFilter('id', projectIds);
 
-      if (response.statusCode == 200) {
-        final List<dynamic> projectsJson = jsonDecode(response.body);
-        return projectsJson.map((json) => Project.fromJson(json)).toList();
-      } else {
-        // Fall back to all projects if the discover endpoint is not available
-        return getProjects();
+        final response = sort == 'popular'
+            ? await query.order('roles_filled', ascending: false)
+            : await query.order('created_at', ascending: false);
+
+        return response.map((json) => Project.fromJson(json)).toList();
       }
+
+      var query = _supabase
+          .from('projects')
+          .select('*, profiles!owner_id(name, avatar_url)');
+
+      if (hasOpenRoles) {
+        // Only show projects that still need members
+        // (total_roles_needed > roles_filled or use status = 'open')
+        query = query.eq('status', 'open');
+      }
+
+      final response = sort == 'popular'
+          ? await query.order('roles_filled', ascending: false)
+          : await query.order('created_at', ascending: false);
+
+      return response.map((json) => Project.fromJson(json)).toList();
     } catch (e) {
-      // Fall back to all projects on error
       return getProjects();
     }
   }
@@ -573,25 +386,14 @@ class ProjectsService {
   // Get open roles for a project (used on discovery cards)
   static Future<List<ProjectRole>> getOpenRoles(String projectId) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+      final response = await _supabase
+          .from('project_roles')
+          .select()
+          .eq('project_id', projectId)
+          .eq('is_filled', false)
+          .order('display_order');
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/projects/$projectId/open-roles'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data
-            .map((r) => ProjectRole.fromJson(r as Map<String, dynamic>))
-            .toList();
-      } else {
-        return [];
-      }
+      return response.map((r) => ProjectRole.fromJson(r)).toList();
     } catch (e) {
       return [];
     }
@@ -600,29 +402,19 @@ class ProjectsService {
   // Get project team members
   static Future<List<ProjectMember>> getProjectMembers(
       String projectId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final response = await _supabase
+        .from('project_members')
+        .select('*, profiles!user_id(name, avatar_url, bio)')
+        .eq('project_id', projectId);
 
-      final response = await http.get(
-        Uri.parse('$apiUrl/projects/$projectId/members'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data
-            .map((m) =>
-                ProjectMember.fromJson(m as Map<String, dynamic>))
-            .toList();
-      } else {
-        throw Exception('Failed to load members');
-      }
-    } catch (e) {
-      throw Exception('Failed to load members: $e');
-    }
+    return response.map((m) {
+      final profiles = m['profiles'] as Map<String, dynamic>?;
+      return ProjectMember.fromJson({
+        ...m,
+        'name': profiles?['name'] ?? 'Unknown',
+        'avatar_url': profiles?['avatar_url'],
+        'bio': profiles?['bio'],
+      });
+    }).toList();
   }
 }

@@ -9,11 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
-  # HTTP for API calls
-  http: ^1.1.0
-  
-  # Storage for auth token
+
+  # Supabase for auth, database, and storage
+  supabase_flutter: ^2.8.4
+
+  # Storage for local user session data
   shared_preferences: ^2.2.2
   
   # Icons

@@ -1,14 +1,13 @@
 import 'dart:html' as html;
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../utils/base64_utils.dart';
 
 class VideoService {
-  static const String apiUrl = 'http://localhost:5000/api';
+  static final _supabase = Supabase.instance.client;
   static const int maxVideoSizeMB = 50;
   static const int maxVideoSizeBytes = maxVideoSizeMB * 1024 * 1024;
 
-  // Convert file to base64
+  // Convert file to base64 data URL
   static Future<String> fileToBase64(html.File file) async {
     final reader = html.FileReader();
     reader.readAsDataUrl(file);
@@ -30,61 +29,63 @@ class VideoService {
     return canvas.toDataUrl('image/jpeg', 0.8);
   }
 
-  // Upload video to project
+  // Upload video to Supabase Storage and link it to the project
   static Future<Map<String, String>> uploadVideo({
     required String projectId,
     required String base64Video,
     required String fileName,
     required String thumbnailBase64,
   }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
 
-      if (token == null) {
-        throw Exception('Not authenticated');
-      }
+    final videoBytes = base64DataUrlToBytes(base64Video);
+    final thumbnailBytes = base64DataUrlToBytes(thumbnailBase64);
 
-      final response = await http.post(
-        Uri.parse('$apiUrl/projects/$projectId/video'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'base64Video': base64Video,
-          'fileName': fileName,
-          'thumbnailBase64': thumbnailBase64,
-        }),
-      );
+    final videoPath = '$userId/$projectId/$fileName';
+    final thumbnailPath = '$userId/$projectId/thumbnail.jpg';
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return {
-          'videoUrl': data['video_url'] ?? '',
-          'thumbnailUrl': data['thumbnail_url'] ?? '',
-        };
-      } else {
-        throw Exception('Failed to upload video: ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('Failed to upload video: $e');
-    }
+    await _supabase.storage.from('project-videos').uploadBinary(
+          videoPath,
+          videoBytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    await _supabase.storage.from('project-thumbnails').uploadBinary(
+          thumbnailPath,
+          thumbnailBytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    final videoUrl =
+        _supabase.storage.from('project-videos').getPublicUrl(videoPath);
+    final thumbnailUrl = _supabase.storage
+        .from('project-thumbnails')
+        .getPublicUrl(thumbnailPath);
+
+    // Update the project record with the video and thumbnail URLs
+    await _supabase
+        .from('projects')
+        .update({'video_url': videoUrl, 'thumbnail_url': thumbnailUrl})
+        .eq('id', projectId);
+
+    return {
+      'videoUrl': videoUrl,
+      'thumbnailUrl': thumbnailUrl,
+    };
   }
 
   // Validate video file
   static String? validateVideoFile(html.File file) {
-    // Check file size
     if (file.size > maxVideoSizeBytes) {
       return 'Video file size must be less than ${maxVideoSizeMB}MB';
     }
 
-    // Check file type
     final validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
     if (!validTypes.contains(file.type)) {
       return 'Only MP4, WebM, and MOV video formats are supported';
     }
 
-    return null; // No error
+    return null;
   }
 }
