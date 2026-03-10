@@ -105,7 +105,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 }
-}
 
 /// Custom bottom navigation item with scale animation on tap
 class _NavItem extends StatelessWidget {
