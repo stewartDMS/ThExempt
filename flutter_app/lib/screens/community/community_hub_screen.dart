@@ -4,6 +4,7 @@ import '../../models/live_event_model.dart';
 import '../../services/discussions_service.dart';
 import '../../services/live_events_service.dart';
 import '../../widgets/common/discussion_feed_card.dart';
+import '../../widgets/common/skeleton_discussion_card.dart';
 import '../../widgets/live_event_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -136,7 +137,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             if (_loading)
               SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (_, __) => _buildSkeletonCard(),
+                  (_, __) => const SkeletonDiscussionCard(),
                   childCount: 5,
                 ),
               )
@@ -315,58 +316,6 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: const Text('Start Discussion'),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSkeletonCard() {
-    return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Author row skeleton
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.grey200,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                      width: 120,
-                      height: 12,
-                      color: AppColors.grey200),
-                  const SizedBox(height: 4),
-                  Container(
-                      width: 70,
-                      height: 10,
-                      color: AppColors.grey200),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(width: 80, height: 20, color: AppColors.grey200),
-          const SizedBox(height: 10),
-          Container(width: double.infinity, height: 14, color: AppColors.grey200),
-          const SizedBox(height: 6),
-          FractionallySizedBox(
-            widthFactor: 0.8,
-            child: Container(height: 14, color: AppColors.grey200),
-          ),
-          const SizedBox(height: 6),
-          Container(width: 200, height: 12, color: AppColors.grey200),
         ],
       ),
     );

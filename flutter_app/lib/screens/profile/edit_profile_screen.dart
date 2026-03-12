@@ -5,6 +5,7 @@ import 'dart:io';
 import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 import '../../widgets/categorized_skill_picker.dart';
+import '../../widgets/common/loading_button.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile user;
@@ -304,6 +305,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 },
               ),
               const SizedBox(height: 32),
+
+              // Save button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: LoadingButton(
+                  label: 'Save Profile',
+                  icon: Icons.save_outlined,
+                  isLoading: _isSaving,
+                  onPressed: _saveProfile,
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

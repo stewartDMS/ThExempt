@@ -5,6 +5,8 @@ import '../../services/video_service.dart';
 import '../home/dashboard_screen.dart';
 import 'widgets/skills_input_widget.dart';
 import 'widgets/video_picker_widget.dart';
+import '../../widgets/common/loading_button.dart';
+import '../../widgets/common/upload_progress.dart';
 
 class CreateProjectScreen extends StatefulWidget {
   const CreateProjectScreen({super.key});
@@ -24,6 +26,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   String? _thumbnailBase64;
   
   bool _isLoading = false;
+  double _uploadProgress = 0.0;
 
   @override
   void dispose() {
@@ -54,6 +57,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
 
       // Upload video if selected
       if (_videoFile != null && _videoBase64 != null && _thumbnailBase64 != null) {
+        setState(() => _uploadProgress = 0.1);
         try {
           await VideoService.uploadVideo(
             projectId: project.id,
@@ -61,7 +65,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             fileName: _videoFile!.name,
             thumbnailBase64: _thumbnailBase64!,
           );
+          setState(() => _uploadProgress = 1.0);
         } catch (e) {
+          setState(() => _uploadProgress = 0.0);
           // Video upload failed, but project was created
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -196,32 +202,26 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                 ),
                 const SizedBox(height: 32),
 
+                // Upload progress (shown when uploading video)
+                if (_isLoading && _videoFile != null && _uploadProgress > 0) ...[
+                  Center(
+                    child: UploadProgress(
+                      progress: _uploadProgress,
+                      label: 'Uploading video...',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
                 // Submit button
                 SizedBox(
+                  width: double.infinity,
                   height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _createProject,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Create Project',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                  child: LoadingButton(
+                    label: 'Create Project',
+                    icon: Icons.add_circle_outline,
+                    isLoading: _isLoading,
+                    onPressed: _createProject,
                   ),
                 ),
               ],

@@ -13,6 +13,8 @@ import '../../theme/app_spacing.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/error_handler.dart';
 import '../../widgets/common/error_snackbar.dart';
+import '../../widgets/common/skeleton_project_card.dart';
+import '../../widgets/common/shimmer_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -159,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildProfileSkeleton()
           : RefreshIndicator(
               onRefresh: _loadUserData,
               child: CustomScrollView(
@@ -188,6 +190,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildProfileSkeleton() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cover + avatar skeleton
+          const ShimmerWidget(width: double.infinity, height: 160),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 40),
+                ShimmerWidget(
+                    width: 160,
+                    height: 20,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs)),
+                const SizedBox(height: AppSpacing.sm),
+                ShimmerWidget(
+                    width: 120,
+                    height: 14,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs)),
+                const SizedBox(height: AppSpacing.xl),
+                // Stats row
+                Row(
+                  children: [
+                    Expanded(
+                        child: ShimmerWidget(
+                            width: double.infinity,
+                            height: 72,
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusMd))),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                        child: ShimmerWidget(
+                            width: double.infinity,
+                            height: 72,
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusMd))),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                // Action buttons
+                ShimmerWidget(
+                    width: double.infinity,
+                    height: 48,
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusSm)),
+                const SizedBox(height: AppSpacing.xl),
+                // Projects header
+                ShimmerWidget(
+                    width: 120,
+                    height: 18,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs)),
+                const SizedBox(height: AppSpacing.md),
+                const SkeletonProjectCard(),
+                const SkeletonProjectCard(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
