@@ -7,6 +7,7 @@ import 'widgets/skills_input_widget.dart';
 import 'widgets/video_picker_widget.dart';
 import '../../widgets/common/loading_button.dart';
 import '../../widgets/common/upload_progress.dart';
+import '../../utils/layout_constants.dart';
 
 class CreateProjectScreen extends StatefulWidget {
   const CreateProjectScreen({super.key});
@@ -118,7 +119,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, LayoutConstants.bottomContentPadding),
           child: Form(
             key: _formKey,
             child: Column(

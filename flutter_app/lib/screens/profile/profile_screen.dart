@@ -171,7 +171,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SliverToBoxAdapter(child: _buildHeroHeader(context)),
 
                   SliverPadding(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.xl,
+                      AppSpacing.xl,
+                      AppSpacing.xl,
+                      AppSpacing.bottomNavPadding,
+                    ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // Stats row
