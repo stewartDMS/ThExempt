@@ -8,6 +8,7 @@ import 'theme/app_theme.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_spacing.dart';
 import 'theme/text_styles.dart';
+import 'utils/error_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -116,6 +117,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -148,13 +150,10 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      _showError('Please enter email and password');
-      return;
-    }
 
     setState(() => _isLoading = true);
 
@@ -294,51 +293,58 @@ class _LoginScreenState extends State<LoginScreen>
         ],
       ),
       padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Welcome back', style: AppTextStyles.heading3),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Sign in to continue building',
-            style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-
-          // Email
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              hintText: 'your@email.com',
-              prefixIcon: Icon(Icons.email_outlined),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Welcome back', style: AppTextStyles.heading3),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Sign in to continue building',
+              style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
 
-          // Password
-          TextField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _handleLogin(),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              hintText: 'Enter password',
-              prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
+            // Email
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                hintText: 'your@email.com',
+                prefixIcon: Icon(Icons.email_outlined),
               ),
+              validator: AppValidators.email,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
-          ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Password
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _handleLogin(),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                hintText: 'Enter password',
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+              validator: (value) =>
+                  (value == null || value.isEmpty) ? 'Password is required' : null,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+            ),
           const SizedBox(height: AppSpacing.sm),
 
           // Forgot password
@@ -421,6 +427,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -539,6 +546,7 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen>
     with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -568,19 +576,11 @@ class _SignupScreenState extends State<SignupScreen>
   }
 
   Future<void> _handleSignup() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      _showError('Please fill all fields');
-      return;
-    }
-
-    if (password.length < 6) {
-      _showError('Password must be at least 6 characters');
-      return;
-    }
 
     setState(() => _isLoading = true);
 
@@ -724,65 +724,80 @@ class _SignupScreenState extends State<SignupScreen>
                               ],
                             ),
                             padding: const EdgeInsets.all(AppSpacing.xl),
-                            child: Column(
-                              children: [
-                                // Name
-                                TextField(
-                                  controller: _nameController,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Full Name',
-                                    hintText: 'John Doe',
-                                    prefixIcon: Icon(Icons.person_outlined),
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-
-                                // Email
-                                TextField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    hintText: 'your@email.com',
-                                    prefixIcon: Icon(Icons.email_outlined),
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-
-                                // Password
-                                TextField(
-                                  controller: _passwordController,
-                                  obscureText: _obscurePassword,
-                                  textInputAction: TextInputAction.done,
-                                  onSubmitted: (_) => _handleSignup(),
-                                  decoration: InputDecoration(
-                                    labelText: 'Password',
-                                    hintText: 'Min 6 characters',
-                                    prefixIcon:
-                                        const Icon(Icons.lock_outlined),
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_outlined
-                                            : Icons.visibility_off_outlined,
-                                      ),
-                                      onPressed: () => setState(() =>
-                                          _obscurePassword =
-                                              !_obscurePassword),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                children: [
+                                  // Name
+                                  TextFormField(
+                                    controller: _nameController,
+                                    textInputAction: TextInputAction.next,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Full Name',
+                                      hintText: 'John Doe',
+                                      prefixIcon: Icon(Icons.person_outlined),
                                     ),
+                                    validator: (value) =>
+                                        (value == null || value.trim().isEmpty)
+                                            ? 'Name is required'
+                                            : null,
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
                                   ),
-                                ),
-                                const SizedBox(height: AppSpacing.xl),
+                                  const SizedBox(height: AppSpacing.lg),
 
-                                // Sign up button
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: AppSpacing.minTouchTarget,
-                                  child: _buildGradientButton(),
-                                ),
-                              ],
+                                  // Email
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    textInputAction: TextInputAction.next,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Email',
+                                      hintText: 'your@email.com',
+                                      prefixIcon: Icon(Icons.email_outlined),
+                                    ),
+                                    validator: AppValidators.email,
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
+                                  ),
+                                  const SizedBox(height: AppSpacing.lg),
+
+                                  // Password
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) => _handleSignup(),
+                                    decoration: InputDecoration(
+                                      labelText: 'Password',
+                                      hintText: 'Min 8 characters',
+                                      prefixIcon:
+                                          const Icon(Icons.lock_outlined),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility_outlined
+                                              : Icons.visibility_off_outlined,
+                                        ),
+                                        onPressed: () => setState(() =>
+                                            _obscurePassword =
+                                                !_obscurePassword),
+                                      ),
+                                    ),
+                                    validator: AppValidators.password,
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xl),
+
+                                  // Sign up button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: AppSpacing.minTouchTarget,
+                                    child: _buildGradientButton(),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
 

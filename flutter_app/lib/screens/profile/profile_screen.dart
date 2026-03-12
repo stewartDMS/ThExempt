@@ -11,6 +11,8 @@ import 'my_applications_screen.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/text_styles.dart';
+import '../../utils/error_handler.dart';
+import '../../widgets/common/error_snackbar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -66,9 +68,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load profile: $e')),
-        );
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
+        ErrorSnackbar.show(context, appError, onRetry: _loadUserData);
       }
     }
   }

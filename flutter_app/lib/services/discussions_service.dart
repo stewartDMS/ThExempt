@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/discussion_model.dart';
+import '../utils/error_handler.dart';
+import '../utils/retry_helper.dart';
 
 class DiscussionsService {
   static final _supabase = Supabase.instance.client;
@@ -34,34 +36,49 @@ class DiscussionsService {
     String sort = 'recent',
     int page = 1,
   }) async {
-    var query = _supabase
-        .from('discussions')
-        .select('*, profiles!author_id(name, avatar_url)');
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          var query = _supabase
+              .from('discussions')
+              .select('*, profiles!author_id(name, avatar_url)');
 
-    if (category != null) {
-      query = query.eq('category', category);
+          if (category != null) {
+            query = query.eq('category', category);
+          }
+
+          if (search != null && search.isNotEmpty) {
+            final sanitized = search
+                .replaceAll('\\', '\\\\')
+                .replaceAll('%', '\\%')
+                .replaceAll('_', '\\_');
+            query = query
+                .or('title.ilike.%$sanitized%,content.ilike.%$sanitized%');
+          }
+
+          final from = (page - 1) * 20;
+          final to = from + 19;
+
+          final response = sort == 'trending'
+              ? await query
+                  .order('likes_count', ascending: false)
+                  .range(from, to)
+                  .timeout(const Duration(seconds: 10))
+              : await query
+                  .order('created_at', ascending: false)
+                  .range(from, to)
+                  .timeout(const Duration(seconds: 10));
+
+          return response
+              .map((j) => Discussion.fromJson(j as Map<String, dynamic>))
+              .toList();
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
     }
-
-    if (search != null && search.isNotEmpty) {
-      // Escape special LIKE characters to prevent query manipulation
-      final sanitized = search.replaceAll('\\', '\\\\').replaceAll('%', '\\%').replaceAll('_', '\\_');
-      query = query.or('title.ilike.%$sanitized%,content.ilike.%$sanitized%');
-    }
-
-    final from = (page - 1) * 20;
-    final to = from + 19;
-
-    final response = sort == 'trending'
-        ? await query
-            .order('likes_count', ascending: false)
-            .range(from, to)
-        : await query
-            .order('created_at', ascending: false)
-            .range(from, to);
-
-    return response
-        .map((j) => Discussion.fromJson(j as Map<String, dynamic>))
-        .toList();
   }
 
   /// Get a single discussion by ID.

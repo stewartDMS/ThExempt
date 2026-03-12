@@ -7,6 +7,9 @@ import '../../widgets/common/discussion_feed_card.dart';
 import '../../widgets/live_event_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/error_handler.dart';
+import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/error_snackbar.dart';
 import 'discussion_categories_screen.dart';
 import 'create_discussion_screen.dart';
 import 'my_discussions_screen.dart';
@@ -23,6 +26,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   List<LiveEvent> _liveNow = [];
   List<Discussion> _discussions = [];
   bool _loading = true;
+  AppError? _error;
 
   // Filter tabs: trending, recent, following, my_posts
   String _activeFilter = 'trending';
@@ -41,11 +45,15 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
 
   Future<void> _loadData() async {
     if (!mounted) return;
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final results = await Future.wait([
         LiveEventsService.getLiveEvents(status: 'live'),
-        DiscussionsService.getDiscussions(sort: _activeFilter == 'my_posts' ? 'recent' : _activeFilter),
+        DiscussionsService.getDiscussions(
+            sort: _activeFilter == 'my_posts' ? 'recent' : _activeFilter),
       ]);
       if (mounted) {
         setState(() {
@@ -54,8 +62,18 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
           _loading = false;
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      if (mounted) {
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
+        setState(() {
+          _loading = false;
+          _error = appError;
+        });
+        // Show snackbar when we already have data
+        if (_discussions.isNotEmpty) {
+          ErrorSnackbar.show(context, appError, onRetry: _loadData);
+        }
+      }
     }
   }
 
@@ -120,6 +138,13 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (_, __) => _buildSkeletonCard(),
                   childCount: 5,
+                ),
+              )
+            else if (_error != null && _discussions.isEmpty)
+              SliverToBoxAdapter(
+                child: ErrorStateWidget(
+                  error: _error!,
+                  onRetry: _loadData,
                 ),
               )
             else if (_discussions.isEmpty)
