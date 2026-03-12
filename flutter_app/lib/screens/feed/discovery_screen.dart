@@ -352,7 +352,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       onRefresh: _loadData,
       color: AppColors.primary,
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: filtered.length + (bestMatches.isNotEmpty ? 1 : 0),
         itemBuilder: (context, index) {
           // First item: "Best Matches" section (renders its own cards + header)
