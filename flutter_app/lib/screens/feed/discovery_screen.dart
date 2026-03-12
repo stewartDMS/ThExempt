@@ -338,13 +338,17 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     if (_isLoading) {
       return ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: 4,
         itemBuilder: (_, __) => const SkeletonProjectCard(),
       );
     }
 
     if (_error != null && _allProjects.isEmpty) {
-      return ErrorStateWidget(error: _error!, onRetry: _loadData);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
+        child: ErrorStateWidget(error: _error!, onRetry: _loadData),
+      );
     }
 
     final filtered = _filteredProjects;

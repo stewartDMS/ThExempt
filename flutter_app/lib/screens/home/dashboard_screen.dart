@@ -6,6 +6,7 @@ import '../feed/discovery_screen.dart';
 import '../community/community_hub_screen.dart';
 import '../community/create_discussion_screen.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/layout_constants.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int initialIndex;
@@ -89,26 +90,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.border, width: 1),
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: LayoutConstants.bottomNavHeight,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.grey300.withAlpha(128),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 56,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home', index: 0, currentIndex: _currentIndex, onTap: _onNavTap),
-              _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'Discover', index: 1, currentIndex: _currentIndex, onTap: _onNavTap),
-              _NavItem(icon: Icons.add_circle_outline, activeIcon: Icons.add_circle, label: 'Create', index: 2, currentIndex: _currentIndex, onTap: _onNavTap),
-              _NavItem(icon: Icons.forum_outlined, activeIcon: Icons.forum, label: 'Community', index: 3, currentIndex: _currentIndex, onTap: _onNavTap),
-              _NavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile', index: 4, currentIndex: _currentIndex, onTap: _onNavTap),
-            ],
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home', index: 0, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'Discover', index: 1, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.add_circle_outline, activeIcon: Icons.add_circle, label: 'Create', index: 2, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.forum_outlined, activeIcon: Icons.forum, label: 'Community', index: 3, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile', index: 4, currentIndex: _currentIndex, onTap: _onNavTap),
+          ],
         ),
       ),
     );

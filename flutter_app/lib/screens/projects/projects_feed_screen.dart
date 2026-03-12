@@ -70,19 +70,23 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
     if (_isLoading) {
       return ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: 3,
         itemBuilder: (_, __) => const SkeletonProjectCard(),
       );
     }
 
     if (_error != null && _projects.isEmpty) {
-      return ErrorStateWidget(error: _error!, onRetry: _loadProjects);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
+        child: ErrorStateWidget(error: _error!, onRetry: _loadProjects),
+      );
     }
 
     if (_projects.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, AppSpacing.bottomNavWithFabPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
