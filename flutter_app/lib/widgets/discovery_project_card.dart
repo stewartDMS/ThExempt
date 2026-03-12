@@ -5,6 +5,7 @@ import '../screens/profile/user_profile_screen.dart';
 import '../utils/time_ago.dart';
 import 'team_composition_indicator.dart';
 import 'video_player_dialog.dart';
+import '../theme/app_colors.dart';
 
 /// Enhanced project card for the discovery screen.
 /// Optionally displays a match percentage badge, open-role chips, a team
@@ -26,9 +27,9 @@ class DiscoveryProjectCard extends StatelessWidget {
   });
 
   Color _matchColor(int score) {
-    if (score >= 75) return Colors.green[600]!;
-    if (score >= 50) return Colors.orange[600]!;
-    return Colors.red[400]!;
+    if (score >= 75) return AppColors.success;
+    if (score >= 50) return AppColors.warning;
+    return AppColors.error;
   }
 
   void _openProject(BuildContext context) {
@@ -64,21 +65,10 @@ class DiscoveryProjectCard extends StatelessWidget {
     final isPerfectMatch = matchScore != null && matchScore! >= 90;
     final openCount = project.totalRolesNeeded - project.rolesFilled;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isPerfectMatch
-              ? Colors.green[300]!
-              : Colors.grey[300]!,
-          width: isPerfectMatch ? 1.5 : 1.0,
-        ),
-      ),
+    return Container(
+      color: AppColors.white,
       child: InkWell(
         onTap: () => _openProject(context),
-        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -87,13 +77,8 @@ class DiscoveryProjectCard extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                ),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                color: AppColors.successLight,
                 child: Row(
                   children: [
                     const Text('⭐', style: TextStyle(fontSize: 14)),
@@ -103,152 +88,176 @@ class DiscoveryProjectCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green[700],
+                        color: AppColors.success,
                       ),
                     ),
                   ],
                 ),
               ),
 
+            // Header row
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Row(
                 children: [
-                  // Header row
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => _openOwnerProfile(context),
-                        child: project.ownerAvatarUrl != null
-                            ? CircleAvatar(
-                                radius: 22,
-                                backgroundImage:
-                                    NetworkImage(project.ownerAvatarUrl!),
-                                onBackgroundImageError: (_, __) {},
-                              )
-                            : Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF6366F1),
-                                      Color(0xFF8B5CF6)
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    project.ownerName.isNotEmpty
-                                        ? project.ownerName[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                  GestureDetector(
+                    onTap: () => _openOwnerProfile(context),
+                    child: project.ownerAvatarUrl != null
+                        ? CircleAvatar(
+                            radius: 20,
+                            backgroundImage:
+                                NetworkImage(project.ownerAvatarUrl!),
+                            onBackgroundImageError: (_, __) {},
+                          )
+                        : CircleAvatar(
+                            radius: 20,
+                            backgroundColor: AppColors.primaryContainer,
+                            child: Text(
+                              project.ownerName.isNotEmpty
+                                  ? project.ownerName[0].toUpperCase()
+                                  : 'U',
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                               ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () => _openOwnerProfile(context),
-                              child: Text(
-                                project.ownerName,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              timeAgo(project.createdAt),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Match badge
-                      if (matchScore != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _matchColor(matchScore!).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _matchColor(matchScore!).withOpacity(0.4),
                             ),
                           ),
-                          child: Text(
-                            '$matchScore% match',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _matchColor(matchScore!),
-                            ),
-                          ),
-                        ),
-                    ],
                   ),
-
-                  const SizedBox(height: 14),
-
-                  // Video thumbnail
-                  if (project.videoUrl != null)
-                    GestureDetector(
-                      onTap: () => _playVideo(context),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            project.thumbnailUrl != null
-                                ? Image.network(
-                                    project.thumbnailUrl!,
-                                    height: 160,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => _videoPlaceholder(),
-                                  )
-                                : _videoPlaceholder(),
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.black54,
-                                child: const Icon(
-                                  Icons.play_arrow,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                              ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () => _openOwnerProfile(context),
+                          child: Text(
+                            project.ownerName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.grey900,
                             ),
-                          ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          timeAgo(project.createdAt),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.grey500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Match badge
+                  if (matchScore != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _matchColor(matchScore!).withAlpha(20),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: _matchColor(matchScore!).withAlpha(80),
+                        ),
+                      ),
+                      child: Text(
+                        '$matchScore% match',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _matchColor(matchScore!),
                         ),
                       ),
                     ),
+                ],
+              ),
+            ),
 
-                  if (project.videoUrl != null) const SizedBox(height: 12),
+            // Video thumbnail
+            if (project.videoUrl != null) ...[
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _playVideo(context),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      project.thumbnailUrl != null
+                          ? Image.network(
+                              project.thumbnailUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  _videoPlaceholder(),
+                            )
+                          : _videoPlaceholder(),
+                      // Bottom gradient
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.5, 1.0],
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withAlpha(90),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Play button
+                      Center(
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withAlpha(230),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(40),
+                                blurRadius: 16,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow_rounded,
+                            color: AppColors.primary,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
 
+            // Content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   // Title
                   Text(
                     project.title,
                     style: const TextStyle(
                       fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.grey900,
+                      height: 1.3,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
 
@@ -257,16 +266,16 @@ class DiscoveryProjectCard extends StatelessWidget {
                     project.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
-                      height: 1.4,
+                      color: AppColors.grey500,
+                      height: 1.45,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
                   // Skills chips
-                  if (project.requiredSkills.isNotEmpty)
+                  if (project.requiredSkills.isNotEmpty) ...[
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
@@ -275,23 +284,22 @@ class DiscoveryProjectCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
+                            color: AppColors.primaryContainer,
+                            borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             skill,
                             style: const TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF6366F1),
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         );
                       }).toList(),
                     ),
-
-                  if (project.requiredSkills.isNotEmpty)
                     const SizedBox(height: 12),
+                  ],
 
                   // Team composition indicator
                   TeamCompositionIndicator(
@@ -318,9 +326,17 @@ class DiscoveryProjectCard extends StatelessWidget {
 
   Widget _videoPlaceholder() {
     return Container(
-      height: 160,
-      color: Colors.grey[200],
-      child: const Icon(Icons.video_library, size: 48, color: Colors.grey),
+      color: AppColors.grey100,
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.video_library_outlined,
+              size: 44, color: AppColors.grey400),
+          SizedBox(height: 8),
+          Text('Video pitch',
+              style: TextStyle(color: AppColors.grey400, fontSize: 12)),
+        ],
+      ),
     );
   }
 
@@ -330,14 +346,14 @@ class DiscoveryProjectCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.work_outline, size: 13, color: Colors.green[700]),
+            const Icon(Icons.work_outline, size: 13, color: AppColors.success),
             const SizedBox(width: 4),
             Text(
               '$openCount open role${openCount == 1 ? '' : 's'}:',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Colors.green[700],
+                color: AppColors.success,
               ),
             ),
           ],
@@ -351,15 +367,15 @@ class DiscoveryProjectCard extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.green[200]!),
+                color: AppColors.successLight,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppColors.success.withAlpha(60)),
               ),
               child: Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
-                  color: Colors.green[700],
+                  color: AppColors.success,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -373,14 +389,14 @@ class DiscoveryProjectCard extends StatelessWidget {
   Widget _buildOpenRolesSummary(int openCount) {
     return Row(
       children: [
-        Icon(Icons.group_outlined, size: 13, color: Colors.green[700]),
+        const Icon(Icons.group_outlined, size: 13, color: AppColors.success),
         const SizedBox(width: 4),
         Text(
           '$openCount open role${openCount == 1 ? '' : 's'} available',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.green[700],
+            color: AppColors.success,
           ),
         ),
       ],

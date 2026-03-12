@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 
-/// Centralized Material theme for ThExempt
+/// Centralized Material theme for ThExempt – LinkedIn/professional aesthetic
 class AppTheme {
   AppTheme._();
 
@@ -30,23 +30,25 @@ class AppTheme {
         backgroundColor: AppColors.cardBackground,
         foregroundColor: AppColors.grey900,
         scrolledUnderElevation: 1,
-        shadowColor: AppColors.grey200,
+        shadowColor: AppColors.border,
         titleTextStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           color: AppColors.grey900,
+          letterSpacing: -0.2,
         ),
       ),
 
-      // Card
+      // Card – clean bordered cards, no shadow (LinkedIn style)
       cardTheme: CardThemeData(
-        elevation: AppSpacing.elevationSm,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          side: const BorderSide(color: AppColors.border, width: 1),
         ),
         color: AppColors.cardBackground,
         surfaceTintColor: Colors.transparent,
-        shadowColor: AppColors.grey300,
+        shadowColor: Colors.transparent,
         margin: EdgeInsets.zero,
       ),
 
@@ -58,12 +60,12 @@ class AppTheme {
           foregroundColor: AppColors.white,
           minimumSize: const Size(0, AppSpacing.minTouchTarget),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
           textStyle: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -75,12 +77,12 @@ class AppTheme {
           minimumSize: const Size(0, AppSpacing.minTouchTarget),
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
           textStyle: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -100,29 +102,29 @@ class AppTheme {
       // InputDecoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.grey50,
+        fillColor: AppColors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: const BorderSide(color: AppColors.grey200),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: const BorderSide(color: AppColors.grey200),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
         labelStyle: const TextStyle(
@@ -137,10 +139,10 @@ class AppTheme {
 
       // BottomNavigationBar
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        elevation: 8,
+        elevation: 0,
         backgroundColor: AppColors.white,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.grey400,
+        unselectedItemColor: AppColors.grey500,
         selectedLabelStyle: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -157,7 +159,7 @@ class AppTheme {
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.grey100,
-        selectedColor: AppColors.primary,
+        selectedColor: AppColors.primaryContainer,
         labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
@@ -165,12 +167,13 @@ class AppTheme {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
 
       // Divider
       dividerTheme: const DividerThemeData(
-        color: AppColors.grey100,
+        color: AppColors.divider,
         thickness: 1,
         space: 1,
       ),
@@ -179,7 +182,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         contentTextStyle: const TextStyle(fontSize: 14, color: AppColors.white),
       ),
@@ -187,7 +190,7 @@ class AppTheme {
       // Dialog
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         ),
         elevation: AppSpacing.elevationXl,
       ),

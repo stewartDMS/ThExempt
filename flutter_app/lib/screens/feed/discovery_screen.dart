@@ -350,6 +350,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
     return RefreshIndicator(
       onRefresh: _loadData,
+      color: AppColors.primary,
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 16),
         itemCount: filtered.length + (bestMatches.isNotEmpty ? 1 : 0),
@@ -364,10 +365,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
           final score = _currentUser != null
               ? _calculateMatchScore(_currentUser!, project)
               : null;
-          return DiscoveryProjectCard(
-            key: ValueKey(project.id),
-            project: project,
-            matchScore: score,
+          return Column(
+            children: [
+              DiscoveryProjectCard(
+                key: ValueKey(project.id),
+                project: project,
+                matchScore: score,
+              ),
+              const Divider(
+                  height: 8,
+                  color: AppColors.scaffoldBackground,
+                  thickness: 8),
+            ],
           );
         },
       ),

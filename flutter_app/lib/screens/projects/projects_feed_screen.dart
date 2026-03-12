@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/project_model.dart';
 import '../../services/projects_service.dart';
+import '../../theme/app_colors.dart';
 import 'widgets/project_card.dart';
 
 class ProjectsFeedScreen extends StatefulWidget {
@@ -52,6 +53,7 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text('Projects'),
         elevation: 0,
@@ -62,9 +64,7 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_hasError) {
@@ -74,26 +74,32 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 60,
-                color: Colors.red[300],
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppColors.errorLight,
+                  borderRadius: BorderRadius.circular(36),
+                ),
+                child: const Icon(Icons.error_outline,
+                    size: 36, color: AppColors.error),
               ),
               const SizedBox(height: 16),
               const Text(
                 'Failed to Load Projects',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.grey900,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 _errorMessage,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: AppColors.grey500,
                 ),
               ),
               const SizedBox(height: 24),
@@ -101,15 +107,6 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
                 onPressed: _loadProjects,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Try Again'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
               ),
             ],
           ),
@@ -124,41 +121,35 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.work_outline,
-                size: 60,
-                color: Colors.grey[400],
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(36),
+                ),
+                child: const Icon(Icons.work_outline,
+                    size: 36, color: AppColors.primary),
               ),
               const SizedBox(height: 16),
               const Text(
                 'No Projects Yet',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.grey900,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Check back later for new projects',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 14, color: AppColors.grey500),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: _loadProjects,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Refresh'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
               ),
             ],
           ),
@@ -168,9 +159,15 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
 
     return RefreshIndicator(
       onRefresh: _loadProjects,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      color: AppColors.primary,
+      child: ListView.separated(
+        padding: const EdgeInsets.only(bottom: 16),
         itemCount: _projects.length,
+        separatorBuilder: (_, __) => const Divider(
+          height: 8,
+          thickness: 8,
+          color: AppColors.scaffoldBackground,
+        ),
         itemBuilder: (context, index) {
           return ProjectCard(project: _projects[index]);
         },
