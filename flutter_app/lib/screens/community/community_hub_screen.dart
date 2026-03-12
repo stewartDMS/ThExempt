@@ -157,7 +157,14 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                     final d = _discussions[index];
                     return Column(
                       children: [
-                        DiscussionFeedCard(discussion: d),
+                        DiscussionFeedCard(
+                          discussion: d,
+                          onDeleted: () {
+                            setState(() {
+                              _discussions.remove(d);
+                            });
+                          },
+                        ),
                         const Divider(
                             height: 1, color: AppColors.scaffoldBackground, thickness: 8),
                       ],

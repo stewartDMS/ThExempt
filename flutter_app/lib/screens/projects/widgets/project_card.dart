@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../models/project_model.dart';
 import '../../../utils/time_ago.dart';
 import '../project_detail_screen.dart';
@@ -7,13 +8,21 @@ import '../../profile/user_profile_screen.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/text_styles.dart';
+import '../../../services/projects_service.dart';
+import '../../../utils/error_handler.dart';
+import '../../../widgets/common/delete_confirmation_dialog.dart';
+import '../../../widgets/common/error_snackbar.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
 
+  /// Called after the project has been successfully deleted.
+  final VoidCallback? onDeleted;
+
   const ProjectCard({
     super.key,
     required this.project,
+    this.onDeleted,
   });
 
   void _playVideo(BuildContext context) {
@@ -194,6 +203,10 @@ class ProjectCard extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final currentUserId =
+        Supabase.instance.client.auth.currentUser?.id;
+    final isOwner = currentUserId != null && currentUserId == project.ownerId;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -247,11 +260,83 @@ class ProjectCard extends StatelessWidget {
             ],
           ),
         ),
-        // Bookmark icon
-        Icon(Icons.bookmark_border_outlined,
-            color: AppColors.grey400, size: AppSpacing.iconLg),
+        // Three-dot menu for owner, bookmark icon for others
+        if (isOwner)
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: AppColors.grey400),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            onSelected: (value) {
+              if (value == 'delete') {
+                _handleDelete(context);
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline,
+                        size: 20, color: AppColors.error),
+                    SizedBox(width: 12),
+                    Text(
+                      'Delete',
+                      style: TextStyle(color: AppColors.error),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          )
+        else
+          Icon(Icons.bookmark_border_outlined,
+              color: AppColors.grey400, size: AppSpacing.iconLg),
       ],
     );
+  }
+
+  Future<void> _handleDelete(BuildContext context) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context,
+      title: 'Delete Project?',
+      message:
+          'This action cannot be undone. The project and all its data will be permanently deleted.',
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await DeleteConfirmationDialog.withLoadingOverlay(
+        context,
+        () => ProjectsService.deleteProject(project.id),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 18),
+                SizedBox(width: 10),
+                Text('Project deleted successfully'),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+        onDeleted?.call();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
+        ErrorSnackbar.show(context, appError);
+      }
+    }
   }
 
   Widget _buildTitle() {

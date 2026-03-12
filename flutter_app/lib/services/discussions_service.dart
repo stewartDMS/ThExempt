@@ -163,5 +163,52 @@ class DiscussionsService {
           .eq('user_id', userId);
     }
   }
+
+  /// Delete a discussion authored by the current user.
+  /// Removes associated replies and likes before deleting the discussion.
+  static Future<void> deleteDiscussion(String discussionId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
+
+    // Verify ownership before deletion
+    final discussion = await _supabase
+        .from('discussions')
+        .select('author_id')
+        .eq('id', discussionId)
+        .single();
+
+    if (discussion['author_id'] != userId) {
+      throw Exception('You do not have permission to delete this discussion');
+    }
+
+    // Delete reply likes for this discussion's replies
+    final replies = await _supabase
+        .from('discussion_replies')
+        .select('id')
+        .eq('discussion_id', discussionId);
+
+    if (replies.isNotEmpty) {
+      final replyIds =
+          replies.map((r) => r['id'] as String).toList();
+      await _supabase
+          .from('discussion_reply_likes')
+          .delete()
+          .inFilter('reply_id', replyIds);
+    }
+
+    // Delete replies and discussion likes
+    await _supabase
+        .from('discussion_replies')
+        .delete()
+        .eq('discussion_id', discussionId);
+
+    await _supabase
+        .from('discussion_likes')
+        .delete()
+        .eq('discussion_id', discussionId);
+
+    // Delete the discussion
+    await _supabase.from('discussions').delete().eq('id', discussionId);
+  }
 }
 

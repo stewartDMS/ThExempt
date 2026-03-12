@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/project_model.dart';
 import '../screens/projects/project_detail_screen.dart';
 import '../screens/profile/user_profile_screen.dart';
@@ -6,6 +7,10 @@ import '../utils/time_ago.dart';
 import 'team_composition_indicator.dart';
 import 'video_player_dialog.dart';
 import '../theme/app_colors.dart';
+import '../services/projects_service.dart';
+import '../utils/error_handler.dart';
+import 'common/delete_confirmation_dialog.dart';
+import 'common/error_snackbar.dart';
 
 /// Enhanced project card for the discovery screen.
 /// Optionally displays a match percentage badge, open-role chips, a team
@@ -19,11 +24,15 @@ class DiscoveryProjectCard extends StatelessWidget {
   /// Open role titles to preview on the card (max 3 shown).
   final List<String> openRoleTitles;
 
+  /// Called after the project has been successfully deleted.
+  final VoidCallback? onDeleted;
+
   const DiscoveryProjectCard({
     super.key,
     required this.project,
     this.matchScore,
     this.openRoleTitles = const [],
+    this.onDeleted,
   });
 
   Color _matchColor(int score) {
@@ -57,6 +66,49 @@ class DiscoveryProjectCard extends StatelessWidget {
           projectTitle: project.title,
         ),
       );
+    }
+  }
+
+  Future<void> _handleDelete(BuildContext context) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context,
+      title: 'Delete Project?',
+      message:
+          'This action cannot be undone. The project and all its data will be permanently deleted.',
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await DeleteConfirmationDialog.withLoadingOverlay(
+        context,
+        () => ProjectsService.deleteProject(project.id),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 18),
+                SizedBox(width: 10),
+                Text('Project deleted successfully'),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+        onDeleted?.call();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
+        ErrorSnackbar.show(context, appError);
+      }
     }
   }
 
@@ -153,8 +205,38 @@ class DiscoveryProjectCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Match badge
-                  if (matchScore != null)
+                  // Match badge or three-dot menu for owner
+                  if (Supabase.instance.client.auth.currentUser?.id ==
+                      project.ownerId)
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert,
+                          color: AppColors.grey400),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _handleDelete(context);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 20, color: AppColors.error),
+                              SizedBox(width: 12),
+                              Text(
+                                'Delete',
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (matchScore != null)
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),

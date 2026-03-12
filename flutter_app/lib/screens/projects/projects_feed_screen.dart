@@ -144,6 +144,11 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
           return ProjectCard(
             key: ValueKey(_projects[index].id),
             project: _projects[index],
+            onDeleted: () {
+              setState(() {
+                _projects.removeAt(index);
+              });
+            },
           );
         },
       ),
