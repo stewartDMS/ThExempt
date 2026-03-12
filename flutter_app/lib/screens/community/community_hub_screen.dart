@@ -6,6 +6,7 @@ import '../../services/live_events_service.dart';
 import '../../widgets/common/discussion_feed_card.dart';
 import '../../widgets/live_event_card.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 import 'discussion_categories_screen.dart';
 import 'create_discussion_screen.dart';
 import 'my_discussions_screen.dart';
@@ -140,20 +141,9 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                 ),
               ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.bottomNavWithFabPadding)),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CreateDiscussionScreen()),
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('New Discussion',
-            style: TextStyle(fontWeight: FontWeight.w600)),
-        elevation: 2,
       ),
     );
   }

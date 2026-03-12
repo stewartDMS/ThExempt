@@ -39,4 +39,9 @@ class AppSpacing {
 
   // Touch target minimum
   static const double minTouchTarget = 48.0;
+
+  // Bottom padding to clear FAB + bottom navigation bar (nav bar ~56px + FAB ~56px + margins)
+  static const double bottomNavWithFabPadding = 100.0;
+  // Bottom padding to clear just the bottom navigation bar (no FAB)
+  static const double bottomNavPadding = 80.0;
 }

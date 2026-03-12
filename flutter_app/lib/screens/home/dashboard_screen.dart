@@ -4,6 +4,7 @@ import '../projects/create_project_screen.dart';
 import '../profile/profile_screen.dart';
 import '../feed/discovery_screen.dart';
 import '../community/community_hub_screen.dart';
+import '../community/create_discussion_screen.dart';
 import '../../theme/app_colors.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -37,29 +38,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _feedKey.currentState?.refreshProjects();
   }
 
+  Widget? _buildFab(BuildContext context) {
+    switch (_currentIndex) {
+      case 0:
+      case 1:
+        return _fab(
+          icon: Icons.add,
+          label: 'Create',
+          onPressed: () => setState(() => _currentIndex = 2),
+        );
+      case 3:
+        return _fab(
+          icon: Icons.edit_outlined,
+          label: 'New Discussion',
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreateDiscussionScreen()),
+          ),
+        );
+      default:
+        return null;
+    }
+  }
+
+  FloatingActionButton _fab({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return FloatingActionButton.extended(
+      onPressed: onPressed,
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.white,
+      elevation: 4,
+      icon: Icon(icon),
+      label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isCreate = _currentIndex == 2;
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      floatingActionButton: isCreate
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () {
-                setState(() => _currentIndex = 2);
-              },
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
-              elevation: 4,
-              icon: const Icon(Icons.add),
-              label: const Text(
-                'Create',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
+      floatingActionButton: _buildFab(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNav(context),
     );

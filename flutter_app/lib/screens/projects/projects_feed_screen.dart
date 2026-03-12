@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/project_model.dart';
 import '../../services/projects_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 import 'widgets/project_card.dart';
 
 class ProjectsFeedScreen extends StatefulWidget {
@@ -161,7 +162,7 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
       onRefresh: _loadProjects,
       color: AppColors.primary,
       child: ListView.separated(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: _projects.length,
         separatorBuilder: (_, __) => const Divider(
           height: 8,
