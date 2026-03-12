@@ -67,19 +67,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBottomNav(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.grey300.withAlpha(128),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: 1),
+        ),
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+        child: SizedBox(
+          height: 56,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -127,7 +123,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = index == currentIndex;
-    final color = isActive ? AppColors.primary : AppColors.grey400;
+    final color = isActive ? AppColors.primary : AppColors.grey500;
 
     return Expanded(
       child: GestureDetector(
@@ -139,32 +135,22 @@ class _NavItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 150),
                 child: Icon(
                   isActive ? activeIcon : icon,
                   key: ValueKey(isActive),
                   color: color,
-                  size: 24,
+                  size: 26,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight:
-                      isActive ? FontWeight.w600 : FontWeight.w400,
+                      isActive ? FontWeight.w700 : FontWeight.w400,
                   color: color,
-                ),
-              ),
-              const SizedBox(height: 2),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: isActive ? 20 : 0,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ],

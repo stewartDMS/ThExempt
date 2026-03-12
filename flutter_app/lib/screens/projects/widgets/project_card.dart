@@ -44,74 +44,74 @@ class ProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-      decoration: BoxDecoration(
+          horizontal: 0, vertical: 0),
+      decoration: const BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.grey300.withAlpha(102),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ProjectDetailScreen(projectId: project.id),
-                ),
-              );
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Video thumbnail
-                if (project.videoUrl != null)
-                  _buildVideoThumbnail(context),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ProjectDetailScreen(projectId: project.id),
+              ),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header: avatar + name + time + bookmark ────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                child: _buildHeader(context),
+              ),
 
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header: avatar + name + time + bookmark
-                      _buildHeader(context),
-                      const SizedBox(height: AppSpacing.md),
+              // ── Video thumbnail ────────────────────────────────────────
+              if (project.videoUrl != null)
+                _buildVideoThumbnail(context),
 
-                      // Title + "New" badge
-                      _buildTitle(),
-                      const SizedBox(height: AppSpacing.sm),
+              // ── Content ───────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title + "New" badge
+                    _buildTitle(),
+                    const SizedBox(height: 6),
 
-                      // Description
-                      Text(
-                        project.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.body2.copyWith(height: 1.5),
+                    // Description
+                    Text(
+                      project.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.grey500,
+                        height: 1.45,
                       ),
+                    ),
 
-                      // Skills
-                      if (project.requiredSkills.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        _buildSkillChips(),
-                      ],
-
-                      // Roles summary
-                      if (project.totalRolesNeeded > 0) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        _buildRolesSummary(),
-                      ],
+                    // Skills
+                    if (project.requiredSkills.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _buildSkillChips(),
                     ],
-                  ),
+
+                    // Roles summary
+                    if (project.totalRolesNeeded > 0) ...[
+                      const SizedBox(height: 10),
+                      _buildRolesSummary(),
+                    ],
+
+                    const SizedBox(height: 12),
+                    // CTA row
+                    _buildCTARow(context),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -133,38 +133,42 @@ class ProjectCard extends StatelessWidget {
                     errorBuilder: (_, __, ___) => _videoPlaceholder(),
                   )
                 : _videoPlaceholder(),
-            // Gradient overlay for play button visibility
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withAlpha(77),
-                  ],
+            // Bottom gradient overlay for readability
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.5, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withAlpha(100),
+                    ],
+                  ),
                 ),
               ),
             ),
-            // Play button
+            // Play button – centered, large, professional
             Center(
               child: Container(
-                width: 56,
-                height: 56,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   color: AppColors.white.withAlpha(230),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(51),
-                      blurRadius: 12,
+                      color: Colors.black.withAlpha(40),
+                      blurRadius: 16,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
                 child: const Icon(
                   Icons.play_arrow_rounded,
                   color: AppColors.primary,
-                  size: 32,
+                  size: 34,
                 ),
               ),
             ),
@@ -180,9 +184,10 @@ class ProjectCard extends StatelessWidget {
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.video_library_outlined, size: 48, color: AppColors.grey400),
-          SizedBox(height: AppSpacing.sm),
-          Text('Video pitch', style: TextStyle(color: AppColors.grey400, fontSize: 12)),
+          Icon(Icons.video_library_outlined, size: 44, color: AppColors.grey400),
+          SizedBox(height: 8),
+          Text('Video pitch',
+              style: TextStyle(color: AppColors.grey400, fontSize: 12)),
         ],
       ),
     );
@@ -190,35 +195,33 @@ class ProjectCard extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Avatar
         GestureDetector(
           onTap: () => _openOwnerProfile(context),
           child: project.ownerAvatarUrl != null
               ? CircleAvatar(
-                  radius: 22,
+                  radius: 20,
                   backgroundImage: NetworkImage(project.ownerAvatarUrl!),
                   onBackgroundImageError: (_, __) {},
                 )
-              : Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                  child: Center(
-                    child: Text(
-                      project.ownerName.isNotEmpty
-                          ? project.ownerName[0].toUpperCase()
-                          : 'U',
-                      style: AppTextStyles.heading5
-                          .copyWith(color: AppColors.white),
+              : CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primaryContainer,
+                  child: Text(
+                    project.ownerName.isNotEmpty
+                        ? project.ownerName[0].toUpperCase()
+                        : 'U',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
         ),
-        const SizedBox(width: AppSpacing.md),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,10 +230,16 @@ class ProjectCard extends StatelessWidget {
                 onTap: () => _openOwnerProfile(context),
                 child: Text(
                   project.ownerName,
-                  style: AppTextStyles.heading6,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey900,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 timeAgo(project.createdAt),
                 style: AppTextStyles.caption,
@@ -238,7 +247,9 @@ class ProjectCard extends StatelessWidget {
             ],
           ),
         ),
-        Icon(Icons.bookmark_border, color: AppColors.grey300, size: AppSpacing.iconLg),
+        // Bookmark icon
+        Icon(Icons.bookmark_border_outlined,
+            color: AppColors.grey400, size: AppSpacing.iconLg),
       ],
     );
   }
@@ -250,14 +261,20 @@ class ProjectCard extends StatelessWidget {
         Expanded(
           child: Text(
             project.title,
-            style: AppTextStyles.heading4,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.grey900,
+              height: 1.3,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         if (_isNew) ...[
           const SizedBox(width: AppSpacing.sm),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
               color: AppColors.success,
               borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -279,20 +296,23 @@ class ProjectCard extends StatelessWidget {
 
   Widget _buildSkillChips() {
     return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
+      spacing: 6,
+      runSpacing: 6,
       children: project.requiredSkills.take(3).map((skill) {
         return Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: AppColors.primaryContainer,
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
           child: Text(
             skill,
-            style: AppTextStyles.captionMedium
-                .copyWith(color: AppColors.primaryDark),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
           ),
         );
       }).toList(),
@@ -304,28 +324,81 @@ class ProjectCard extends StatelessWidget {
     return Row(
       children: [
         const Icon(Icons.group_outlined,
-            size: AppSpacing.iconSm + 2, color: AppColors.primary),
-        const SizedBox(width: AppSpacing.xs),
+            size: 15, color: AppColors.primary),
+        const SizedBox(width: 4),
         Text(
           '${project.rolesFilled}/${project.totalRolesNeeded} roles filled',
-          style: AppTextStyles.captionMedium.copyWith(color: AppColors.primary),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.primary,
+          ),
         ),
         if (openRoles > 0) ...[
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 3),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: AppColors.successLight,
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Text(
               '$openRoles open',
-              style: AppTextStyles.captionMedium
-                  .copyWith(color: AppColors.success),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.success,
+              ),
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildCTARow(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) =>
+                    ProjectDetailScreen(projectId: project.id),
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              ),
+            ),
+            child: const Text(
+              'View Project',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          child: IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.bookmark_border_outlined,
+                color: AppColors.grey500, size: 20),
+            padding: const EdgeInsets.all(9),
+            constraints: const BoxConstraints(),
+          ),
+        ),
       ],
     );
   }

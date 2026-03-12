@@ -3,9 +3,10 @@ import '../../models/discussion_model.dart';
 import '../../models/live_event_model.dart';
 import '../../services/discussions_service.dart';
 import '../../services/live_events_service.dart';
-import '../../widgets/discussion_card.dart';
+import '../../widgets/common/discussion_feed_card.dart';
 import '../../widgets/live_event_card.dart';
-import 'category_discussions_screen.dart';
+import '../../theme/app_colors.dart';
+import 'discussion_categories_screen.dart';
 import 'create_discussion_screen.dart';
 import 'my_discussions_screen.dart';
 import '../live_events/events_home_screen.dart';
@@ -19,18 +20,17 @@ class CommunityHubScreen extends StatefulWidget {
 
 class _CommunityHubScreenState extends State<CommunityHubScreen> {
   List<LiveEvent> _liveNow = [];
-  List<Discussion> _trending = [];
+  List<Discussion> _discussions = [];
   bool _loading = true;
 
-  static const _categoryColors = {
-    'world_problems': Color(0xFF10B981),
-    'ideas': Color(0xFFF59E0B),
-    'learning': Color(0xFF3B82F6),
-    'live_events': Color(0xFFEF4444),
-    'networking': Color(0xFF8B5CF6),
-    'feedback': Color(0xFFEC4899),
-    'general': Color(0xFF6B7280),
-  };
+  // Filter tabs: trending, recent, following, my_posts
+  String _activeFilter = 'trending';
+
+  static const _filters = [
+    (key: 'trending', label: '🔥 Trending'),
+    (key: 'recent', label: '🕐 Recent'),
+    (key: 'my_posts', label: '✍️ My Posts'),
+  ];
 
   @override
   void initState() {
@@ -39,15 +39,17 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+    setState(() => _loading = true);
     try {
       final results = await Future.wait([
         LiveEventsService.getLiveEvents(status: 'live'),
-        DiscussionsService.getDiscussions(sort: 'trending'),
+        DiscussionsService.getDiscussions(sort: _activeFilter == 'my_posts' ? 'recent' : _activeFilter),
       ]);
       if (mounted) {
         setState(() {
           _liveNow = results[0] as List<LiveEvent>;
-          _trending = results[1] as List<Discussion>;
+          _discussions = results[1] as List<Discussion>;
           _loading = false;
         });
       }
@@ -56,21 +58,36 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
     }
   }
 
+  void _onFilterChanged(String filter) {
+    if (_activeFilter == filter) return;
+    setState(() => _activeFilter = filter);
+    _loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text('Community'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.category_outlined),
+            tooltip: 'Browse Categories',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const DiscussionCategoriesScreen()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.history_outlined),
             tooltip: 'My Discussions',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const MyDiscussionsScreen()),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.live_tv),
+            icon: const Icon(Icons.live_tv_outlined),
             tooltip: 'Live Events',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const EventsHomeScreen()),
@@ -80,155 +97,262 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : CustomScrollView(
-                slivers: [
-                  // Live Now section
-                  if (_liveNow.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.circle, size: 10, color: Colors.red),
-                            const SizedBox(width: 6),
-                            const Text('Live Now',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const EventsHomeScreen()),
-                              ),
-                              child: const Text('See all'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 180,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          itemCount: _liveNow.length,
-                          itemBuilder: (_, i) => SizedBox(
-                            width: 280,
-                            child: LiveEventCard(event: _liveNow[i]),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  // Categories grid
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
-                      child: Text('Categories',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 2.5,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final cat = DiscussionCategory.values[index];
-                          final color = _categoryColors[cat.value] ?? const Color(0xFF6B7280);
-                          return _CategoryTile(
-                            category: cat,
-                            color: color,
-                            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                              builder: (_) => CategoryDiscussionsScreen(category: cat),
-                            )),
-                          );
-                        },
-                        childCount: DiscussionCategory.values.length,
-                      ),
-                    ),
-                  ),
-                  // Trending discussions
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
-                      child: Text('Trending',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => DiscussionCard(discussion: _trending[index]),
-                      childCount: _trending.length,
-                    ),
-                  ),
-                  if (_trending.isEmpty)
-                    const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.all(32),
-                        child: Center(
-                          child: Text('No discussions yet. Be the first!',
-                              style: TextStyle(color: Colors.grey)),
-                        ),
-                      ),
-                    ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                ],
+        color: AppColors.primary,
+        child: CustomScrollView(
+          slivers: [
+            // ── Filter chips ───────────────────────────────────────────────
+            SliverToBoxAdapter(child: _buildFilterChips()),
+
+            const SliverToBoxAdapter(child: Divider(height: 1)),
+
+            // ── Live Now section ──────────────────────────────────────────
+            if (_liveNow.isNotEmpty) ...[
+              SliverToBoxAdapter(child: _buildLiveNowSection()),
+              const SliverToBoxAdapter(
+                child: Divider(height: 8, color: AppColors.scaffoldBackground),
               ),
+            ],
+
+            // ── Discussion feed ────────────────────────────────────────────
+            if (_loading)
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (_, __) => _buildSkeletonCard(),
+                  childCount: 5,
+                ),
+              )
+            else if (_discussions.isEmpty)
+              SliverToBoxAdapter(child: _buildEmptyState())
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final d = _discussions[index];
+                    return Column(
+                      children: [
+                        DiscussionFeedCard(discussion: d),
+                        const Divider(
+                            height: 1, color: AppColors.scaffoldBackground, thickness: 8),
+                      ],
+                    );
+                  },
+                  childCount: _discussions.length,
+                ),
+              ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const CreateDiscussionScreen()),
         ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
         icon: const Icon(Icons.edit_outlined),
-        label: const Text('New Discussion'),
+        label: const Text('New Discussion',
+            style: TextStyle(fontWeight: FontWeight.w600)),
+        elevation: 2,
       ),
     );
   }
-}
 
-class _CategoryTile extends StatelessWidget {
-  final DiscussionCategory category;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _CategoryTile({required this.category, required this.color, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    // Extract just the emoji + short name
-    final parts = category.label.split(' ');
-    final emoji = parts.isNotEmpty ? parts[0] : '';
-    final name = parts.length > 1 ? parts.sublist(1).join(' ') : category.label;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withAlpha(25),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withAlpha(60)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(name,
+  Widget _buildFilterChips() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Row(
+        children: _filters.map((f) {
+          final isActive = _activeFilter == f.key;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () => _onFilterChanged(f.key),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppColors.primary
+                      : AppColors.grey100,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color:
+                        isActive ? AppColors.primary : AppColors.border,
+                  ),
+                ),
+                child: Text(
+                  f.label,
                   style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600, color: color.withAlpha(220)),
-                  overflow: TextOverflow.ellipsis),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isActive ? AppColors.white : AppColors.grey600,
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildLiveNowSection() {
+    return Container(
+      color: AppColors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'Live Now',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.grey900,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const EventsHomeScreen()),
+                  ),
+                  child: const Text(
+                    'See all',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 180,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              itemCount: _liveNow.length,
+              itemBuilder: (_, i) => SizedBox(
+                width: 280,
+                child: LiveEventCard(event: _liveNow[i]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.circular(36),
+            ),
+            child: const Icon(Icons.forum_outlined,
+                size: 36, color: AppColors.primary),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'No discussions yet',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.grey900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Be the first to start a conversation!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: AppColors.grey500),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const CreateDiscussionScreen()),
+            ),
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Start Discussion'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Author row skeleton
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.grey200,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                      width: 120,
+                      height: 12,
+                      color: AppColors.grey200),
+                  const SizedBox(height: 4),
+                  Container(
+                      width: 70,
+                      height: 10,
+                      color: AppColors.grey200),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(width: 80, height: 20, color: AppColors.grey200),
+          const SizedBox(height: 10),
+          Container(width: double.infinity, height: 14, color: AppColors.grey200),
+          const SizedBox(height: 6),
+          FractionallySizedBox(
+            widthFactor: 0.8,
+            child: Container(height: 14, color: AppColors.grey200),
+          ),
+          const SizedBox(height: 6),
+          Container(width: 200, height: 12, color: AppColors.grey200),
+        ],
       ),
     );
   }
