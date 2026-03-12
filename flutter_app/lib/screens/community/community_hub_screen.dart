@@ -27,9 +27,9 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   String _activeFilter = 'trending';
 
   static const _filters = [
-    ('trending', '🔥 Trending'),
-    ('recent', '🕐 Recent'),
-    ('my_posts', '✍️ My Posts'),
+    (key: 'trending', label: '🔥 Trending'),
+    (key: 'recent', label: '🕐 Recent'),
+    (key: 'my_posts', label: '✍️ My Posts'),
   ];
 
   @override
@@ -164,11 +164,11 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: Row(
         children: _filters.map((f) {
-          final isActive = _activeFilter == f.$1;
+          final isActive = _activeFilter == f.key;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
-              onTap: () => _onFilterChanged(f.$1),
+              onTap: () => _onFilterChanged(f.key),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(
@@ -184,7 +184,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                   ),
                 ),
                 child: Text(
-                  f.$2,
+                  f.label,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -346,7 +346,10 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
           const SizedBox(height: 10),
           Container(width: double.infinity, height: 14, color: AppColors.grey200),
           const SizedBox(height: 6),
-          Container(width: double.infinity * 0.8, height: 14, color: AppColors.grey200),
+          FractionallySizedBox(
+            widthFactor: 0.8,
+            child: Container(height: 14, color: AppColors.grey200),
+          ),
           const SizedBox(height: 6),
           Container(width: 200, height: 12, color: AppColors.grey200),
         ],
