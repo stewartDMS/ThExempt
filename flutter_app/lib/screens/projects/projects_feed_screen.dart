@@ -5,6 +5,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../utils/error_handler.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/skeleton_project_card.dart';
+import '../../widgets/common/load_more_indicator.dart';
 import 'widgets/project_card.dart';
 
 class ProjectsFeedScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class ProjectsFeedScreen extends StatefulWidget {
 class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
   List<Project> _projects = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
   AppError? _error;
 
   @override
@@ -65,7 +68,11 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 3,
+        itemBuilder: (_, __) => const SkeletonProjectCard(),
+      );
     }
 
     if (_error != null && _projects.isEmpty) {
@@ -120,14 +127,20 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
       color: AppColors.primary,
       child: ListView.separated(
         padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
-        itemCount: _projects.length,
+        itemCount: _projects.length + (_isLoadingMore ? 1 : 0),
         separatorBuilder: (_, __) => const Divider(
           height: 8,
           thickness: 8,
           color: AppColors.scaffoldBackground,
         ),
         itemBuilder: (context, index) {
-          return ProjectCard(project: _projects[index]);
+          if (index == _projects.length) {
+            return const LoadMoreIndicator();
+          }
+          return ProjectCard(
+            key: ValueKey(_projects[index].id),
+            project: _projects[index],
+          );
         },
       ),
     );

@@ -10,7 +10,7 @@ import '../../widgets/discovery_project_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/text_styles.dart';
-import '../../widgets/common/skeleton_loader.dart';
+import '../../widgets/common/skeleton_project_card.dart';
 import '../../utils/error_handler.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/error_snackbar.dart';
@@ -339,7 +339,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       return ListView.builder(
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 4,
-        itemBuilder: (_, __) => const ProjectCardSkeleton(),
+        itemBuilder: (_, __) => const SkeletonProjectCard(),
       );
     }
 
