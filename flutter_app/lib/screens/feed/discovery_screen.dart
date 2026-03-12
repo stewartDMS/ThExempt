@@ -381,6 +381,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 key: ValueKey(project.id),
                 project: project,
                 matchScore: score,
+                onDeleted: () {
+                  setState(() {
+                    _allProjects.remove(project);
+                  });
+                },
               ),
               const Divider(
                   height: 8,

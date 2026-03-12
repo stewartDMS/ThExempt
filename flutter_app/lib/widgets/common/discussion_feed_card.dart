@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/discussion_model.dart';
 import '../../utils/time_ago.dart';
 import '../../theme/app_colors.dart';
 import '../../screens/community/discussion_detail_screen.dart';
+import '../../services/discussions_service.dart';
+import '../../utils/error_handler.dart';
+import 'delete_confirmation_dialog.dart';
+import 'error_snackbar.dart';
 
 /// LinkedIn-style discussion feed card.
 /// Shows author avatar, name, time, category badge, title, preview, and
@@ -11,10 +16,14 @@ class DiscussionFeedCard extends StatelessWidget {
   final Discussion discussion;
   final VoidCallback? onLike;
 
+  /// Called after the discussion has been successfully deleted.
+  final VoidCallback? onDeleted;
+
   const DiscussionFeedCard({
     super.key,
     required this.discussion,
     this.onLike,
+    this.onDeleted,
   });
 
   Color _categoryColor(String category) {
@@ -87,7 +96,38 @@ class DiscussionFeedCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (discussion.isPinned)
+                // Three-dot menu (only for author) or pin icon
+                if (Supabase.instance.client.auth.currentUser?.id ==
+                    discussion.authorId)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert,
+                        size: 20, color: AppColors.grey500),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _handleDelete(context);
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline,
+                                size: 18, color: AppColors.error),
+                            SizedBox(width: 12),
+                            Text(
+                              'Delete',
+                              style: TextStyle(color: AppColors.error),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                else if (discussion.isPinned)
                   const Padding(
                     padding: EdgeInsets.only(left: 6, top: 2),
                     child: Icon(Icons.push_pin_outlined,
@@ -209,6 +249,49 @@ class DiscussionFeedCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleDelete(BuildContext context) async {
+    final confirmed = await DeleteConfirmationDialog.show(
+      context,
+      title: 'Delete Discussion?',
+      message:
+          'This will permanently delete this discussion and all its replies.',
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await DeleteConfirmationDialog.withLoadingOverlay(
+        context,
+        () => DiscussionsService.deleteDiscussion(discussion.id),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 18),
+                SizedBox(width: 10),
+                Text('Discussion deleted'),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+        onDeleted?.call();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
+        ErrorSnackbar.show(context, appError);
+      }
+    }
   }
 
   Widget _buildAvatar() {
