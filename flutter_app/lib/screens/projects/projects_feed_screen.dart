@@ -3,6 +3,8 @@ import '../../models/project_model.dart';
 import '../../services/projects_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
+import '../../utils/error_handler.dart';
+import '../../widgets/common/error_state_widget.dart';
 import 'widgets/project_card.dart';
 
 class ProjectsFeedScreen extends StatefulWidget {
@@ -15,8 +17,7 @@ class ProjectsFeedScreen extends StatefulWidget {
 class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
   List<Project> _projects = [];
   bool _isLoading = true;
-  bool _hasError = false;
-  String _errorMessage = '';
+  AppError? _error;
 
   @override
   void initState() {
@@ -27,7 +28,7 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
   Future<void> _loadProjects() async {
     setState(() {
       _isLoading = true;
-      _hasError = false;
+      _error = null;
     });
 
     try {
@@ -42,8 +43,7 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _hasError = true;
-          _errorMessage = e.toString();
+          _error = e is AppError ? e : ErrorHandler.handleError(e);
         });
       }
     }
@@ -68,51 +68,8 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_hasError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(36),
-                ),
-                child: const Icon(Icons.error_outline,
-                    size: 36, color: AppColors.error),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Failed to Load Projects',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.grey900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _errorMessage,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.grey500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _loadProjects,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
-              ),
-            ],
-          ),
-        ),
-      );
+    if (_error != null && _projects.isEmpty) {
+      return ErrorStateWidget(error: _error!, onRetry: _loadProjects);
     }
 
     if (_projects.isEmpty) {

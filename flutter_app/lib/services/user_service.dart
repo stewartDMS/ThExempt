@@ -2,6 +2,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../utils/base64_utils.dart';
+import '../utils/error_handler.dart';
+import '../utils/retry_helper.dart';
 
 class UserService {
   static final _supabase = Supabase.instance.client;
@@ -17,13 +19,23 @@ class UserService {
 
   // Get user profile by ID
   static Future<UserProfile> getProfile(String userId) async {
-    final response = await _supabase
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .single();
-
-    return UserProfile.fromJson(response);
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          final response = await _supabase
+              .from('profiles')
+              .select()
+              .eq('id', userId)
+              .single()
+              .timeout(const Duration(seconds: 10));
+          return UserProfile.fromJson(response);
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
+    }
   }
 
   // Update own profile
@@ -97,24 +109,36 @@ class UserService {
 
   // Get user stats
   static Future<Map<String, int>> getUserStats(String userId) async {
-    final profileResponse = await _supabase
-        .from('profiles')
-        .select('profile_views, reputation_points')
-        .eq('id', userId)
-        .single();
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          final profileResponse = await _supabase
+              .from('profiles')
+              .select('profile_views, reputation_points')
+              .eq('id', userId)
+              .single()
+              .timeout(const Duration(seconds: 10));
 
-    final projectsResponse = await _supabase
-        .from('projects')
-        .select('id')
-        .eq('owner_id', userId);
+          final projectsResponse = await _supabase
+              .from('projects')
+              .select('id')
+              .eq('owner_id', userId)
+              .timeout(const Duration(seconds: 10));
 
-    return {
-      'total_projects': projectsResponse.length,
-      'total_likes':
-          (profileResponse['reputation_points'] as num?)?.toInt() ?? 0,
-      'profile_views':
-          (profileResponse['profile_views'] as num?)?.toInt() ?? 0,
-    };
+          return {
+            'total_projects': projectsResponse.length,
+            'total_likes':
+                (profileResponse['reputation_points'] as num?)?.toInt() ?? 0,
+            'profile_views':
+                (profileResponse['profile_views'] as num?)?.toInt() ?? 0,
+          };
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
+    }
   }
 }
 

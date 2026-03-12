@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/live_event_model.dart';
+import '../utils/error_handler.dart';
+import '../utils/retry_helper.dart';
 
 class LiveEventsService {
   static final _supabase = Supabase.instance.client;
@@ -47,30 +49,41 @@ class LiveEventsService {
     String? category,
     String? hostId,
   }) async {
-    var query = _supabase
-        .from('live_events')
-        .select('*, profiles!host_id(name, avatar_url)');
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          var query = _supabase
+              .from('live_events')
+              .select('*, profiles!host_id(name, avatar_url)');
 
-    if (status == 'live') {
-      query = query.eq('is_live', true);
-    } else if (status == 'upcoming') {
-      query = query.eq('is_live', false).filter('ended_at', 'is', null);
+          if (status == 'live') {
+            query = query.eq('is_live', true);
+          } else if (status == 'upcoming') {
+            query = query.eq('is_live', false).filter('ended_at', 'is', null);
+          }
+
+          if (category != null) {
+            query = query.eq('category', category);
+          }
+
+          if (hostId != null) {
+            query = query.eq('host_id', hostId);
+          }
+
+          final response = await query
+              .order('scheduled_start', ascending: false)
+              .timeout(const Duration(seconds: 10));
+
+          return response
+              .map((j) => LiveEvent.fromJson(j as Map<String, dynamic>))
+              .toList();
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
     }
-
-    if (category != null) {
-      query = query.eq('category', category);
-    }
-
-    if (hostId != null) {
-      query = query.eq('host_id', hostId);
-    }
-
-    final response =
-        await query.order('scheduled_start', ascending: false);
-
-    return response
-        .map((j) => LiveEvent.fromJson(j as Map<String, dynamic>))
-        .toList();
   }
 
   /// Get a single live event by ID.

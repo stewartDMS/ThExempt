@@ -11,6 +11,9 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/text_styles.dart';
 import '../../widgets/common/skeleton_loader.dart';
+import '../../utils/error_handler.dart';
+import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/error_snackbar.dart';
 
 /// Calculates how well a user profile matches a given project.
 /// Returns an integer score in the range [0, 100].
@@ -36,8 +39,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   List<Project> _allProjects = [];
   UserProfile? _currentUser;
   bool _isLoading = true;
-  bool _hasError = false;
-  String _errorMessage = '';
+  AppError? _error;
 
   // Filters / sort
   String? _selectedCategory;
@@ -55,7 +57,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _hasError = false;
+      _error = null;
     });
 
     try {
@@ -84,11 +86,15 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
         setState(() {
           _isLoading = false;
-          _hasError = true;
-          _errorMessage = e.toString();
+          _error = appError;
         });
+        // Show snackbar for minor errors when we have cached data
+        if (appError.type != ErrorType.network && _allProjects.isNotEmpty) {
+          ErrorSnackbar.show(context, appError, onRetry: _loadData);
+        }
       }
     }
   }
@@ -337,8 +343,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       );
     }
 
-    if (_hasError) {
-      return _buildErrorState();
+    if (_error != null && _allProjects.isEmpty) {
+      return ErrorStateWidget(error: _error!, onRetry: _loadData);
     }
 
     final filtered = _filteredProjects;
@@ -440,47 +446,4 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     );
   }
 
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.errorLight,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
-              ),
-              child: const Icon(Icons.error_outline,
-                  size: AppSpacing.iconXxl, color: AppColors.error),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text('Failed to Load Projects', style: AppTextStyles.heading4),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _errorMessage,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

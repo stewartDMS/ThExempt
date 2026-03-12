@@ -3,29 +3,51 @@ import '../models/project_model.dart';
 import '../models/project_role_model.dart';
 import '../models/role_application_model.dart';
 import '../models/project_member_model.dart';
+import '../utils/error_handler.dart';
+import '../utils/retry_helper.dart';
 
 class ProjectsService {
   static final _supabase = Supabase.instance.client;
 
   // Get all projects
   static Future<List<Project>> getProjects() async {
-    final response = await _supabase
-        .from('projects')
-        .select('*, profiles!owner_id(name, avatar_url)')
-        .order('created_at', ascending: false);
-
-    return response.map((json) => Project.fromJson(json)).toList();
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          final response = await _supabase
+              .from('projects')
+              .select('*, profiles!owner_id(name, avatar_url)')
+              .order('created_at', ascending: false)
+              .timeout(const Duration(seconds: 10));
+          return response.map((json) => Project.fromJson(json)).toList();
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
+    }
   }
 
   // Get single project by ID
   static Future<Project> getProject(String id) async {
-    final response = await _supabase
-        .from('projects')
-        .select('*, profiles!owner_id(name, avatar_url)')
-        .eq('id', id)
-        .single();
-
-    return Project.fromJson(response);
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          final response = await _supabase
+              .from('projects')
+              .select('*, profiles!owner_id(name, avatar_url)')
+              .eq('id', id)
+              .single()
+              .timeout(const Duration(seconds: 10));
+          return Project.fromJson(response);
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
+    }
   }
 
   // Apply to a project (general application)
@@ -102,13 +124,23 @@ class ProjectsService {
 
   // Get user's projects
   static Future<List<Project>> getUserProjects(String userId) async {
-    final response = await _supabase
-        .from('projects')
-        .select('*, profiles!owner_id(name, avatar_url)')
-        .eq('owner_id', userId)
-        .order('created_at', ascending: false);
-
-    return response.map((json) => Project.fromJson(json)).toList();
+    try {
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          final response = await _supabase
+              .from('projects')
+              .select('*, profiles!owner_id(name, avatar_url)')
+              .eq('owner_id', userId)
+              .order('created_at', ascending: false)
+              .timeout(const Duration(seconds: 10));
+          return response.map((json) => Project.fromJson(json)).toList();
+        },
+      );
+    } catch (e) {
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
+    }
   }
 
   // Get all roles for a project, grouped by category
@@ -335,51 +367,63 @@ class ProjectsService {
     String sort = 'recent',
   }) async {
     try {
-      if (roleCategory != null) {
-        // Get project IDs that have open roles in this category
-        final rolesResponse = await _supabase
-            .from('project_roles')
-            .select('project_id')
-            .eq('role_category', roleCategory)
-            .eq('is_filled', false);
+      return await RetryHelper.retryWithBackoff(
+        operation: () async {
+          if (roleCategory != null) {
+            final rolesResponse = await _supabase
+                .from('project_roles')
+                .select('project_id')
+                .eq('role_category', roleCategory)
+                .eq('is_filled', false)
+                .timeout(const Duration(seconds: 10));
 
-        final projectIds = rolesResponse
-            .map((r) => r['project_id']?.toString() ?? '')
-            .where((id) => id.isNotEmpty)
-            .toSet()
-            .toList();
+            final projectIds = rolesResponse
+                .map((r) => r['project_id']?.toString() ?? '')
+                .where((id) => id.isNotEmpty)
+                .toSet()
+                .toList();
 
-        if (projectIds.isEmpty) return [];
+            if (projectIds.isEmpty) return <Project>[];
 
-        var query = _supabase
-            .from('projects')
-            .select('*, profiles!owner_id(name, avatar_url)')
-            .inFilter('id', projectIds);
+            var query = _supabase
+                .from('projects')
+                .select('*, profiles!owner_id(name, avatar_url)')
+                .inFilter('id', projectIds);
 
-        final response = sort == 'popular'
-            ? await query.order('roles_filled', ascending: false)
-            : await query.order('created_at', ascending: false);
+            final response = sort == 'popular'
+                ? await query
+                    .order('roles_filled', ascending: false)
+                    .timeout(const Duration(seconds: 10))
+                : await query
+                    .order('created_at', ascending: false)
+                    .timeout(const Duration(seconds: 10));
 
-        return response.map((json) => Project.fromJson(json)).toList();
-      }
+            return response.map((json) => Project.fromJson(json)).toList();
+          }
 
-      var query = _supabase
-          .from('projects')
-          .select('*, profiles!owner_id(name, avatar_url)');
+          var query = _supabase
+              .from('projects')
+              .select('*, profiles!owner_id(name, avatar_url)');
 
-      if (hasOpenRoles) {
-        // Only show projects that still need members
-        // (total_roles_needed > roles_filled or use status = 'open')
-        query = query.eq('status', 'open');
-      }
+          if (hasOpenRoles) {
+            query = query.eq('status', 'open');
+          }
 
-      final response = sort == 'popular'
-          ? await query.order('roles_filled', ascending: false)
-          : await query.order('created_at', ascending: false);
+          final response = sort == 'popular'
+              ? await query
+                  .order('roles_filled', ascending: false)
+                  .timeout(const Duration(seconds: 10))
+              : await query
+                  .order('created_at', ascending: false)
+                  .timeout(const Duration(seconds: 10));
 
-      return response.map((json) => Project.fromJson(json)).toList();
+          return response.map((json) => Project.fromJson(json)).toList();
+        },
+      );
     } catch (e) {
-      return getProjects();
+      final appError = ErrorHandler.handleError(e);
+      ErrorHandler.log(appError);
+      throw appError;
     }
   }
 
