@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:html' as html;
+import '../../models/project_stage.dart';
 import '../../services/projects_service.dart';
 import '../../services/video_service.dart';
 import '../home/dashboard_screen.dart';
@@ -8,6 +9,7 @@ import 'widgets/video_picker_widget.dart';
 import '../../widgets/common/loading_button.dart';
 import '../../widgets/common/upload_progress.dart';
 import '../../utils/layout_constants.dart';
+import '../../theme/app_colors.dart';
 
 class CreateProjectScreen extends StatefulWidget {
   const CreateProjectScreen({super.key});
@@ -21,6 +23,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   List<String> _selectedSkills = [];
+  ProjectStage _selectedStage = ProjectStage.ideation;
   
   html.File? _videoFile;
   String? _videoBase64;
@@ -54,6 +57,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         skills: _selectedSkills,
+        stage: _selectedStage,
       );
 
       // Upload video if selected
@@ -181,6 +185,114 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   onSkillsChanged: (skills) {
                     setState(() => _selectedSkills = skills);
                   },
+                ),
+                const SizedBox(height: 24),
+
+                // Stage selection
+                const Text(
+                  'Project Stage',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ProjectStage.values.map((stage) {
+                    final isSelected = _selectedStage == stage;
+                    return ChoiceChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(stage.emoji),
+                          const SizedBox(width: 4),
+                          Text(stage.displayName),
+                        ],
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedStage = stage;
+                            // Auto-suggest first 3 skills based on stage if none selected
+                            if (_selectedSkills.isEmpty) {
+                              _selectedSkills =
+                                  stage.suggestedSkills.take(3).toList();
+                            }
+                          });
+                        }
+                      },
+                      selectedColor: stage.color.withOpacity(0.2),
+                      checkmarkColor: stage.color,
+                      labelStyle: TextStyle(
+                        color: isSelected ? stage.color : AppColors.grey500,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                      side: BorderSide(
+                        color: isSelected ? stage.color : AppColors.grey300,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _selectedStage.color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _selectedStage.color.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    _selectedStage.description,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.grey500,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Suggested skills for ${_selectedStage.displayName} stage:',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.grey500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedStage.suggestedSkills.map((skill) {
+                    final isSelected = _selectedSkills.contains(skill);
+                    return FilterChip(
+                      label: Text(skill),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedSkills.add(skill);
+                          } else {
+                            _selectedSkills.remove(skill);
+                          }
+                        });
+                      },
+                      selectedColor: _selectedStage.color.withOpacity(0.2),
+                      checkmarkColor: _selectedStage.color,
+                      side: BorderSide(
+                        color: isSelected
+                            ? _selectedStage.color
+                            : AppColors.grey300,
+                      ),
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 24),
 

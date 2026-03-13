@@ -1,3 +1,5 @@
+import 'project_stage.dart';
+
 class Project {
   final String id;
   final String title;
@@ -6,6 +8,7 @@ class Project {
   final String ownerName;
   final List<String> requiredSkills;
   final String status;
+  final ProjectStage stage;
   final DateTime createdAt;
   final DateTime? updatedAt;
   final String? videoUrl;
@@ -22,6 +25,7 @@ class Project {
     required this.ownerName,
     required this.requiredSkills,
     required this.status,
+    this.stage = ProjectStage.ideation,
     required this.createdAt,
     this.updatedAt,
     this.videoUrl,
@@ -40,6 +44,7 @@ class Project {
       ownerName: json['owner_name'] ?? json['profiles']?['name'] ?? 'Unknown',
       requiredSkills: List<String>.from(json['required_skills'] ?? []),
       status: json['status'] ?? 'open',
+      stage: ProjectStage.fromString(json['stage'] ?? 'ideation'),
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']) 
           : DateTime.now(),
@@ -63,6 +68,7 @@ class Project {
       'owner_name': ownerName,
       'required_skills': requiredSkills,
       'status': status,
+      'stage': stage.name,
       'created_at': createdAt.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
       if (videoUrl != null) 'video_url': videoUrl,
