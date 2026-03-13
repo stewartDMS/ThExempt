@@ -330,7 +330,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               ),
               showCheckmark: false,
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              labelPadding: const EdgeInsets.all(0),
               visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               side: BorderSide(
                 color: _selectedStage == null
                     ? AppColors.primary
@@ -368,7 +370,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 showCheckmark: false,
                 padding:
                     const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                labelPadding: const EdgeInsets.all(0),
                 visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 side: BorderSide(
                   color: isSelected ? stage.color : AppColors.grey200,
                 ),

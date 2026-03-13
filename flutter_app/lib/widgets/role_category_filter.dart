@@ -67,6 +67,9 @@ class RoleCategoryFilter extends StatelessWidget {
             ),
             showCheckmark: false,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+            labelPadding: const EdgeInsets.all(0),
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           );
         },
       ),
