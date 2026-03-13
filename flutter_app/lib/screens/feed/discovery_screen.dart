@@ -224,8 +224,12 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             onCategoryChanged: _onCategoryChanged,
           ),
 
+          const SizedBox(height: 8),
+
           // ── Stage filter chips ─────────────────────────────────────────
           _buildStageFilter(),
+
+          const SizedBox(height: 8),
 
           // ── "Only open roles" toggle ───────────────────────────────────
           Padding(
@@ -303,11 +307,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
   Widget _buildStageFilter() {
     return SizedBox(
-      height: 44,
+      height: 60,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         children: [
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
@@ -391,11 +395,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       'needed': 'Most Needed',
     };
     return SizedBox(
-      height: 44,
+      height: 60,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         children: labels.entries.map((e) {
           final isSelected = _sort == e.key;
           return Padding(
