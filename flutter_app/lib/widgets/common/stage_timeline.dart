@@ -60,10 +60,16 @@ class StageTimeline extends StatelessWidget {
                             : null,
                       ),
                       child: Center(
-                        child: Text(
-                          stage.emoji,
-                          style: const TextStyle(fontSize: 18),
-                        ),
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 18,
+                              )
+                            : Text(
+                                stage.emoji,
+                                style: const TextStyle(fontSize: 18),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 4),
