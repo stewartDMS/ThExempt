@@ -8,6 +8,7 @@ import '../../services/discussions_service.dart';
 import '../../utils/error_handler.dart';
 import 'delete_confirmation_dialog.dart';
 import 'error_snackbar.dart';
+import 'app_card.dart';
 
 /// LinkedIn-style discussion feed card.
 /// Shows author avatar, name, time, category badge, title, preview, and
@@ -51,6 +52,9 @@ class DiscussionFeedCard extends StatelessWidget {
     final catLabel = cat?.label ?? discussion.category;
     final catColor = _categoryColor(discussion.category);
 
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isAuthor = currentUserId == discussion.authorId;
+
     return InkWell(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
@@ -64,76 +68,46 @@ class DiscussionFeedCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Author row ────────────────────────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Avatar
-                _buildAvatar(),
-                const SizedBox(width: 10),
-                // Name + time
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        discussion.authorName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+            CardHeader(
+              avatarUrl: discussion.authorAvatarUrl,
+              name: discussion.authorName,
+              subtitle: timeAgo(discussion.createdAt),
+              trailing: isAuthor
+                  ? PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert,
+                          size: 20, color: AppColors.grey500),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 1),
-                      Text(
-                        timeAgo(discussion.createdAt),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.grey500,
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _handleDelete(context);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 18, color: AppColors.error),
+                              SizedBox(width: 12),
+                              Text(
+                                'Delete',
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Three-dot menu (only for author) or pin icon
-                if (Supabase.instance.client.auth.currentUser?.id ==
-                    discussion.authorId)
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert,
-                        size: 20, color: AppColors.grey500),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    onSelected: (value) {
-                      if (value == 'delete') {
-                        _handleDelete(context);
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline,
-                                size: 18, color: AppColors.error),
-                            SizedBox(width: 12),
-                            Text(
-                              'Delete',
-                              style: TextStyle(color: AppColors.error),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                else if (discussion.isPinned)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 6, top: 2),
-                    child: Icon(Icons.push_pin_outlined,
-                        size: 16, color: AppColors.grey500),
-                  ),
-              ],
+                      ],
+                    )
+                  : discussion.isPinned
+                      ? const Padding(
+                          padding: EdgeInsets.only(left: 6, top: 2),
+                          child: Icon(Icons.push_pin_outlined,
+                              size: 16, color: AppColors.grey500),
+                        )
+                      : null,
             ),
 
             const SizedBox(height: 10),
@@ -193,18 +167,10 @@ class DiscussionFeedCard extends StatelessWidget {
                 spacing: 4,
                 runSpacing: 4,
                 children: discussion.tags.take(3).map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.grey100,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '#$tag',
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.grey500),
-                    ),
+                  return SkillChip(
+                    label: '#$tag',
+                    color: AppColors.grey500,
+                    backgroundColor: AppColors.grey100,
                   );
                 }).toList(),
               ),
@@ -292,30 +258,6 @@ class DiscussionFeedCard extends StatelessWidget {
         ErrorSnackbar.show(context, appError);
       }
     }
-  }
-
-  Widget _buildAvatar() {
-    if (discussion.authorAvatarUrl != null) {
-      return CircleAvatar(
-        radius: 18,
-        backgroundImage: NetworkImage(discussion.authorAvatarUrl!),
-        onBackgroundImageError: (_, __) {},
-      );
-    }
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: AppColors.primaryContainer,
-      child: Text(
-        discussion.authorName.isNotEmpty
-            ? discussion.authorName[0].toUpperCase()
-            : '?',
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
-        ),
-      ),
-    );
   }
 }
 
