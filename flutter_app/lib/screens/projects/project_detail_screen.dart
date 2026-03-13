@@ -4,6 +4,8 @@ import '../../models/project_model.dart';
 import '../../services/projects_service.dart';
 import '../../utils/time_ago.dart';
 import '../../widgets/team_members_widget.dart';
+import '../../widgets/common/stage_badge.dart';
+import '../../widgets/common/stage_timeline.dart';
 import 'applications_screen.dart';
 import 'widgets/apply_dialog.dart';
 import 'widgets/project_roles_manager.dart';
@@ -295,6 +297,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+
+                // Stage badge
+                StageBadge(
+                  stage: _project!.stage,
+                  showDescription: true,
+                ),
               ],
             ),
           ),
@@ -321,6 +330,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     height: 1.6,
                   ),
                 ),
+                const SizedBox(height: 32),
+
+                // Stage timeline
+                StageTimeline(currentStage: _project!.stage),
                 const SizedBox(height: 32),
 
                 // Skills required

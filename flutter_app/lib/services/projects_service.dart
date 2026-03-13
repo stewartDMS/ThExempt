@@ -3,6 +3,7 @@ import '../models/project_model.dart';
 import '../models/project_role_model.dart';
 import '../models/role_application_model.dart';
 import '../models/project_member_model.dart';
+import '../models/project_stage.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
 
@@ -69,6 +70,7 @@ class ProjectsService {
     required String title,
     required String description,
     required List<String> skills,
+    ProjectStage stage = ProjectStage.ideation,
   }) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) throw Exception('Not authenticated');
@@ -78,6 +80,7 @@ class ProjectsService {
       'title': title,
       'description': description,
       'required_skills': skills,
+      'stage': stage.name,
     }).select('*, profiles!owner_id(name, avatar_url)').single();
 
     return Project.fromJson(response);
@@ -365,6 +368,7 @@ class ProjectsService {
     String? roleCategory,
     bool hasOpenRoles = false,
     String sort = 'recent',
+    ProjectStage? stage,
   }) async {
     try {
       return await RetryHelper.retryWithBackoff(
@@ -407,6 +411,10 @@ class ProjectsService {
 
           if (hasOpenRoles) {
             query = query.eq('status', 'open');
+          }
+
+          if (stage != null) {
+            query = query.eq('stage', stage.name);
           }
 
           final response = sort == 'popular'

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/project_model.dart';
+import '../../models/project_stage.dart';
 import '../../services/projects_service.dart';
 import '../../services/user_service.dart';
 import '../../models/user_model.dart';
@@ -43,6 +44,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
   // Filters / sort
   String? _selectedCategory;
+  ProjectStage? _selectedStage;
   bool _onlyOpenRoles = false;
   String _sort = 'recent'; // 'recent' | 'match' | 'needed'
 
@@ -76,6 +78,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         roleCategory: _selectedCategory,
         hasOpenRoles: _onlyOpenRoles,
         sort: _sort,
+        stage: _selectedStage,
       );
 
       if (mounted) {
@@ -221,6 +224,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             onCategoryChanged: _onCategoryChanged,
           ),
 
+          // ── Stage filter chips ─────────────────────────────────────────
+          _buildStageFilter(),
+
           // ── "Only open roles" toggle ───────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -291,6 +297,85 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStageFilter() {
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: FilterChip(
+              label: const Text('All Stages'),
+              selected: _selectedStage == null,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _selectedStage = null);
+                  _loadData();
+                }
+              },
+              selectedColor: AppColors.primary,
+              backgroundColor: AppColors.grey100,
+              labelStyle: AppTextStyles.captionMedium.copyWith(
+                color: _selectedStage == null
+                    ? AppColors.white
+                    : AppColors.primary,
+                fontSize: 12,
+              ),
+              showCheckmark: false,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              visualDensity: VisualDensity.compact,
+              side: BorderSide(
+                color: _selectedStage == null
+                    ? AppColors.primary
+                    : AppColors.grey200,
+              ),
+            ),
+          ),
+          ...ProjectStage.values.map((stage) {
+            final isSelected = _selectedStage == stage;
+            return Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: FilterChip(
+                label: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(stage.emoji,
+                        style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 4),
+                    Text(stage.displayName),
+                  ],
+                ),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(
+                      () => _selectedStage = selected ? stage : null);
+                  _loadData();
+                },
+                selectedColor: stage.color.withOpacity(0.2),
+                checkmarkColor: stage.color,
+                backgroundColor: AppColors.grey100,
+                labelStyle: AppTextStyles.captionMedium.copyWith(
+                  color: isSelected ? stage.color : AppColors.grey500,
+                  fontSize: 12,
+                ),
+                showCheckmark: false,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                visualDensity: VisualDensity.compact,
+                side: BorderSide(
+                  color: isSelected ? stage.color : AppColors.grey200,
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -434,6 +519,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               onPressed: () {
                 setState(() {
                   _selectedCategory = null;
+                  _selectedStage = null;
                   _onlyOpenRoles = false;
                   _sort = 'recent';
                 });

@@ -11,6 +11,7 @@ import '../services/projects_service.dart';
 import '../utils/error_handler.dart';
 import 'common/delete_confirmation_dialog.dart';
 import 'common/error_snackbar.dart';
+import 'common/stage_badge.dart';
 
 /// Enhanced project card for the discovery screen.
 /// Optionally displays a match percentage badge, open-role chips, a team
@@ -205,7 +206,9 @@ class DiscoveryProjectCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Match badge or three-dot menu for owner
+                  // Stage badge + Match badge or three-dot menu for owner
+                  StageBadge(stage: project.stage, compact: true),
+                  const SizedBox(width: 8),
                   if (Supabase.instance.client.auth.currentUser?.id ==
                       project.ownerId)
                     PopupMenuButton<String>(

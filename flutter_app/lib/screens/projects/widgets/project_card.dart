@@ -12,6 +12,7 @@ import '../../../services/projects_service.dart';
 import '../../../utils/error_handler.dart';
 import '../../../widgets/common/delete_confirmation_dialog.dart';
 import '../../../widgets/common/error_snackbar.dart';
+import '../../../widgets/common/stage_badge.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -260,6 +261,9 @@ class ProjectCard extends StatelessWidget {
             ],
           ),
         ),
+        // Stage badge
+        StageBadge(stage: project.stage, compact: true),
+        const SizedBox(width: 8),
         // Three-dot menu for owner, bookmark icon for others
         if (isOwner)
           PopupMenuButton<String>(
