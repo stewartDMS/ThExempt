@@ -7,12 +7,12 @@ import '../../../widgets/video_player_dialog.dart';
 import '../../profile/user_profile_screen.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
-import '../../../theme/text_styles.dart';
 import '../../../services/projects_service.dart';
 import '../../../utils/error_handler.dart';
 import '../../../widgets/common/delete_confirmation_dialog.dart';
 import '../../../widgets/common/error_snackbar.dart';
 import '../../../widgets/common/stage_badge.dart';
+import '../../../widgets/common/app_card.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -208,95 +208,43 @@ class ProjectCard extends StatelessWidget {
         Supabase.instance.client.auth.currentUser?.id;
     final isOwner = currentUserId != null && currentUserId == project.ownerId;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Avatar
-        GestureDetector(
-          onTap: () => _openOwnerProfile(context),
-          child: project.ownerAvatarUrl != null
-              ? CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage(project.ownerAvatarUrl!),
-                  onBackgroundImageError: (_, __) {},
-                )
-              : CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppColors.primaryContainer,
-                  child: Text(
-                    project.ownerName.isNotEmpty
-                        ? project.ownerName[0].toUpperCase()
-                        : 'U',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+    return CardHeader(
+      avatarUrl: project.ownerAvatarUrl,
+      name: project.ownerName,
+      subtitle: timeAgo(project.createdAt),
+      onAvatarTap: () => _openOwnerProfile(context),
+      onNameTap: () => _openOwnerProfile(context),
+      badge: StageBadge(stage: project.stage, compact: true),
+      trailing: isOwner
+          ? PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: AppColors.grey400),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              onSelected: (value) {
+                if (value == 'delete') {
+                  _handleDelete(context);
+                }
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline,
+                          size: 20, color: AppColors.error),
+                      SizedBox(width: 12),
+                      Text(
+                        'Delete',
+                        style: TextStyle(color: AppColors.error),
+                      ),
+                    ],
                   ),
                 ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => _openOwnerProfile(context),
-                child: Text(
-                  project.ownerName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grey900,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                timeAgo(project.createdAt),
-                style: AppTextStyles.caption,
-              ),
-            ],
-          ),
-        ),
-        // Stage badge
-        StageBadge(stage: project.stage, compact: true),
-        const SizedBox(width: 8),
-        // Three-dot menu for owner, bookmark icon for others
-        if (isOwner)
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: AppColors.grey400),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            onSelected: (value) {
-              if (value == 'delete') {
-                _handleDelete(context);
-              }
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline,
-                        size: 20, color: AppColors.error),
-                    SizedBox(width: 12),
-                    Text(
-                      'Delete',
-                      style: TextStyle(color: AppColors.error),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          )
-        else
-          Icon(Icons.bookmark_border_outlined,
+              ],
+            )
+          : Icon(Icons.bookmark_border_outlined,
               color: AppColors.grey400, size: AppSpacing.iconLg),
-      ],
     );
   }
 
@@ -387,24 +335,10 @@ class ProjectCard extends StatelessWidget {
     return Wrap(
       spacing: 6,
       runSpacing: 6,
-      children: project.requiredSkills.take(3).map((skill) {
-        return Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.primaryContainer,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          ),
-          child: Text(
-            skill,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primary,
-            ),
-          ),
-        );
-      }).toList(),
+      children: project.requiredSkills
+          .take(3)
+          .map((skill) => SkillChip(label: skill))
+          .toList(),
     );
   }
 
