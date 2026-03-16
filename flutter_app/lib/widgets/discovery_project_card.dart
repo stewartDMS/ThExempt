@@ -4,6 +4,7 @@ import '../models/project_model.dart';
 import '../screens/projects/project_detail_screen.dart';
 import '../screens/profile/user_profile_screen.dart';
 import '../utils/time_ago.dart';
+import 'common/app_card.dart';
 import 'team_composition_indicator.dart';
 import 'video_player_dialog.dart';
 import '../theme/app_colors.dart';
@@ -151,115 +152,64 @@ class DiscoveryProjectCard extends StatelessWidget {
             // Header row
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => _openOwnerProfile(context),
-                    child: project.ownerAvatarUrl != null
-                        ? CircleAvatar(
-                            radius: 20,
-                            backgroundImage:
-                                NetworkImage(project.ownerAvatarUrl!),
-                            onBackgroundImageError: (_, __) {},
-                          )
-                        : CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppColors.primaryContainer,
+              child: CardHeader(
+                avatarUrl: project.ownerAvatarUrl,
+                name: project.ownerName,
+                subtitle: timeAgo(project.createdAt),
+                onAvatarTap: () => _openOwnerProfile(context),
+                onNameTap: () => _openOwnerProfile(context),
+                badge: StageBadge(stage: project.stage, compact: true),
+                trailing: Supabase.instance.client.auth.currentUser?.id ==
+                        project.ownerId
+                    ? PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert,
+                            color: AppColors.grey400),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        onSelected: (value) {
+                          if (value == 'delete') {
+                            _handleDelete(context);
+                          }
+                        },
+                        itemBuilder: (_) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline,
+                                    size: 20, color: AppColors.error),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(color: AppColors.error),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    : matchScore != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _matchColor(matchScore!).withAlpha(20),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: _matchColor(matchScore!).withAlpha(80),
+                              ),
+                            ),
                             child: Text(
-                              project.ownerName.isNotEmpty
-                                  ? project.ownerName[0].toUpperCase()
-                                  : 'U',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
+                              '$matchScore% match',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _matchColor(matchScore!),
                               ),
                             ),
-                          ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        GestureDetector(
-                          onTap: () => _openOwnerProfile(context),
-                          child: Text(
-                            project.ownerName,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.grey900,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        Text(
-                          timeAgo(project.createdAt),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.grey500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Stage badge + Match badge or three-dot menu for owner
-                  StageBadge(stage: project.stage, compact: true),
-                  const SizedBox(width: 8),
-                  if (Supabase.instance.client.auth.currentUser?.id ==
-                      project.ownerId)
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert,
-                          color: AppColors.grey400),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          _handleDelete(context);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete_outline,
-                                  size: 20, color: AppColors.error),
-                              SizedBox(width: 12),
-                              Text(
-                                'Delete',
-                                style: TextStyle(color: AppColors.error),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  else if (matchScore != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _matchColor(matchScore!).withAlpha(20),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: _matchColor(matchScore!).withAlpha(80),
-                        ),
-                      ),
-                      child: Text(
-                        '$matchScore% match',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _matchColor(matchScore!),
-                        ),
-                      ),
-                    ),
-                ],
+                          )
+                        : null,
               ),
             ),
 

@@ -224,12 +224,12 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             onCategoryChanged: _onCategoryChanged,
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
           // ── Stage filter chips ─────────────────────────────────────────
           _buildStageFilter(),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
           // ── "Only open roles" toggle ───────────────────────────────────
           Padding(
@@ -306,16 +306,19 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   }
 
   Widget _buildStageFilter() {
+    final items = <ProjectStage?>[null, ...ProjectStage.values];
     return SizedBox(
-      height: 60,
-      child: ListView(
+      height: 65,
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: FilterChip(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final stage = items[index];
+          if (stage == null) {
+            return FilterChip(
               label: const Text('All Stages'),
               selected: _selectedStage == null,
               onSelected: (selected) {
@@ -342,48 +345,40 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     ? AppColors.primary
                     : AppColors.grey200,
               ),
-            ),
-          ),
-          ...ProjectStage.values.map((stage) {
-            final isSelected = _selectedStage == stage;
-            return Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: FilterChip(
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(stage.emoji,
-                        style: const TextStyle(fontSize: 12)),
-                    const SizedBox(width: 4),
-                    Text(stage.displayName),
-                  ],
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(
-                      () => _selectedStage = selected ? stage : null);
-                  _loadData();
-                },
-                selectedColor: stage.color.withOpacity(0.2),
-                checkmarkColor: stage.color,
-                backgroundColor: AppColors.grey100,
-                labelStyle: AppTextStyles.captionMedium.copyWith(
-                  color: isSelected ? stage.color : AppColors.grey500,
-                  fontSize: 12,
-                ),
-                showCheckmark: false,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                labelPadding: const EdgeInsets.all(0),
-                visualDensity: VisualDensity.compact,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                side: BorderSide(
-                  color: isSelected ? stage.color : AppColors.grey200,
-                ),
-              ),
             );
-          }),
-        ],
+          }
+          final isSelected = _selectedStage == stage;
+          return FilterChip(
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(stage.emoji, style: const TextStyle(fontSize: 12)),
+                const SizedBox(width: 4),
+                Text(stage.displayName),
+              ],
+            ),
+            selected: isSelected,
+            onSelected: (selected) {
+              setState(() => _selectedStage = selected ? stage : null);
+              _loadData();
+            },
+            selectedColor: stage.color.withOpacity(0.2),
+            checkmarkColor: stage.color,
+            backgroundColor: AppColors.grey100,
+            labelStyle: AppTextStyles.captionMedium.copyWith(
+              color: isSelected ? stage.color : AppColors.grey500,
+              fontSize: 12,
+            ),
+            showCheckmark: false,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            labelPadding: const EdgeInsets.all(0),
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            side: BorderSide(
+              color: isSelected ? stage.color : AppColors.grey200,
+            ),
+          );
+        },
       ),
     );
   }
@@ -395,11 +390,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       'needed': 'Most Needed',
     };
     return SizedBox(
-      height: 60,
+      height: 65,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         children: labels.entries.map((e) {
           final isSelected = _sort == e.key;
           return Padding(
