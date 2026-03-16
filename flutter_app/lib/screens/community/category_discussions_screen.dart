@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
-import '../../widgets/discussion_card.dart';
+import '../../widgets/common/discussion_feed_card.dart';
 import 'create_discussion_screen.dart';
 
 class CategoryDiscussionsScreen extends StatefulWidget {
@@ -166,7 +166,7 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
                                 child: CircularProgressIndicator(),
                               ));
                             }
-                            return DiscussionCard(discussion: _discussions[i]);
+                            return DiscussionFeedCard(discussion: _discussions[i]);
                           },
                         ),
                       ),

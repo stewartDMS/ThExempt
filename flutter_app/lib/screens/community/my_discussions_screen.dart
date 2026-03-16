@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
-import '../../widgets/discussion_card.dart';
+import '../../widgets/common/discussion_feed_card.dart';
 
 class MyDiscussionsScreen extends StatefulWidget {
   const MyDiscussionsScreen({super.key});
@@ -77,7 +77,7 @@ class _MyDiscussionsScreenState extends State<MyDiscussionsScreen>
                           padding: const EdgeInsets.only(top: 8, bottom: 80),
                           itemCount: _myDiscussions.length,
                           itemBuilder: (_, i) =>
-                              DiscussionCard(discussion: _myDiscussions[i]),
+                              DiscussionFeedCard(discussion: _myDiscussions[i]),
                         ),
                 ),
               ],
