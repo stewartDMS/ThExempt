@@ -5,13 +5,14 @@ import '../../models/project_stage.dart';
 import '../../services/projects_service.dart';
 import '../../services/user_service.dart';
 import '../../models/user_model.dart';
-import '../../widgets/role_category_filter.dart';
 import '../../widgets/best_matches_section.dart';
 import '../../widgets/discovery_project_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/text_styles.dart';
 import '../../widgets/common/skeleton_project_card.dart';
+import '../../widgets/common/filter_dropdown.dart';
+import '../../widgets/common/filter_panel.dart';
 import '../../utils/error_handler.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/error_snackbar.dart';
@@ -161,16 +162,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
 
   // ─── UI helpers ───────────────────────────────────────────────────────────
 
-  void _onCategoryChanged(String? category) {
-    setState(() => _selectedCategory = category);
-    _loadData();
-  }
-
-  void _onSortChanged(String? sort) {
-    if (sort == null) return;
-    setState(() => _sort = sort);
-  }
-
   // ─── Build ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -178,39 +169,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       appBar: AppBar(
         title: const Text('Discover'),
         elevation: 0,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.tune_outlined),
-            tooltip: 'Sort',
-            onSelected: _onSortChanged,
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'recent',
-                child: Row(children: [
-                  Icon(Icons.access_time, size: 18),
-                  SizedBox(width: 8),
-                  Text('Most Recent'),
-                ]),
-              ),
-              PopupMenuItem(
-                value: 'match',
-                child: Row(children: [
-                  Icon(Icons.star_outline, size: 18),
-                  SizedBox(width: 8),
-                  Text('Best Match'),
-                ]),
-              ),
-              PopupMenuItem(
-                value: 'needed',
-                child: Row(children: [
-                  Icon(Icons.group_add_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Most Needed'),
-                ]),
-              ),
-            ],
-          ),
-        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,55 +176,142 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
           // ── Search hint bar ───────────────────────────────────────────
           _buildSearchHint(),
 
-          // ── Category filter chips ──────────────────────────────────────
-          RoleCategoryFilter(
-            selectedCategory: _selectedCategory,
-            onCategoryChanged: _onCategoryChanged,
+          // ── Dropdown filter panel ─────────────────────────────────────
+          _buildFilters(),
+
+          // ── Main content ──────────────────────────────────────────────
+          Expanded(child: _buildBody()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    return FilterPanel(
+      child: Column(
+        children: [
+          // Category dropdown
+          FilterDropdown<String?>(
+            label: 'Category',
+            value: _selectedCategory,
+            items: const [
+              DropdownItem(
+                  value: null,
+                  label: 'All Categories',
+                  icon: Icons.grid_view_outlined),
+              DropdownItem(
+                  value: 'Technical',
+                  label: 'Technical',
+                  icon: Icons.code),
+              DropdownItem(
+                  value: 'Business',
+                  label: 'Business',
+                  icon: Icons.business_center_outlined),
+              DropdownItem(
+                  value: 'Marketing',
+                  label: 'Marketing',
+                  icon: Icons.campaign_outlined),
+              DropdownItem(
+                  value: 'Design',
+                  label: 'Design',
+                  icon: Icons.brush_outlined),
+              DropdownItem(
+                  value: 'Finance',
+                  label: 'Finance',
+                  icon: Icons.attach_money),
+              DropdownItem(
+                  value: 'Operations',
+                  label: 'Operations',
+                  icon: Icons.settings_outlined),
+              DropdownItem(
+                  value: 'Legal', label: 'Legal', icon: Icons.gavel_outlined),
+              DropdownItem(
+                  value: 'Other',
+                  label: 'Other',
+                  icon: Icons.more_horiz),
+            ],
+            onChanged: (value) {
+              setState(() => _selectedCategory = value);
+              _loadData();
+            },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
 
-          // ── Stage filter chips ─────────────────────────────────────────
-          _buildStageFilter(),
+          // Stage dropdown
+          FilterDropdown<ProjectStage?>(
+            label: 'Project Stage',
+            value: _selectedStage,
+            items: [
+              const DropdownItem(
+                  value: null,
+                  label: 'All Stages',
+                  icon: Icons.layers_outlined),
+              ...ProjectStage.values.map(
+                (stage) => DropdownItem(
+                  value: stage,
+                  label: '${stage.emoji} ${stage.displayName}',
+                  color: stage.color,
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() => _selectedStage = value);
+              _loadData();
+            },
+          ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
 
-          // ── "Only open roles" toggle ───────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-            child: Row(
-              children: [
-                Icon(Icons.work_outline,
-                    size: AppSpacing.iconSm + 2,
-                    color: AppColors.success),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
+          // Sort dropdown
+          FilterDropdown<String>(
+            label: 'Sort By',
+            value: _sort,
+            items: const [
+              DropdownItem(
+                  value: 'recent',
+                  label: 'Most Recent',
+                  icon: Icons.schedule_outlined),
+              DropdownItem(
+                  value: 'match',
+                  label: 'Best Match',
+                  icon: Icons.star_outline),
+              DropdownItem(
+                  value: 'needed',
+                  label: 'Most Needed',
+                  icon: Icons.group_add_outlined),
+            ],
+            onChanged: (value) {
+              if (value != null) setState(() => _sort = value);
+            },
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // Open roles toggle
+          Row(
+            children: [
+              Icon(Icons.work_outline,
+                  size: AppSpacing.iconSm + 2, color: AppColors.success),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
                   'Only show projects with open roles',
                   style: AppTextStyles.body2
                       .copyWith(color: AppColors.grey700, fontSize: 13),
                 ),
-                const Spacer(),
-                Switch.adaptive(
-                  value: _onlyOpenRoles,
-                  onChanged: (v) {
-                    setState(() => _onlyOpenRoles = v);
-                    _loadData();
-                  },
-                  activeColor: AppColors.success,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ],
-            ),
+              ),
+              Switch.adaptive(
+                value: _onlyOpenRoles,
+                onChanged: (v) {
+                  setState(() => _onlyOpenRoles = v);
+                  _loadData();
+                },
+                activeColor: AppColors.success,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ],
           ),
-
-          const Divider(height: 1),
-
-          // ── Sort chip (compact inline display) ────────────────────────
-          _buildSortChips(),
-
-          // ── Main content ──────────────────────────────────────────────
-          Expanded(child: _buildBody()),
         ],
       ),
     );
@@ -301,123 +346,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStageFilter() {
-    final items = <ProjectStage?>[null, ...ProjectStage.values];
-    return SizedBox(
-      height: 65,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-        itemBuilder: (context, index) {
-          final stage = items[index];
-          if (stage == null) {
-            return FilterChip(
-              label: const Text('All Stages'),
-              selected: _selectedStage == null,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() => _selectedStage = null);
-                  _loadData();
-                }
-              },
-              selectedColor: AppColors.primary,
-              backgroundColor: AppColors.grey100,
-              labelStyle: AppTextStyles.captionMedium.copyWith(
-                color: _selectedStage == null
-                    ? AppColors.white
-                    : AppColors.primary,
-                fontSize: 12,
-              ),
-              showCheckmark: false,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              labelPadding: const EdgeInsets.all(0),
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              side: BorderSide(
-                color: _selectedStage == null
-                    ? AppColors.primary
-                    : AppColors.grey200,
-              ),
-            );
-          }
-          final isSelected = _selectedStage == stage;
-          return FilterChip(
-            label: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(stage.emoji, style: const TextStyle(fontSize: 12)),
-                const SizedBox(width: 4),
-                Text(stage.displayName),
-              ],
-            ),
-            selected: isSelected,
-            onSelected: (selected) {
-              setState(() => _selectedStage = selected ? stage : null);
-              _loadData();
-            },
-            selectedColor: stage.color.withOpacity(0.2),
-            checkmarkColor: stage.color,
-            backgroundColor: AppColors.grey100,
-            labelStyle: AppTextStyles.captionMedium.copyWith(
-              color: isSelected ? stage.color : AppColors.grey500,
-              fontSize: 12,
-            ),
-            showCheckmark: false,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-            labelPadding: const EdgeInsets.all(0),
-            visualDensity: VisualDensity.compact,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            side: BorderSide(
-              color: isSelected ? stage.color : AppColors.grey200,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSortChips() {
-    final labels = {
-      'recent': 'Recent',
-      'match': 'Best Match',
-      'needed': 'Most Needed',
-    };
-    return SizedBox(
-      height: 65,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-        children: labels.entries.map((e) {
-          final isSelected = _sort == e.key;
-          return Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: ChoiceChip(
-              label: Text(e.value),
-              selected: isSelected,
-              onSelected: (_) => _onSortChanged(e.key),
-              selectedColor: AppColors.primary,
-              backgroundColor: AppColors.grey100,
-              labelStyle: AppTextStyles.captionMedium.copyWith(
-                color: isSelected ? AppColors.white : AppColors.primary,
-                fontSize: 12,
-              ),
-              showCheckmark: false,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              visualDensity: VisualDensity.compact,
-              side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.grey200,
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }

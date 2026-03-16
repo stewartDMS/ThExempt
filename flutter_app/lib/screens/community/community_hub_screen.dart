@@ -5,6 +5,7 @@ import '../../services/discussions_service.dart';
 import '../../services/live_events_service.dart';
 import '../../widgets/common/discussion_feed_card.dart';
 import '../../widgets/common/skeleton_discussion_card.dart';
+import '../../widgets/common/filter_dropdown.dart';
 import '../../widgets/live_event_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
@@ -29,14 +30,8 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   bool _loading = true;
   AppError? _error;
 
-  // Filter tabs: trending, recent, following, my_posts
+  // Sort options: trending, recent, my_posts
   String _activeFilter = 'trending';
-
-  static const _filters = [
-    (key: 'trending', label: '🔥 Trending'),
-    (key: 'recent', label: '🕐 Recent'),
-    (key: 'my_posts', label: '✍️ My Posts'),
-  ];
 
   @override
   void initState() {
@@ -120,8 +115,8 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
         color: AppColors.primary,
         child: CustomScrollView(
           slivers: [
-            // ── Filter chips ───────────────────────────────────────────────
-            SliverToBoxAdapter(child: _buildFilterChips()),
+            // ── Sort dropdown ──────────────────────────────────────────────
+            SliverToBoxAdapter(child: _buildSortDropdown()),
 
             const SliverToBoxAdapter(child: Divider(height: 1)),
 
@@ -181,43 +176,31 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildSortDropdown() {
     return Container(
       color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      child: Row(
-        children: _filters.map((f) {
-          final isActive = _activeFilter == f.key;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: GestureDetector(
-              onTap: () => _onFilterChanged(f.key),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? AppColors.primary
-                      : AppColors.grey100,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color:
-                        isActive ? AppColors.primary : AppColors.border,
-                  ),
-                ),
-                child: Text(
-                  f.label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isActive ? AppColors.white : AppColors.grey600,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
+      child: FilterDropdown<String>(
+        label: 'Show',
+        value: _activeFilter,
+        items: const [
+          DropdownItem(
+              value: 'trending',
+              label: '🔥 Trending',
+              icon: Icons.local_fire_department_outlined),
+          DropdownItem(
+              value: 'recent',
+              label: '🕐 Recent',
+              icon: Icons.schedule_outlined),
+          DropdownItem(
+              value: 'my_posts',
+              label: '✍️ My Posts',
+              icon: Icons.edit_note_outlined),
+        ],
+        onChanged: (value) {
+          if (value != null) _onFilterChanged(value);
+        },
       ),
     );
   }
