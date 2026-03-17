@@ -15,7 +15,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the landing page.
 
 | Tool | Purpose |
 |------|---------|
-| **Next.js 14** | React framework with App Router |
+| **Next.js 15** | React framework with App Router |
 | **TypeScript** | Type-safe code |
 | **Tailwind CSS** | Utility-first styling |
 | **Framer Motion** | Animations & transitions |
