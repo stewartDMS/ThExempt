@@ -1727,9 +1727,27 @@ app.get('/api/discussions', async (req, res) => {
       if (likes) likes.forEach(l => likedIds.add(l.discussion_id));
     }
 
+    // Fetch media for all discussions in one query
+    const discussionIds = (discussions || []).map(d => d.id);
+    let mediaByDiscussion = {};
+    if (discussionIds.length > 0) {
+      const { data: allMedia } = await supabase
+        .from('discussion_media')
+        .select('*')
+        .in('discussion_id', discussionIds)
+        .order('display_order', { ascending: true });
+      if (allMedia) {
+        allMedia.forEach(m => {
+          if (!mediaByDiscussion[m.discussion_id]) mediaByDiscussion[m.discussion_id] = [];
+          mediaByDiscussion[m.discussion_id].push(m);
+        });
+      }
+    }
+
     const result = (discussions || []).map(d => ({
       ...d,
       is_liked_by_user: likedIds.has(d.id),
+      media: mediaByDiscussion[d.id] || [],
     }));
 
     res.json(result);
@@ -1777,7 +1795,15 @@ app.get('/api/discussions/:id', async (req, res) => {
       isLiked = !!like;
     }
 
-    res.json({ ...discussion, is_liked_by_user: isLiked });
+    // Fetch media for this discussion
+    const { data: media } = await supabase
+      .from('discussion_media')
+      .select('*')
+      .eq('discussion_id', id)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    res.json({ ...discussion, is_liked_by_user: isLiked, media: media || [] });
   } catch (error) {
     console.error('Get discussion error:', error);
     res.status(500).json({ error: 'Failed to fetch discussion' });
@@ -1950,6 +1976,255 @@ app.delete('/api/discussions/:id/like', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Unlike discussion error:', error);
     res.status(500).json({ error: 'Failed to unlike' });
+  }
+});
+
+// ─── DISCUSSION MEDIA ENDPOINTS ──────────────────────────────────────────────
+
+const DISCUSSION_MEDIA_BUCKET = 'discussion-media';
+const MAX_DISCUSSION_MEDIA = 5;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;   // 10MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;  // 100MB
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+
+// Helper: increment or decrement cached media_count on discussions table
+async function adjustDiscussionMediaCount(discussionId, delta) {
+  try {
+    const { data } = await supabase
+      .from('discussions')
+      .select('media_count')
+      .eq('id', discussionId)
+      .single();
+    if (data) {
+      await supabase
+        .from('discussions')
+        .update({
+          media_count: Math.max(0, (data.media_count || 0) + delta),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', discussionId);
+    }
+  } catch (err) {
+    console.warn('Failed to adjust media_count:', err.message);
+  }
+}
+
+// Upload media to a discussion
+app.post('/api/discussions/:id/media', authenticateToken, async (req, res) => {
+  const discussionId = req.params.id;
+  try {
+    const { base64File, fileName, thumbnailBase64 } = req.body;
+
+    if (!base64File || !fileName) {
+      return res.status(400).json({ error: 'base64File and fileName are required' });
+    }
+
+    // Verify discussion exists
+    const { data: discussion, error: discErr } = await supabase
+      .from('discussions')
+      .select('id')
+      .eq('id', discussionId)
+      .single();
+
+    if (discErr || !discussion) {
+      return res.status(404).json({ error: 'Discussion not found' });
+    }
+
+    // Check media count limit
+    const { count, error: countErr } = await supabase
+      .from('discussion_media')
+      .select('id', { count: 'exact', head: true })
+      .eq('discussion_id', discussionId);
+
+    if (!countErr && count >= MAX_DISCUSSION_MEDIA) {
+      return res.status(400).json({ error: `Maximum ${MAX_DISCUSSION_MEDIA} media files allowed per discussion` });
+    }
+
+    // Parse mime type from base64 data URI
+    const mimeMatch = base64File.match(/^data:(.+);base64,/);
+    if (!mimeMatch) {
+      return res.status(400).json({ error: 'Invalid file format' });
+    }
+    const mimeType = mimeMatch[1];
+
+    const isImage = ACCEPTED_IMAGE_TYPES.includes(mimeType);
+    const isVideo = ACCEPTED_VIDEO_TYPES.includes(mimeType);
+
+    if (!isImage && !isVideo) {
+      return res.status(400).json({ error: 'Unsupported file type. Use JPEG, PNG, GIF, WebP, MP4, WebM, or MOV.' });
+    }
+
+    // Convert base64 to buffer and check size
+    const fileData = base64File.replace(/^data:[^;]+;base64,/, '');
+    const fileBuffer = Buffer.from(fileData, 'base64');
+
+    if (isImage && fileBuffer.length > MAX_IMAGE_SIZE) {
+      return res.status(400).json({ error: 'Image too large. Maximum size is 10MB.' });
+    }
+    if (isVideo && fileBuffer.length > MAX_VIDEO_SIZE) {
+      return res.status(400).json({ error: 'Video too large. Maximum size is 100MB.' });
+    }
+
+    const mediaType = isImage ? 'image' : 'video';
+    const mimeSubtype = mimeType.split('/')[1];
+    const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase();
+    const folder = isImage ? 'images' : 'videos';
+    // Include random hex to prevent timestamp collisions on concurrent uploads
+    const uniquePrefix = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const storagePath = `${req.user.id}/${folder}/${uniquePrefix}_${safeFileName}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from(DISCUSSION_MEDIA_BUCKET)
+      .upload(storagePath, fileBuffer, { contentType: mimeType, upsert: false });
+
+    if (uploadErr) {
+      console.error('Discussion media upload error:', uploadErr);
+      return res.status(500).json({ error: 'Failed to upload file' });
+    }
+
+    const { data: urlData } = supabase.storage
+      .from(DISCUSSION_MEDIA_BUCKET)
+      .getPublicUrl(storagePath);
+
+    let thumbnailUrl = null;
+
+    // Upload thumbnail for videos (or if provided for images)
+    if (thumbnailBase64) {
+      try {
+        const thumbData = thumbnailBase64.replace(/^data:[^;]+;base64,/, '');
+        const thumbBuffer = Buffer.from(thumbData, 'base64');
+        const thumbPath = `${req.user.id}/thumbnails/${uniquePrefix}_${safeFileName}_thumb.jpg`;
+
+        const { error: thumbErr } = await supabase.storage
+          .from(DISCUSSION_MEDIA_BUCKET)
+          .upload(thumbPath, thumbBuffer, { contentType: 'image/jpeg', upsert: false });
+
+        if (!thumbErr) {
+          const { data: thumbUrlData } = supabase.storage
+            .from(DISCUSSION_MEDIA_BUCKET)
+            .getPublicUrl(thumbPath);
+          thumbnailUrl = thumbUrlData.publicUrl;
+        }
+      } catch (thumbEx) {
+        console.warn('Thumbnail upload failed (non-fatal):', thumbEx.message);
+      }
+    }
+
+    // Insert metadata into discussion_media table
+    const { data: mediaRecord, error: insertErr } = await supabase
+      .from('discussion_media')
+      .insert({
+        discussion_id: discussionId,
+        media_type: mediaType,
+        file_url: urlData.publicUrl,
+        thumbnail_url: thumbnailUrl,
+        file_name: fileName,
+        file_size: fileBuffer.length,
+        mime_type: mimeType,
+        uploaded_by: req.user.id,
+        display_order: count || 0,
+      })
+      .select()
+      .single();
+
+    if (insertErr) {
+      // Clean up uploaded file on DB error
+      await supabase.storage.from(DISCUSSION_MEDIA_BUCKET).remove([storagePath]);
+      throw insertErr;
+    }
+
+    // Update cached media_count on discussions table (fire and forget)
+    adjustDiscussionMediaCount(discussionId, +1);
+
+    res.status(201).json(mediaRecord);
+  } catch (error) {
+    console.error('Discussion media upload error:', error);
+    res.status(500).json({ error: 'Failed to upload media' });
+  }
+});
+
+// Get all media for a discussion
+app.get('/api/discussions/:id/media', async (req, res) => {
+  const discussionId = req.params.id;
+  try {
+    const { data, error } = await supabase
+      .from('discussion_media')
+      .select('*')
+      .eq('discussion_id', discussionId)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('Get discussion media error:', error);
+    res.status(500).json({ error: 'Failed to fetch media' });
+  }
+});
+
+// Delete a media item from a discussion
+app.delete('/api/discussions/:id/media/:mediaId', authenticateToken, async (req, res) => {
+  const { id: discussionId, mediaId } = req.params;
+  try {
+    const { data: mediaRecord, error: fetchErr } = await supabase
+      .from('discussion_media')
+      .select('*')
+      .eq('id', mediaId)
+      .eq('discussion_id', discussionId)
+      .single();
+
+    if (fetchErr || !mediaRecord) {
+      return res.status(404).json({ error: 'Media not found' });
+    }
+
+    if (mediaRecord.uploaded_by !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    // Remove file from storage
+    if (mediaRecord.file_url) {
+      try {
+        const bucketPrefix = `/${DISCUSSION_MEDIA_BUCKET}/`;
+        const urlParts = mediaRecord.file_url.split(bucketPrefix);
+        const storagePath = urlParts.length > 1 ? urlParts[1] : null;
+        if (storagePath) {
+          await supabase.storage.from(DISCUSSION_MEDIA_BUCKET).remove([storagePath]);
+        }
+      } catch (err) {
+        console.warn('Failed to remove media file from storage:', err);
+      }
+    }
+
+    // Remove thumbnail from storage
+    if (mediaRecord.thumbnail_url) {
+      try {
+        const bucketPrefix = `/${DISCUSSION_MEDIA_BUCKET}/`;
+        const urlParts = mediaRecord.thumbnail_url.split(bucketPrefix);
+        const thumbPath = urlParts.length > 1 ? urlParts[1] : null;
+        if (thumbPath) {
+          await supabase.storage.from(DISCUSSION_MEDIA_BUCKET).remove([thumbPath]);
+        }
+      } catch (err) {
+        console.warn('Failed to remove thumbnail from storage:', err);
+      }
+    }
+
+    // Delete database record
+    const { error: deleteErr } = await supabase
+      .from('discussion_media')
+      .delete()
+      .eq('id', mediaId);
+
+    if (deleteErr) throw deleteErr;
+
+    // Update cached media_count on discussions (fire and forget)
+    adjustDiscussionMediaCount(discussionId, -1);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete discussion media error:', error);
+    res.status(500).json({ error: 'Failed to delete media' });
   }
 });
 
