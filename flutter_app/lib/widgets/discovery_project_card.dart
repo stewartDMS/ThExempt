@@ -5,6 +5,9 @@ import '../screens/projects/project_detail_screen.dart';
 import '../screens/profile/user_profile_screen.dart';
 import '../utils/time_ago.dart';
 import 'common/app_card.dart';
+import 'common/premium_card.dart';
+import 'common/premium_skill_chip.dart';
+import 'common/engagement_metrics.dart';
 import 'team_composition_indicator.dart';
 import 'video_player_dialog.dart';
 import '../theme/app_colors.dart';
@@ -119,242 +122,247 @@ class DiscoveryProjectCard extends StatelessWidget {
     final isPerfectMatch = matchScore != null && matchScore! >= 90;
     final openCount = project.totalRolesNeeded - project.rolesFilled;
 
-    return Container(
-      color: AppColors.white,
-      child: InkWell(
-        onTap: () => _openProject(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Perfect-match banner
-            if (isPerfectMatch)
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+    return PremiumCard(
+      accentColor: project.stage.color,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      onTap: () => _openProject(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Perfect-match banner
+          if (isPerfectMatch)
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+              decoration: BoxDecoration(
                 color: AppColors.successLight,
-                child: Row(
-                  children: [
-                    const Text('⭐', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Perfect match for you!',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.success,
-                      ),
-                    ),
-                  ],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
                 ),
               ),
-
-            // Header row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: CardHeader(
-                avatarUrl: project.ownerAvatarUrl,
-                name: project.ownerName,
-                subtitle: timeAgo(project.createdAt),
-                onAvatarTap: () => _openOwnerProfile(context),
-                onNameTap: () => _openOwnerProfile(context),
-                badge: StageBadge(stage: project.stage, compact: true),
-                trailing: Supabase.instance.client.auth.currentUser?.id ==
-                        project.ownerId
-                    ? PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert,
-                            color: AppColors.grey400),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        onSelected: (value) {
-                          if (value == 'delete') {
-                            _handleDelete(context);
-                          }
-                        },
-                        itemBuilder: (_) => [
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline,
-                                    size: 20, color: AppColors.error),
-                                SizedBox(width: 12),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(color: AppColors.error),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : matchScore != null
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _matchColor(matchScore!).withAlpha(20),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: _matchColor(matchScore!).withAlpha(80),
-                              ),
-                            ),
-                            child: Text(
-                              '$matchScore% match',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _matchColor(matchScore!),
-                              ),
-                            ),
-                          )
-                        : null,
-              ),
-            ),
-
-            // Video thumbnail
-            if (project.videoUrl != null) ...[
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _playVideo(context),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      project.thumbnailUrl != null
-                          ? Image.network(
-                              project.thumbnailUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _videoPlaceholder(),
-                            )
-                          : _videoPlaceholder(),
-                      // Bottom gradient
-                      Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              stops: const [0.5, 1.0],
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withAlpha(90),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Play button
-                      Center(
-                        child: Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withAlpha(230),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(40),
-                                blurRadius: 16,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow_rounded,
-                            color: AppColors.primary,
-                            size: 32,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  // Title
+                  const Text('⭐', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
                   Text(
-                    project.title,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.grey900,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Description
-                  Text(
-                    project.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.grey500,
-                      height: 1.45,
+                    'Perfect match for you!',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.success,
                     ),
                   ),
-                  const SizedBox(height: 12),
-
-                  // Skills chips
-                  if (project.requiredSkills.isNotEmpty) ...[
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: project.requiredSkills.take(3).map((skill) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryContainer,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            skill,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  // Team composition indicator
-                  TeamCompositionIndicator(
-                    totalRoles: project.totalRolesNeeded,
-                    filledRoles: project.rolesFilled,
-                  ),
-
-                  // Open roles preview
-                  if (openRoleTitles.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    _buildOpenRolesPreview(openCount),
-                  ] else if (openCount > 0) ...[
-                    const SizedBox(height: 10),
-                    _buildOpenRolesSummary(openCount),
-                  ],
                 ],
               ),
             ),
+
+          // Header row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: CardHeader(
+              avatarUrl: project.ownerAvatarUrl,
+              name: project.ownerName,
+              subtitle: timeAgo(project.createdAt),
+              onAvatarTap: () => _openOwnerProfile(context),
+              onNameTap: () => _openOwnerProfile(context),
+              badge: StageBadge(stage: project.stage, compact: true),
+              trailing: Supabase.instance.client.auth.currentUser?.id ==
+                      project.ownerId
+                  ? PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert,
+                          color: AppColors.grey400),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _handleDelete(context);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  size: 20, color: AppColors.error),
+                              SizedBox(width: 12),
+                              Text(
+                                'Delete',
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : matchScore != null
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _matchColor(matchScore!).withAlpha(20),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: _matchColor(matchScore!).withAlpha(80),
+                            ),
+                          ),
+                          child: Text(
+                            '$matchScore% match',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _matchColor(matchScore!),
+                            ),
+                          ),
+                        )
+                      : null,
+            ),
+          ),
+
+          // Video thumbnail
+          if (project.videoUrl != null) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => _playVideo(context),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    project.thumbnailUrl != null
+                        ? Image.network(
+                            project.thumbnailUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                _videoPlaceholder(),
+                          )
+                        : _videoPlaceholder(),
+                    // Bottom gradient
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.5, 1.0],
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withAlpha(90),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Play button
+                    Center(
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withAlpha(230),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(40),
+                              blurRadius: 16,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow_rounded,
+                          color: AppColors.primary,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                Text(
+                  project.title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.grey900,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+
+                // Description
+                Text(
+                  project.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.grey500,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Skills chips (upgraded to PremiumSkillChip)
+                if (project.requiredSkills.isNotEmpty) ...[
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: project.requiredSkills.take(3).map((skill) {
+                      return PremiumSkillChip(
+                        label: skill,
+                        color: project.stage.color,
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Engagement metrics
+                if (project.viewsCount != null ||
+                    project.likesCount != null ||
+                    project.applicationsCount != null) ...[
+                  EngagementMetrics(
+                    views: project.viewsCount,
+                    likes: project.likesCount,
+                    applications: project.applicationsCount,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
+                // Team composition indicator
+                TeamCompositionIndicator(
+                  totalRoles: project.totalRolesNeeded,
+                  filledRoles: project.rolesFilled,
+                ),
+
+                // Open roles preview
+                if (openRoleTitles.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _buildOpenRolesPreview(openCount),
+                ] else if (openCount > 0) ...[
+                  const SizedBox(height: 10),
+                  _buildOpenRolesSummary(openCount),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

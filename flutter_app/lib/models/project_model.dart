@@ -17,6 +17,11 @@ class Project {
   final int totalRolesNeeded;
   final int rolesFilled;
 
+  /// Engagement metrics – populated from the database when available.
+  final int? viewsCount;
+  final int? likesCount;
+  final int? applicationsCount;
+
   Project({
     required this.id,
     required this.title,
@@ -33,6 +38,9 @@ class Project {
     this.ownerAvatarUrl,
     this.totalRolesNeeded = 0,
     this.rolesFilled = 0,
+    this.viewsCount,
+    this.likesCount,
+    this.applicationsCount,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -56,6 +64,9 @@ class Project {
       ownerAvatarUrl: json['owner_avatar_url'] as String?,
       totalRolesNeeded: json['total_roles_needed'] ?? 0,
       rolesFilled: json['roles_filled'] ?? 0,
+      viewsCount: (json['views_count'] as num?)?.toInt(),
+      likesCount: (json['likes_count'] as num?)?.toInt(),
+      applicationsCount: (json['applications_count'] as num?)?.toInt(),
     );
   }
 
@@ -76,6 +87,9 @@ class Project {
       if (ownerAvatarUrl != null) 'owner_avatar_url': ownerAvatarUrl,
       'total_roles_needed': totalRolesNeeded,
       'roles_filled': rolesFilled,
+      if (viewsCount != null) 'views_count': viewsCount,
+      if (likesCount != null) 'likes_count': likesCount,
+      if (applicationsCount != null) 'applications_count': applicationsCount,
     };
   }
 }
