@@ -9,10 +9,12 @@ import '../../utils/error_handler.dart';
 import 'delete_confirmation_dialog.dart';
 import 'error_snackbar.dart';
 import 'app_card.dart';
+import 'premium_card.dart';
+import 'premium_skill_chip.dart';
 
-/// LinkedIn-style discussion feed card.
-/// Shows author avatar, name, time, category badge, title, preview, and
-/// an engagement bar (replies, likes, share).
+/// Premium discussion feed card.
+/// Shows author avatar, name, time, category badge, title, preview,
+/// tags, engagement metrics, and trending indicator.
 class DiscussionFeedCard extends StatelessWidget {
   final Discussion discussion;
   final VoidCallback? onLike;
@@ -46,6 +48,13 @@ class DiscussionFeedCard extends StatelessWidget {
     }
   }
 
+  static const int _trendingLikesThreshold = 10;
+  static const int _trendingRepliesThreshold = 5;
+
+  bool get _isTrending =>
+      discussion.likesCount >= _trendingLikesThreshold ||
+      discussion.repliesCount >= _trendingRepliesThreshold;
+
   @override
   Widget build(BuildContext context) {
     final cat = DiscussionCategory.fromValue(discussion.category);
@@ -55,15 +64,17 @@ class DiscussionFeedCard extends StatelessWidget {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isAuthor = currentUserId == discussion.authorId;
 
-    return InkWell(
+    return PremiumCard(
+      accentColor: catColor,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => DiscussionDetailScreen(discussionId: discussion.id),
+          builder: (_) =>
+              DiscussionDetailScreen(discussionId: discussion.id),
         ));
       },
-      child: Container(
-        color: AppColors.white,
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -72,66 +83,28 @@ class DiscussionFeedCard extends StatelessWidget {
               avatarUrl: discussion.authorAvatarUrl,
               name: discussion.authorName,
               subtitle: timeAgo(discussion.createdAt),
-              trailing: isAuthor
-                  ? PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert,
-                          size: 20, color: AppColors.grey500),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          _handleDelete(context);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete_outline,
-                                  size: 18, color: AppColors.error),
-                              SizedBox(width: 12),
-                              Text(
-                                'Delete',
-                                style: TextStyle(color: AppColors.error),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : discussion.isPinned
-                      ? const Padding(
-                          padding: EdgeInsets.only(left: 6, top: 2),
-                          child: Icon(Icons.push_pin_outlined,
-                              size: 16, color: AppColors.grey500),
-                        )
-                      : null,
+              trailing: _buildTrailing(context, isAuthor),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── Category badge + trending ─────────────────────────────────
+            Row(
+              children: [
+                _buildCategoryBadge(catLabel, catColor),
+                if (_isTrending) ...[
+                  const SizedBox(width: 8),
+                  _buildTrendingBadge(),
+                ],
+                if (discussion.isPinned) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.push_pin_outlined,
+                      size: 14, color: AppColors.grey500),
+                ],
+              ],
             ),
 
             const SizedBox(height: 10),
-
-            // ── Category badge ────────────────────────────────────────────
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: catColor.withAlpha(20),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: catColor.withAlpha(60)),
-              ),
-              child: Text(
-                catLabel,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: catColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
 
             // ── Title ─────────────────────────────────────────────────────
             Text(
@@ -146,7 +119,7 @@ class DiscussionFeedCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
 
             // ── Content preview ───────────────────────────────────────────
             Text(
@@ -154,7 +127,7 @@ class DiscussionFeedCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.grey500,
-                height: 1.4,
+                height: 1.45,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -162,21 +135,20 @@ class DiscussionFeedCard extends StatelessWidget {
 
             // ── Tags ──────────────────────────────────────────────────────
             if (discussion.tags.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Wrap(
-                spacing: 4,
-                runSpacing: 4,
+                spacing: 6,
+                runSpacing: 6,
                 children: discussion.tags.take(3).map((tag) {
-                  return SkillChip(
+                  return PremiumSkillChip(
                     label: '#$tag',
-                    color: AppColors.grey500,
-                    backgroundColor: AppColors.grey100,
+                    color: catColor,
                   );
                 }).toList(),
               ),
             ],
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
 
             // ── Engagement bar ────────────────────────────────────────────
             Row(
@@ -213,6 +185,89 @@ class DiscussionFeedCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTrailing(BuildContext context, bool isAuthor) {
+    if (isAuthor) {
+      return PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, size: 20, color: AppColors.grey500),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        onSelected: (value) {
+          if (value == 'delete') {
+            _handleDelete(context);
+          }
+        },
+        itemBuilder: (_) => [
+          const PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                SizedBox(width: 12),
+                Text('Delete', style: TextStyle(color: AppColors.error)),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildCategoryBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.15),
+            color.withOpacity(0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.35), width: 1),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrendingBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3CD),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFFFB800).withOpacity(0.4),
+          width: 1,
+        ),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('🔥', style: TextStyle(fontSize: 11)),
+          SizedBox(width: 3),
+          Text(
+            'Trending',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF8B6900),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -13,6 +13,8 @@ import '../../../widgets/common/delete_confirmation_dialog.dart';
 import '../../../widgets/common/error_snackbar.dart';
 import '../../../widgets/common/stage_badge.dart';
 import '../../../widgets/common/app_card.dart';
+import '../../../widgets/common/premium_card.dart';
+import '../../../widgets/common/premium_skill_chip.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -52,78 +54,70 @@ class ProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(
-          horizontal: 0, vertical: 0),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ProjectDetailScreen(projectId: project.id),
-              ),
-            );
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header: avatar + name + time + bookmark ────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                child: _buildHeader(context),
-              ),
-
-              // ── Video thumbnail ────────────────────────────────────────
-              if (project.videoUrl != null)
-                _buildVideoThumbnail(context),
-
-              // ── Content ───────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title + "New" badge
-                    _buildTitle(),
-                    const SizedBox(height: 6),
-
-                    // Description
-                    Text(
-                      project.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.grey500,
-                        height: 1.45,
-                      ),
-                    ),
-
-                    // Skills
-                    if (project.requiredSkills.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      _buildSkillChips(),
-                    ],
-
-                    // Roles summary
-                    if (project.totalRolesNeeded > 0) ...[
-                      const SizedBox(height: 10),
-                      _buildRolesSummary(),
-                    ],
-
-                    const SizedBox(height: 12),
-                    // CTA row
-                    _buildCTARow(context),
-                  ],
-                ),
-              ),
-            ],
+    return PremiumCard(
+      accentColor: project.stage.color,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ProjectDetailScreen(projectId: project.id),
           ),
-        ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: avatar + name + time + badge ───────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: _buildHeader(context),
+          ),
+
+          // ── Video thumbnail ────────────────────────────────────────────
+          if (project.videoUrl != null)
+            _buildVideoThumbnail(context),
+
+          // ── Content ───────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title + "New" badge
+                _buildTitle(),
+                const SizedBox(height: 6),
+
+                // Description
+                Text(
+                  project.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.grey500,
+                    height: 1.45,
+                  ),
+                ),
+
+                // Skills
+                if (project.requiredSkills.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _buildSkillChips(),
+                ],
+
+                // Roles summary + CTA divider
+                if (project.totalRolesNeeded > 0) ...[
+                  const SizedBox(height: 10),
+                  _buildRolesSummary(),
+                ],
+
+                const SizedBox(height: 14),
+                // CTA row
+                _buildCTARow(context),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -336,8 +330,11 @@ class ProjectCard extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children: project.requiredSkills
-          .take(3)
-          .map((skill) => SkillChip(label: skill))
+          .take(4)
+          .map((skill) => PremiumSkillChip(
+                label: skill,
+                color: AppColors.primary,
+              ))
           .toList(),
     );
   }
