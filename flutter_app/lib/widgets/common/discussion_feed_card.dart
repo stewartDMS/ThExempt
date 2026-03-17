@@ -4,6 +4,7 @@ import '../../models/discussion_model.dart';
 import '../../utils/time_ago.dart';
 import '../../theme/app_colors.dart';
 import '../../screens/community/discussion_detail_screen.dart';
+import '../../screens/community/media_viewer_screen.dart';
 import '../../services/discussions_service.dart';
 import '../../utils/error_handler.dart';
 import 'delete_confirmation_dialog.dart';
@@ -148,6 +149,12 @@ class DiscussionFeedCard extends StatelessWidget {
               ),
             ],
 
+            // ── Media gallery ─────────────────────────────────────────────
+            if (discussion.hasMedia) ...[
+              const SizedBox(height: 12),
+              _buildMediaGallery(context),
+            ],
+
             const SizedBox(height: 14),
 
             // ── Engagement bar ────────────────────────────────────────────
@@ -185,6 +192,82 @@ class DiscussionFeedCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMediaGallery(BuildContext context) {
+    final media = discussion.media;
+    return SizedBox(
+      height: 160,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: media.length,
+        itemBuilder: (context, index) {
+          final item = media[index];
+          return Padding(
+            padding: EdgeInsets.only(right: index < media.length - 1 ? 8 : 0),
+            child: GestureDetector(
+              onTap: () {
+                if (item.isImage) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => MediaViewerScreen(
+                      mediaFiles: media,
+                      initialIndex: index,
+                    ),
+                  ));
+                }
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: item.isImage
+                    ? Image.network(
+                        item.fileUrl,
+                        width: 160,
+                        height: 160,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 160,
+                          height: 160,
+                          color: AppColors.grey200,
+                          child: const Icon(Icons.broken_image_outlined,
+                              color: AppColors.grey500),
+                        ),
+                      )
+                    : Stack(
+                        children: [
+                          item.thumbnailUrl != null
+                              ? Image.network(
+                                  item.thumbnailUrl!,
+                                  width: 160,
+                                  height: 160,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 160,
+                                    height: 160,
+                                    color: Colors.black87,
+                                  ),
+                                )
+                              : Container(
+                                  width: 160,
+                                  height: 160,
+                                  color: Colors.black87,
+                                ),
+                          const Positioned.fill(
+                            child: Center(
+                              child: Icon(
+                                Icons.play_circle_outline,
+                                size: 48,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

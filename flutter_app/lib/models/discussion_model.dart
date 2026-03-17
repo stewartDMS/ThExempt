@@ -1,3 +1,60 @@
+class MediaFile {
+  final String id;
+  final String mediaType; // 'image' or 'video'
+  final String fileUrl;
+  final String? thumbnailUrl;
+  final String fileName;
+  final int fileSize;
+  final int? width;
+  final int? height;
+  final int? durationSeconds;
+  final int displayOrder;
+
+  MediaFile({
+    required this.id,
+    required this.mediaType,
+    required this.fileUrl,
+    this.thumbnailUrl,
+    required this.fileName,
+    required this.fileSize,
+    this.width,
+    this.height,
+    this.durationSeconds,
+    this.displayOrder = 0,
+  });
+
+  factory MediaFile.fromJson(Map<String, dynamic> json) {
+    return MediaFile(
+      id: json['id']?.toString() ?? '',
+      mediaType: json['media_type'] ?? 'image',
+      fileUrl: json['file_url'] ?? '',
+      thumbnailUrl: json['thumbnail_url'] as String?,
+      fileName: json['file_name'] ?? '',
+      fileSize: (json['file_size'] as num?)?.toInt() ?? 0,
+      width: (json['width'] as num?)?.toInt(),
+      height: (json['height'] as num?)?.toInt(),
+      durationSeconds: (json['duration_seconds'] as num?)?.toInt(),
+      displayOrder: (json['display_order'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'media_type': mediaType,
+    'file_url': fileUrl,
+    if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+    'file_name': fileName,
+    'file_size': fileSize,
+    if (width != null) 'width': width,
+    if (height != null) 'height': height,
+    if (durationSeconds != null) 'duration_seconds': durationSeconds,
+    'display_order': displayOrder,
+  };
+
+  bool get isImage => mediaType == 'image';
+  bool get isVideo => mediaType == 'video';
+}
+
 class Discussion {
   final String id;
   final String authorId;
@@ -13,6 +70,8 @@ class Discussion {
   final int repliesCount;
   final int viewsCount;
   final bool isLikedByUser;
+  final int mediaCount;
+  final List<MediaFile> media;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -31,12 +90,20 @@ class Discussion {
     required this.repliesCount,
     required this.viewsCount,
     required this.isLikedByUser,
+    this.mediaCount = 0,
+    this.media = const [],
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory Discussion.fromJson(Map<String, dynamic> json) {
     final profiles = json['profiles'] as Map<String, dynamic>?;
+    List<MediaFile> mediaList = [];
+    if (json['media'] != null && json['media'] is List) {
+      mediaList = (json['media'] as List)
+          .map((m) => MediaFile.fromJson(m as Map<String, dynamic>))
+          .toList();
+    }
     return Discussion(
       id: json['id']?.toString() ?? '',
       authorId: json['author_id']?.toString() ?? '',
@@ -52,6 +119,8 @@ class Discussion {
       repliesCount: (json['replies_count'] as num?)?.toInt() ?? 0,
       viewsCount: (json['views_count'] as num?)?.toInt() ?? 0,
       isLikedByUser: json['is_liked_by_user'] == true,
+      mediaCount: (json['media_count'] as num?)?.toInt() ?? 0,
+      media: mediaList,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : DateTime.now(),
     );
@@ -70,9 +139,14 @@ class Discussion {
     'replies_count': repliesCount,
     'views_count': viewsCount,
     'is_liked_by_user': isLikedByUser,
+    'media_count': mediaCount,
     'created_at': createdAt.toIso8601String(),
     'updated_at': updatedAt.toIso8601String(),
   };
+
+  bool get hasMedia => media.isNotEmpty;
+  List<MediaFile> get images => media.where((m) => m.isImage).toList();
+  List<MediaFile> get videos => media.where((m) => m.isVideo).toList();
 
   Discussion copyWith({
     String? id,
@@ -89,6 +163,8 @@ class Discussion {
     int? repliesCount,
     int? viewsCount,
     bool? isLikedByUser,
+    int? mediaCount,
+    List<MediaFile>? media,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -107,6 +183,8 @@ class Discussion {
       repliesCount: repliesCount ?? this.repliesCount,
       viewsCount: viewsCount ?? this.viewsCount,
       isLikedByUser: isLikedByUser ?? this.isLikedByUser,
+      mediaCount: mediaCount ?? this.mediaCount,
+      media: media ?? this.media,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

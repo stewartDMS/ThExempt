@@ -40,6 +40,9 @@ dependencies:
   # Image selection for discussions
   image_picker: ^1.0.7
 
+  # Fullscreen image viewer with pinch-to-zoom for discussion media
+  photo_view: ^0.14.0
+
   # Charts for analytics
   fl_chart: ^0.66.2
 
