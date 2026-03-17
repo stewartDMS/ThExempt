@@ -22,6 +22,31 @@ class Project {
   final int? likesCount;
   final int? applicationsCount;
 
+  // --- Extended tracking fields ---
+  /// Total number of tasks for health-score calculation.
+  final int? totalTasks;
+
+  /// Number of completed tasks.
+  final int? completedTasks;
+
+  /// Number of tasks past their due date.
+  final int? overdueTasks;
+
+  /// Task completion as a percentage (0–100).
+  final double? taskProgress;
+
+  /// How many days the project is behind schedule (negative = ahead).
+  final int? daysDelayed;
+
+  /// Week-over-week views growth as a percentage.
+  final double? viewsTrend;
+
+  /// Days since the last team activity was recorded.
+  final int? daysSinceLastActivity;
+
+  /// Total XP accumulated by the project (used for gamification level).
+  final int totalXP;
+
   Project({
     required this.id,
     required this.title,
@@ -41,6 +66,14 @@ class Project {
     this.viewsCount,
     this.likesCount,
     this.applicationsCount,
+    this.totalTasks,
+    this.completedTasks,
+    this.overdueTasks,
+    this.taskProgress,
+    this.daysDelayed,
+    this.viewsTrend,
+    this.daysSinceLastActivity,
+    this.totalXP = 0,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -67,6 +100,15 @@ class Project {
       viewsCount: (json['views_count'] as num?)?.toInt(),
       likesCount: (json['likes_count'] as num?)?.toInt(),
       applicationsCount: (json['applications_count'] as num?)?.toInt(),
+      totalTasks: (json['total_tasks'] as num?)?.toInt(),
+      completedTasks: (json['completed_tasks'] as num?)?.toInt(),
+      overdueTasks: (json['overdue_tasks'] as num?)?.toInt(),
+      taskProgress: (json['task_progress'] as num?)?.toDouble(),
+      daysDelayed: (json['days_delayed'] as num?)?.toInt(),
+      viewsTrend: (json['views_trend'] as num?)?.toDouble(),
+      daysSinceLastActivity:
+          (json['days_since_last_activity'] as num?)?.toInt(),
+      totalXP: (json['total_xp'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -90,6 +132,15 @@ class Project {
       if (viewsCount != null) 'views_count': viewsCount,
       if (likesCount != null) 'likes_count': likesCount,
       if (applicationsCount != null) 'applications_count': applicationsCount,
+      if (totalTasks != null) 'total_tasks': totalTasks,
+      if (completedTasks != null) 'completed_tasks': completedTasks,
+      if (overdueTasks != null) 'overdue_tasks': overdueTasks,
+      if (taskProgress != null) 'task_progress': taskProgress,
+      if (daysDelayed != null) 'days_delayed': daysDelayed,
+      if (viewsTrend != null) 'views_trend': viewsTrend,
+      if (daysSinceLastActivity != null)
+        'days_since_last_activity': daysSinceLastActivity,
+      'total_xp': totalXP,
     };
   }
 }
