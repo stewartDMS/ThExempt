@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
+import '../../services/media_upload_service.dart';
 
 class CreateDiscussionScreen extends StatefulWidget {
   final String? initialCategory;
@@ -20,6 +23,10 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
   String? _selectedCategory;
   final List<String> _tags = [];
   bool _isSubmitting = false;
+
+  // ── Media state ────────────────────────────────────────────────────────────
+  final List<XFile> _selectedFiles = [];
+  double _uploadProgress = 0.0;
 
   @override
   void initState() {
@@ -42,32 +49,266 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
     _tagController.clear();
   }
 
+  // ── Media picking ──────────────────────────────────────────────────────────
+
+  Future<void> _pickImages() async {
+    final remaining = MediaUploadService.maxFiles - _selectedFiles.length;
+    if (remaining <= 0) {
+      _showMaxFilesSnackBar();
+      return;
+    }
+    try {
+      final files = await MediaUploadService.pickImages(limit: remaining);
+      if (files.isNotEmpty) setState(() => _selectedFiles.addAll(files));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking images: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    if (_selectedFiles.length >= MediaUploadService.maxFiles) {
+      _showMaxFilesSnackBar();
+      return;
+    }
+    try {
+      final file = await MediaUploadService.pickVideo();
+      if (file != null) setState(() => _selectedFiles.add(file));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking video: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _removeFile(int index) => setState(() => _selectedFiles.removeAt(index));
+
+  void _showMaxFilesSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Maximum ${MediaUploadService.maxFiles} files allowed'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
+  // ── Submission ─────────────────────────────────────────────────────────────
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _selectedCategory == null) return;
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _uploadProgress = 0.0;
+    });
 
+    Discussion? discussion;
     try {
-      await DiscussionsService.createDiscussion(
+      // 1. Create the discussion first.
+      discussion = await DiscussionsService.createDiscussion(
         category: _selectedCategory!,
         title: _titleController.text.trim(),
         content: _contentController.text.trim(),
         tags: _tags.isEmpty ? null : _tags,
       );
+
+      // 2. Upload any selected media files.
+      for (int i = 0; i < _selectedFiles.length; i++) {
+        final file = _selectedFiles[i];
+        final isVideo = MediaUploadService.isVideoFile(file);
+
+        final result = await MediaUploadService.uploadFile(file, isVideo: isVideo);
+
+        await MediaUploadService.insertMediaRecord(
+          discussionId: discussion.id,
+          mediaType: isVideo ? 'video' : 'image',
+          fileUrl: result.fileUrl,
+          fileName: file.name,
+          fileSize: result.fileSize,
+          displayOrder: i,
+        );
+
+        if (mounted) {
+          setState(() => _uploadProgress = (i + 1) / _selectedFiles.length);
+        }
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Discussion created!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Discussion posted!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
+      // If the discussion was created but media upload failed, delete the
+      // discussion so the user doesn't end up with a partially posted item.
+      if (discussion != null && _selectedFiles.isNotEmpty) {
+        try {
+          await DiscussionsService.deleteDiscussion(discussion.id);
+        } catch (_) {
+          // Best-effort cleanup; ignore secondary errors.
+        }
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+          _uploadProgress = 0.0;
+        });
+      }
     }
+  }
+
+  // ── Media upload section widget ────────────────────────────────────────────
+
+  Widget _buildMediaUploadSection() {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Media (optional)', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 10),
+
+        // Upload buttons
+        Row(
+          children: [
+            OutlinedButton.icon(
+              onPressed: _isSubmitting ? null : _pickImages,
+              icon: const Icon(Icons.image_outlined, size: 18),
+              label: const Text('Add Photos'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                textStyle: const TextStyle(fontSize: 13),
+              ),
+            ),
+            const SizedBox(width: 10),
+            OutlinedButton.icon(
+              onPressed: _isSubmitting ? null : _pickVideo,
+              icon: const Icon(Icons.videocam_outlined, size: 18),
+              label: const Text('Add Video'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                textStyle: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+
+        // Selected file previews
+        if (_selectedFiles.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Text(
+            'Selected (${_selectedFiles.length}/${MediaUploadService.maxFiles})',
+            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedFiles.asMap().entries.map((entry) {
+              final index = entry.key;
+              final file = entry.value;
+              final isVideo = MediaUploadService.isVideoFile(file);
+              return Stack(
+                children: [
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey[200],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: isVideo
+                          ? Container(
+                              color: Colors.black87,
+                              child: const Center(
+                                child: Icon(Icons.play_circle_outline,
+                                    size: 40, color: Colors.white),
+                              ),
+                            )
+                          : Image.file(
+                              File(file.path),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.broken_image_outlined,
+                                    color: Colors.grey),
+                              ),
+                            ),
+                    ),
+                  ),
+                  // Remove button
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: GestureDetector(
+                      onTap: _isSubmitting ? null : () => _removeFile(index),
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close, size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  // Video badge
+                  if (isVideo)
+                    Positioned(
+                      bottom: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text('VIDEO',
+                            style: TextStyle(color: Colors.white, fontSize: 9,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
+
+        // Upload progress bar
+        if (_isSubmitting && _selectedFiles.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: _uploadProgress,
+              minHeight: 6,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Uploading media… ${(_uploadProgress * 100).toInt()}%',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+        ],
+      ],
+    );
   }
 
   @override
@@ -203,6 +444,9 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                   ),
                 ],
               ),
+            const SizedBox(height: 20),
+            // Media upload section
+            _buildMediaUploadSection(),
             const SizedBox(height: 32),
           ],
         ),
