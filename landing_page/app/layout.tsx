@@ -1,12 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-})
 
 export const metadata: Metadata = {
   title: 'ThExempt — Build Your Next Big Idea Together',
@@ -77,9 +70,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} antialiased dark:bg-gray-950 dark:text-gray-50`}
+        className="font-sans antialiased dark:bg-gray-950 dark:text-gray-50"
         suppressHydrationWarning
       >
         {children}
