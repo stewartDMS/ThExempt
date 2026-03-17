@@ -40,6 +40,9 @@ dependencies:
   # Image selection for discussions
   image_picker: ^1.0.7
 
+  # Charts for analytics
+  fl_chart: ^0.66.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
