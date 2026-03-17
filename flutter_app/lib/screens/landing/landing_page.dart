@@ -7,6 +7,11 @@ import '../../theme/app_colors.dart';
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
+  // ── Community stats shown in the social-proof section ─────────────────────
+  static const String _statProjects = '1,000+';
+  static const String _statMembers = '5,000+';
+  static const String _statConnections = '10,000+';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -368,9 +373,9 @@ class LandingPage extends StatelessWidget {
             runSpacing: 32,
             alignment: WrapAlignment.center,
             children: [
-              _buildStat('1,000+', 'Projects', AppColors.primary),
-              _buildStat('5,000+', 'Members', AppColors.success),
-              _buildStat('10,000+', 'Connections', AppColors.warning),
+              _buildStat(_statProjects, 'Projects', AppColors.primary),
+              _buildStat(_statMembers, 'Members', AppColors.success),
+              _buildStat(_statConnections, 'Connections', AppColors.warning),
             ],
           ),
         ],

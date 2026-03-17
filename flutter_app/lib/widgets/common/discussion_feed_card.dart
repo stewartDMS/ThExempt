@@ -48,8 +48,12 @@ class DiscussionFeedCard extends StatelessWidget {
     }
   }
 
+  static const int _trendingLikesThreshold = 10;
+  static const int _trendingRepliesThreshold = 5;
+
   bool get _isTrending =>
-      discussion.likesCount >= 10 || discussion.repliesCount >= 5;
+      discussion.likesCount >= _trendingLikesThreshold ||
+      discussion.repliesCount >= _trendingRepliesThreshold;
 
   @override
   Widget build(BuildContext context) {

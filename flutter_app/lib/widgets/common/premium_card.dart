@@ -49,6 +49,8 @@ class _PremiumCardState extends State<PremiumCard> {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: widget.onTap,
+          // onHover fires on desktop/web where hover is available.
+          // On mobile, InkWell's built-in ink splash provides press feedback.
           onHover: (hovering) => setState(() => _isHovered = hovering),
           borderRadius: BorderRadius.circular(16),
           child: ClipRRect(
