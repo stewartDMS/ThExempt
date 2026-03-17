@@ -779,6 +779,529 @@
       width: 100%;
       border-radius: 8px;
     }
+
+    /* ── Discussions Section ─────────────────────────── */
+    .discussions-section {
+      display: none;
+      padding: 2rem 0;
+    }
+
+    .discussions-section.active {
+      display: block;
+    }
+
+    .section-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      padding: 0.4rem 1rem;
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      background: var(--secondary);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .filter-tab:hover,
+    .filter-tab.active {
+      border-color: var(--highlight);
+      background: var(--highlight);
+      color: #fff;
+    }
+
+    .sort-select {
+      padding: 0.4rem 0.75rem;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      background: var(--secondary);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .sort-select:focus {
+      outline: none;
+      border-color: var(--highlight);
+    }
+
+    /* Discussion card */
+    .discussion-card {
+      background: var(--secondary);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid var(--accent);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .discussion-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    .discussion-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .disc-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--highlight);
+      flex-shrink: 0;
+    }
+
+    .disc-author-info {
+      flex: 1;
+    }
+
+    .disc-author-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .disc-meta {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .disc-category-badge {
+      padding: 0.2rem 0.7rem;
+      background: var(--gradient);
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .discussion-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .discussion-card p.disc-excerpt {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Discussion media thumbnail strip */
+    .disc-media-strip {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .disc-media-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--accent);
+    }
+
+    .disc-media-video-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      background: #000;
+      border: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .disc-media-video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .disc-media-video-thumb .disc-play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      background: rgba(99,102,241,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #fff;
+    }
+
+    .disc-media-more {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border: 1px solid var(--accent);
+    }
+
+    .discussion-card-footer {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .disc-stat-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.2rem 0;
+      transition: color 0.2s;
+    }
+
+    .disc-stat-btn:hover,
+    .disc-stat-btn.liked {
+      color: var(--highlight);
+    }
+
+    .disc-tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .disc-tag {
+      padding: 0.2rem 0.6rem;
+      background: var(--accent);
+      border-radius: 10px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    /* ── Discussion Detail Modal ─────────────────────── */
+    .discussion-modal .modal-content {
+      max-width: 750px;
+    }
+
+    .disc-full-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .disc-full-header h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+      background: none;
+      -webkit-text-fill-color: var(--text);
+    }
+
+    .disc-full-content {
+      color: var(--text);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+      white-space: pre-wrap;
+    }
+
+    /* Media gallery in detail view */
+    .disc-media-gallery {
+      margin-bottom: 1.5rem;
+    }
+
+    .disc-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .disc-gallery-item {
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 4/3;
+      cursor: pointer;
+      background: #000;
+      border: 1px solid var(--accent);
+    }
+
+    .disc-gallery-item img,
+    .disc-gallery-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .disc-gallery-video-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .disc-gallery-play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--highlight);
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .disc-gallery-item .disc-delete-media-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .disc-gallery-item:hover .disc-delete-media-btn {
+      opacity: 1;
+    }
+
+    /* Replies */
+    .replies-section {
+      border-top: 1px solid var(--accent);
+      padding-top: 1.5rem;
+    }
+
+    .replies-section h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .reply-item {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: var(--primary);
+      border-radius: 10px;
+    }
+
+    .reply-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--accent);
+    }
+
+    .reply-body {
+      flex: 1;
+    }
+
+    .reply-author {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .reply-text {
+      color: var(--text);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .reply-meta {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.35rem;
+    }
+
+    .add-reply-form {
+      margin-top: 1rem;
+    }
+
+    .add-reply-form textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      background: var(--primary);
+      color: var(--text);
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+
+    .add-reply-form textarea:focus {
+      outline: none;
+      border-color: var(--highlight);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+
+    /* ── Multi-file upload in create discussion ──────── */
+    .disc-upload-zone {
+      border: 2px dashed var(--accent);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      background: var(--primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .disc-upload-zone:hover,
+    .disc-upload-zone.drag-over {
+      border-color: var(--highlight);
+      background: rgba(99,102,241,0.05);
+    }
+
+    .disc-upload-hint {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.4rem;
+    }
+
+    .disc-pending-media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+
+    .disc-pending-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: #000;
+      border: 1px solid var(--accent);
+    }
+
+    .disc-pending-item img,
+    .disc-pending-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .disc-pending-item .disc-remove-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .disc-pending-item .disc-remove-btn:hover {
+      background: #ef4444;
+    }
+
+    .disc-pending-item .disc-type-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      font-size: 0.68rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    .disc-upload-progress {
+      margin-top: 0.75rem;
+    }
+
+    .disc-upload-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .disc-upload-progress-fill {
+      height: 100%;
+      background: var(--highlight);
+      transition: width 0.3s;
+    }
+
+    .disc-upload-status {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+      text-align: center;
+    }
+
+    /* Create discussion modal wider */
+    .create-disc-modal .modal-content {
+      max-width: 680px;
+    }
   </style>
 </head>
 <body>
@@ -790,6 +1313,7 @@
         <li><a href="#" onclick="showHome()">Home</a></li>
         <li><a href="#" onclick="showProjects()">Projects</a></li>
         <li><a href="#" onclick="showDiscovery()">Discover</a></li>
+        <li><a href="#" onclick="showCommunity()">Community</a></li>
         <li><a href="#" onclick="showMyProfile()">Profile</a></li>
         <li><a href="#" onclick="showDashboard()">Dashboard</a></li>
       </ul>
@@ -1102,6 +1626,114 @@
     </div>
   </div>
 
+  <!-- ── Discussions Section ──────────────────────────────────────────────────── -->
+  <div class="discussions-section container" id="discussionsSection">
+    <div class="section-toolbar">
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <h1 style="font-size:1.8rem;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Community</h1>
+        <div class="filter-tabs" id="discFilterTabs">
+          <button class="filter-tab active" data-cat="">All</button>
+          <button class="filter-tab" data-cat="general">General</button>
+          <button class="filter-tab" data-cat="tech">Tech</button>
+          <button class="filter-tab" data-cat="design">Design</button>
+          <button class="filter-tab" data-cat="business">Business</button>
+          <button class="filter-tab" data-cat="showcase">Showcase</button>
+        </div>
+        <select class="sort-select" id="discSortSelect" onchange="loadDiscussions()">
+          <option value="recent">Latest</option>
+          <option value="popular">Most Liked</option>
+          <option value="trending">Trending</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="newDiscBtn" onclick="showCreateDiscussion()" style="display:none;">+ New Discussion</button>
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar" style="margin-bottom:1.5rem;">
+      <input type="text" id="discSearchInput" placeholder="Search discussions..." class="search-input" onkeypress="if(event.key==='Enter') loadDiscussions()">
+      <button class="btn btn-primary" onclick="loadDiscussions()">Search</button>
+    </div>
+
+    <!-- Discussion cards -->
+    <div class="cards-grid" id="discussionsList">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- ── Create Discussion Modal ───────────────────────────────────────────────── -->
+  <div class="modal create-disc-modal" id="createDiscModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>New Discussion</h2>
+        <span class="close-modal" onclick="closeModal('createDiscModal')">&times;</span>
+      </div>
+      <div id="createDiscError"></div>
+      <form onsubmit="handleCreateDiscussion(event)" id="createDiscForm">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" name="title" placeholder="What do you want to discuss?" required maxlength="200">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category" required>
+            <option value="">Select category...</option>
+            <option value="general">General</option>
+            <option value="tech">Tech</option>
+            <option value="design">Design</option>
+            <option value="business">Business</option>
+            <option value="showcase">Showcase</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Content</label>
+          <textarea name="content" rows="5" placeholder="Share your thoughts, ideas, or questions..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-separated, optional)</label>
+          <input type="text" name="tags" placeholder="e.g. react, startup, design">
+        </div>
+
+        <!-- Media upload -->
+        <div class="form-group">
+          <label>Attach Media <span style="color:var(--text-secondary);font-weight:400;">(up to 5 images/videos)</span></label>
+          <div class="disc-upload-zone" id="discDropZone" onclick="document.getElementById('discMediaInput').click()">
+            <div style="font-size:2rem;">📎</div>
+            <div style="font-weight:500;margin-top:0.25rem;">Drop files here or click to browse</div>
+            <div class="disc-upload-hint">Images: JPEG, PNG, GIF, WebP (max 10MB) • Videos: MP4, WebM, MOV (max 100MB)</div>
+          </div>
+          <input type="file" id="discMediaInput" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime" multiple style="display:none;">
+
+          <!-- Pending files grid -->
+          <div class="disc-pending-media-grid" id="discPendingGrid"></div>
+
+          <!-- Upload progress -->
+          <div class="disc-upload-progress" id="discUploadProgress" style="display:none;">
+            <div class="disc-upload-progress-bar">
+              <div class="disc-upload-progress-fill" id="discUploadFill" style="width:0%"></div>
+            </div>
+            <div class="disc-upload-status" id="discUploadStatus">Uploading media...</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;" id="createDiscSubmitBtn">Post Discussion</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Discussion Detail Modal ───────────────────────────────────────────────── -->
+  <div class="modal discussion-modal" id="discussionDetailModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span></span>
+        <span class="close-modal" onclick="closeModal('discussionDetailModal')">&times;</span>
+      </div>
+
+      <div id="discussionDetailContent">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_URL = window.location.hostname === 'localhost' 
       ? 'http://localhost:5000/api' 
@@ -1213,6 +1845,9 @@
       document.getElementById('loginForm').classList.remove('active');
       document.getElementById('signupForm').classList.remove('active');
       document.getElementById('dashboardSection').classList.remove('active');
+      document.getElementById('profileSection').style.display = 'none';
+      document.getElementById('discoverySection').style.display = 'none';
+      document.getElementById('discussionsSection').classList.remove('active');
       
       if (authToken) {
         document.getElementById('authButtons').classList.add('hidden');
@@ -1228,6 +1863,7 @@
       document.getElementById('loginForm').classList.add('active');
       document.getElementById('signupForm').classList.remove('active');
       document.getElementById('dashboardSection').classList.remove('active');
+      document.getElementById('discussionsSection').classList.remove('active');
     }
 
     function showSignup() {
@@ -1235,6 +1871,7 @@
       document.getElementById('loginForm').classList.remove('active');
       document.getElementById('signupForm').classList.add('active');
       document.getElementById('dashboardSection').classList.remove('active');
+      document.getElementById('discussionsSection').classList.remove('active');
     }
 
     function showDashboard() {
@@ -1242,6 +1879,9 @@
       document.getElementById('loginForm').classList.remove('active');
       document.getElementById('signupForm').classList.remove('active');
       document.getElementById('dashboardSection').classList.add('active');
+      document.getElementById('profileSection').style.display = 'none';
+      document.getElementById('discoverySection').style.display = 'none';
+      document.getElementById('discussionsSection').classList.remove('active');
       document.getElementById('authButtons').classList.add('hidden');
       document.getElementById('userMenu').classList.remove('hidden');
     }
@@ -1410,6 +2050,7 @@
       document.getElementById('heroSection').style.display = 'none';
       document.getElementById('dashboardSection').classList.remove('active');
       document.getElementById('discoverySection').style.display = 'none';
+      document.getElementById('discussionsSection').classList.remove('active');
       document.getElementById('profileSection').style.display = 'block';
 
       // Show/hide edit button if viewing own profile
@@ -1603,6 +2244,7 @@
       document.getElementById('heroSection').style.display = 'none';
       document.getElementById('dashboardSection').classList.remove('active');
       document.getElementById('profileSection').style.display = 'none';
+      document.getElementById('discussionsSection').classList.remove('active');
       document.getElementById('discoverySection').style.display = 'block';
 
       // Load initial users with search
@@ -1947,6 +2589,790 @@
         player.pause();
         player.src = '';
       }
+      if (modalId === 'discussionDetailModal') {
+        // Pause any playing video inside the detail modal
+        const vids = document.querySelectorAll('#discussionDetailContent video');
+        vids.forEach(v => { v.pause(); v.src = ''; });
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // DISCUSSIONS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    let discCurrentCategory = '';
+    let discPendingFiles = [];  // { file, previewUrl, type }
+    const discMediaRegistry = {};  // mediaId -> media object (for safe URL lookup)
+
+    function showCommunity() {
+      hideAllSections();
+      document.getElementById('discussionsSection').classList.add('active');
+      document.getElementById('authButtons').classList.add('hidden');
+      document.getElementById('userMenu').classList.remove('hidden');
+
+      // Show "New Discussion" button only if logged in
+      document.getElementById('newDiscBtn').style.display = authToken ? 'block' : 'none';
+
+      loadDiscussions();
+    }
+
+    // Category filter tab click
+    document.getElementById('discFilterTabs').addEventListener('click', function(e) {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      discCurrentCategory = btn.dataset.cat;
+      loadDiscussions();
+    });
+
+    async function loadDiscussions() {
+      const list = document.getElementById('discussionsList');
+      list.innerHTML = '<div class="spinner"></div>';
+
+      const sort = document.getElementById('discSortSelect').value;
+      const search = document.getElementById('discSearchInput').value.trim();
+
+      const params = new URLSearchParams({ sort });
+      if (discCurrentCategory) params.set('category', discCurrentCategory);
+      if (search) params.set('search', search);
+
+      try {
+        const headers = {};
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+        const res = await fetch(`${API_URL}/discussions?${params}`, { headers });
+        if (!res.ok) throw new Error('Failed to fetch');
+
+        const discussions = await res.json();
+        renderDiscussionsList(discussions);
+      } catch (err) {
+        list.innerHTML = '<p style="color:var(--text-secondary)">Failed to load discussions.</p>';
+      }
+    }
+
+    function renderDiscussionsList(discussions) {
+      const list = document.getElementById('discussionsList');
+      list.innerHTML = '';
+
+      if (!discussions.length) {
+        list.innerHTML = '<p style="color:var(--text-secondary)">No discussions yet. Be the first to start one!</p>';
+        return;
+      }
+
+      discussions.forEach(d => {
+        const card = buildDiscussionCard(d);
+        list.appendChild(card);
+      });
+    }
+
+    function buildDiscussionCard(d) {
+      const author = d.profiles || {};
+      const avatarUrl = author.avatar_url || 'https://via.placeholder.com/38';
+      const authorName = author.name || 'Unknown';
+      const media = d.media || [];
+      const timeAgo = formatTimeAgo(d.created_at);
+
+      const card = document.createElement('div');
+      card.className = 'discussion-card';
+      card.addEventListener('click', () => openDiscussionDetail(d.id));
+
+      // Tags HTML
+      const tagsHtml = (d.tags || []).slice(0, 4).map(t =>
+        `<span class="disc-tag">${escapeHtml(t)}</span>`
+      ).join('');
+
+      // Media strip (show up to 3 thumbs + overflow)
+      let mediaStripHtml = '';
+      if (media.length > 0) {
+        const shown = media.slice(0, 3);
+        const remaining = media.length - shown.length;
+        const thumbsHtml = shown.map(m => buildMediaThumbHtml(m)).join('');
+        const moreHtml = remaining > 0 ? `<div class="disc-media-more">+${remaining}</div>` : '';
+        mediaStripHtml = `<div class="disc-media-strip">${thumbsHtml}${moreHtml}</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="discussion-card-header">
+          <img src="${avatarUrl}" alt="" class="disc-avatar" onerror="this.src='https://via.placeholder.com/38'">
+          <div class="disc-author-info">
+            <div class="disc-author-name">${escapeHtml(authorName)}</div>
+            <div class="disc-meta">${timeAgo}</div>
+          </div>
+          <span class="disc-category-badge">${escapeHtml(d.category || '')}</span>
+        </div>
+        <h3>${escapeHtml(d.title)}</h3>
+        ${tagsHtml ? `<div class="disc-tags">${tagsHtml}</div>` : ''}
+        <p class="disc-excerpt">${escapeHtml(d.content)}</p>
+        ${mediaStripHtml}
+        <div class="discussion-card-footer">
+          <button class="disc-stat-btn${d.is_liked_by_user ? ' liked' : ''}" onclick="event.stopPropagation(); toggleDiscLike('${d.id}', this)">
+            ❤️ <span>${d.likes_count || 0}</span>
+          </button>
+          <span>💬 ${d.replies_count || 0}</span>
+          <span>👁️ ${d.views_count || 0}</span>
+          ${media.length > 0 ? `<span>📎 ${media.length}</span>` : ''}
+        </div>
+      `;
+
+      return card;
+    }
+
+    function buildMediaThumbHtml(m) {
+      if (m.media_type === 'image') {
+        return `<img src="${m.file_url}" alt="${escapeHtml(m.file_name)}" class="disc-media-thumb" onerror="this.style.display='none'">`;
+      } else {
+        const thumb = m.thumbnail_url
+          ? `<img src="${m.thumbnail_url}" alt="video" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+          : '🎬';
+        return `<div class="disc-media-video-thumb">${thumb}<div class="disc-play-icon">▶</div></div>`;
+      }
+    }
+
+    // ── Open discussion detail ────────────────────────────────────────────────
+
+    async function openDiscussionDetail(discussionId) {
+      document.getElementById('discussionDetailContent').innerHTML = '<div class="spinner"></div>';
+      document.getElementById('discussionDetailModal').classList.add('active');
+
+      try {
+        const headers = {};
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+        const [discRes, repliesRes] = await Promise.all([
+          fetch(`${API_URL}/discussions/${discussionId}`, { headers }),
+          fetch(`${API_URL}/discussions/${discussionId}/replies`, { headers }),
+        ]);
+
+        if (!discRes.ok) throw new Error('Not found');
+
+        const disc = await discRes.json();
+        const replies = repliesRes.ok ? await repliesRes.json() : [];
+
+        renderDiscussionDetail(disc, replies);
+      } catch (err) {
+        document.getElementById('discussionDetailContent').innerHTML =
+          '<p style="color:var(--text-secondary)">Failed to load discussion.</p>';
+      }
+    }
+
+    function renderDiscussionDetail(disc, replies) {
+      const author = disc.profiles || {};
+      const avatarUrl = author.avatar_url || 'https://via.placeholder.com/38';
+      const authorName = author.name || 'Unknown';
+      const media = disc.media || [];
+      const isOwn = currentUser && currentUser.id === disc.author_id;
+
+      const tagsHtml = (disc.tags || []).map(t => `<span class="disc-tag">${escapeHtml(t)}</span>`).join('');
+
+      // Register media objects for safe URL lookup (avoids XSS via inline onclick)
+      media.forEach(m => { discMediaRegistry[m.id] = m; });
+
+      // Build media gallery
+      let galleryHtml = '';
+      if (media.length > 0) {
+        const itemsHtml = media.map(m => buildGalleryItemHtml(m, disc.id, isOwn)).join('');
+        galleryHtml = `
+          <div class="disc-media-gallery">
+            <div class="disc-gallery-grid" data-disc-id="${disc.id}">${itemsHtml}</div>
+          </div>
+        `;
+      }
+
+      // Build replies
+      const repliesHtml = replies.length > 0
+        ? replies.map(r => buildReplyHtml(r)).join('')
+        : '<p style="color:var(--text-secondary);font-size:0.9rem;">No replies yet. Be the first!</p>';
+
+      const addReplyForm = authToken ? `
+        <form class="add-reply-form" onsubmit="submitReply(event, '${disc.id}')">
+          <textarea name="content" placeholder="Write a reply..." required></textarea>
+          <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">Post Reply</button>
+        </form>
+      ` : `<p style="color:var(--text-secondary);font-size:0.9rem;margin-top:0.75rem;"><a href="#" onclick="showLogin()" style="color:var(--highlight)">Log in</a> to reply.</p>`;
+
+      // Attach more media button (if user is author + media < 5)
+      const canAddMedia = authToken && media.length < 5;
+      const addMediaBtn = canAddMedia ? `
+        <div style="margin-top:0.75rem;">
+          <button class="btn btn-secondary" onclick="openAddMediaToDisc('${disc.id}')" style="font-size:0.85rem;padding:0.4rem 0.9rem;">📎 Add Media</button>
+          <input type="file" id="addMediaToDiscInput_${disc.id}" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime" style="display:none;" onchange="uploadMediaToExistingDisc(event,'${disc.id}')">
+        </div>
+      ` : '';
+
+      document.getElementById('discussionDetailContent').innerHTML = `
+        <div class="disc-full-header">
+          <div class="discussion-card-header" style="margin-bottom:1rem;">
+            <img src="${avatarUrl}" alt="" class="disc-avatar" onerror="this.src='https://via.placeholder.com/38'">
+            <div class="disc-author-info">
+              <div class="disc-author-name">${escapeHtml(authorName)}</div>
+              <div class="disc-meta">${formatTimeAgo(disc.created_at)}</div>
+            </div>
+            <span class="disc-category-badge">${escapeHtml(disc.category || '')}</span>
+          </div>
+          <h2>${escapeHtml(disc.title)}</h2>
+          ${tagsHtml ? `<div class="disc-tags" style="margin-bottom:0.75rem;">${tagsHtml}</div>` : ''}
+        </div>
+
+        <div class="disc-full-content">${escapeHtml(disc.content)}</div>
+
+        ${galleryHtml}
+        ${addMediaBtn}
+
+        <div style="display:flex;align-items:center;gap:1rem;margin:1rem 0;padding:0.75rem 0;border-top:1px solid var(--accent);border-bottom:1px solid var(--accent);">
+          <button class="disc-stat-btn${disc.is_liked_by_user ? ' liked' : ''}" id="detailLikeBtn" onclick="toggleDiscLike('${disc.id}', this)">
+            ❤️ <span>${disc.likes_count || 0}</span>
+          </button>
+          <span style="color:var(--text-secondary);font-size:0.9rem;">💬 ${disc.replies_count || 0} replies</span>
+          <span style="color:var(--text-secondary);font-size:0.9rem;">👁️ ${disc.views_count || 0} views</span>
+        </div>
+
+        <div class="replies-section">
+          <h3>Replies (${replies.length})</h3>
+          <div id="repliesList_${disc.id}">${repliesHtml}</div>
+          ${addReplyForm}
+        </div>
+      `;
+
+      // Delegated click handler for gallery — avoids XSS via inline onclick with raw URLs
+      const detailContent = document.getElementById('discussionDetailContent');
+      detailContent.addEventListener('click', function handleGalleryClick(e) {
+        // Open media viewer
+        const galleryItem = e.target.closest('.disc-gallery-item[data-media-id]');
+        if (galleryItem && !e.target.closest('.disc-delete-media-btn')) {
+          const mediaId = galleryItem.dataset.mediaId;
+          const mediaItem = discMediaRegistry[mediaId];
+          if (mediaItem) {
+            openDiscMediaViewer(mediaItem.file_url, mediaItem.media_type, mediaItem.file_name);
+          }
+          return;
+        }
+
+        // Delete media button
+        const deleteBtn = e.target.closest('.disc-delete-media-btn[data-media-id]');
+        if (deleteBtn) {
+          e.stopPropagation();
+          const discId = deleteBtn.dataset.discId;
+          const mediaId = deleteBtn.dataset.mediaId;
+          if (discId && mediaId) deleteDiscMedia(e, discId, mediaId);
+          return;
+        }
+      }, { once: true });
+    }
+
+    function buildGalleryItemHtml(m, discId, isOwn) {
+      const deleteBtn = isOwn ? `<button class="disc-delete-media-btn" data-disc-id="${discId}" data-media-id="${m.id}" title="Remove">×</button>` : '';
+
+      if (m.media_type === 'image') {
+        return `
+          <div class="disc-gallery-item" data-media-id="${m.id}" data-media-type="image">
+            <img src="${m.file_url}" alt="${escapeHtml(m.file_name)}" onerror="this.src='https://via.placeholder.com/160x120?text=Image'">
+            ${deleteBtn}
+          </div>
+        `;
+      } else {
+        const thumbContent = m.thumbnail_url
+          ? `<img src="${m.thumbnail_url}" alt="video thumbnail">`
+          : `<div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:2rem;">🎬</div>`;
+        return `
+          <div class="disc-gallery-item" data-media-id="${m.id}" data-media-type="video">
+            ${thumbContent}
+            <div class="disc-gallery-video-overlay">
+              <button class="disc-gallery-play-btn">▶</button>
+            </div>
+            ${deleteBtn}
+          </div>
+        `;
+      }
+    }
+
+    function buildReplyHtml(r) {
+      const author = r.profiles || {};
+      const avatarUrl = author.avatar_url || 'https://via.placeholder.com/32';
+      const nested = r.replies && r.replies.length > 0
+        ? `<div style="padding-left:1rem;margin-top:0.5rem;">${r.replies.map(buildReplyHtml).join('')}</div>`
+        : '';
+      return `
+        <div class="reply-item">
+          <img src="${avatarUrl}" alt="" class="reply-avatar" onerror="this.src='https://via.placeholder.com/32'">
+          <div class="reply-body">
+            <div class="reply-author">${escapeHtml(author.name || 'Unknown')}</div>
+            <div class="reply-text">${escapeHtml(r.content)}</div>
+            <div class="reply-meta">${formatTimeAgo(r.created_at)}</div>
+          </div>
+        </div>
+        ${nested}
+      `;
+    }
+
+    // ── Open media viewer for discussion images/videos ────────────────────────
+
+    function openDiscMediaViewer(url, type, title) {
+      if (type === 'video') {
+        const player = document.getElementById('fullscreenMediaPlayer');
+        document.getElementById('mediaViewTitle').textContent = title || 'Video';
+        player.src = url;
+        document.getElementById('mediaViewModal').classList.add('active');
+        player.play();
+      } else {
+        // For images open in media viewer modal as an <img>
+        const modal = document.getElementById('mediaViewModal');
+        document.getElementById('mediaViewTitle').textContent = title || 'Image';
+        const player = document.getElementById('fullscreenMediaPlayer');
+        player.pause();
+        player.style.display = 'none';
+
+        // Insert or reuse an image element
+        let imgEl = document.getElementById('mediaViewImage');
+        if (!imgEl) {
+          imgEl = document.createElement('img');
+          imgEl.id = 'mediaViewImage';
+          imgEl.style.cssText = 'width:100%;border-radius:8px;display:block;';
+          player.parentNode.insertBefore(imgEl, player);
+        }
+        imgEl.src = url;
+        imgEl.style.display = 'block';
+        modal.classList.add('active');
+      }
+    }
+
+    // Media viewer handles image/video cleanup via the main closeModal function above
+
+    // ── Delete discussion media ───────────────────────────────────────────────
+
+    async function deleteDiscMedia(event, discId, mediaId) {
+      event.stopPropagation();
+      if (!confirm('Remove this media?')) return;
+
+      try {
+        const res = await fetch(`${API_URL}/discussions/${discId}/media/${mediaId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          // Reload detail view
+          openDiscussionDetail(discId);
+        } else {
+          const err = await res.json();
+          alert('Failed to delete: ' + (err.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to delete media');
+      }
+    }
+
+    // ── Add media to existing discussion ─────────────────────────────────────
+
+    function openAddMediaToDisc(discId) {
+      document.getElementById(`addMediaToDiscInput_${discId}`).click();
+    }
+
+    async function uploadMediaToExistingDisc(event, discId) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const validation = validateDiscMediaFile(file);
+      if (validation) { alert(validation); return; }
+
+      try {
+        const base64File = await fileToBase64(file);
+        let thumbnailBase64 = null;
+        if (file.type.startsWith('video/')) {
+          thumbnailBase64 = await extractVideoThumbnailFromBase64(base64File, file.type);
+        }
+
+        const res = await fetch(`${API_URL}/discussions/${discId}/media`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ base64File, fileName: file.name, thumbnailBase64 })
+        });
+
+        if (res.ok) {
+          openDiscussionDetail(discId);
+        } else {
+          const err = await res.json();
+          alert('Upload failed: ' + (err.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Upload failed: ' + err.message);
+      }
+      event.target.value = '';
+    }
+
+    // ── Like/Unlike discussion ────────────────────────────────────────────────
+
+    async function toggleDiscLike(discId, btnEl) {
+      if (!authToken) { showLogin(); return; }
+
+      const isLiked = btnEl.classList.contains('liked');
+      const countEl = btnEl.querySelector('span');
+      const current = parseInt(countEl.textContent, 10) || 0;
+
+      // Optimistic update
+      btnEl.classList.toggle('liked');
+      countEl.textContent = isLiked ? Math.max(0, current - 1) : current + 1;
+
+      try {
+        const method = isLiked ? 'DELETE' : 'POST';
+        const url = isLiked
+          ? `${API_URL}/discussions/${discId}/like`
+          : `${API_URL}/discussions/${discId}/like`;
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+          body: isLiked ? undefined : JSON.stringify({})
+        });
+
+        if (!res.ok) {
+          // Revert optimistic update
+          btnEl.classList.toggle('liked');
+          countEl.textContent = current;
+        }
+      } catch (err) {
+        btnEl.classList.toggle('liked');
+        countEl.textContent = current;
+      }
+    }
+
+    // ── Submit reply ──────────────────────────────────────────────────────────
+
+    async function submitReply(event, discId) {
+      event.preventDefault();
+      const form = event.target;
+      const content = form.content.value.trim();
+      if (!content) return;
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Posting...';
+
+      try {
+        const res = await fetch(`${API_URL}/discussions/${discId}/replies`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ content })
+        });
+
+        if (res.ok) {
+          form.reset();
+          // Reload detail to show new reply
+          openDiscussionDetail(discId);
+        } else {
+          const err = await res.json();
+          alert('Failed to post reply: ' + (err.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to post reply');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Post Reply';
+      }
+    }
+
+    // ── Create discussion ─────────────────────────────────────────────────────
+
+    function showCreateDiscussion() {
+      if (!authToken) { showLogin(); return; }
+      discPendingFiles = [];
+      document.getElementById('discPendingGrid').innerHTML = '';
+      document.getElementById('createDiscForm').reset();
+      document.getElementById('createDiscError').innerHTML = '';
+      document.getElementById('discUploadProgress').style.display = 'none';
+      document.getElementById('createDiscModal').classList.add('active');
+    }
+
+    async function handleCreateDiscussion(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+
+      const title = formData.get('title').trim();
+      const category = formData.get('category');
+      const content = formData.get('content').trim();
+      const rawTags = formData.get('tags').trim();
+      const tags = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t) : [];
+
+      if (!title || !category || !content) {
+        document.getElementById('createDiscError').innerHTML =
+          '<div class="error-message">Title, category, and content are required.</div>';
+        return;
+      }
+
+      const submitBtn = document.getElementById('createDiscSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Posting...';
+
+      try {
+        // Create the discussion first
+        const res = await fetch(`${API_URL}/discussions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ title, category, content, tags })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to create discussion');
+        }
+
+        const newDisc = await res.json();
+
+        // Upload any pending media files
+        if (discPendingFiles.length > 0) {
+          await uploadPendingDiscMedia(newDisc.id);
+        }
+
+        closeModal('createDiscModal');
+        form.reset();
+        discPendingFiles = [];
+        document.getElementById('discPendingGrid').innerHTML = '';
+
+        // Refresh list and open the new discussion
+        await loadDiscussions();
+        openDiscussionDetail(newDisc.id);
+
+      } catch (err) {
+        document.getElementById('createDiscError').innerHTML =
+          `<div class="error-message">${err.message}</div>`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Post Discussion';
+      }
+    }
+
+    async function uploadPendingDiscMedia(discId) {
+      const progressDiv = document.getElementById('discUploadProgress');
+      const fillEl = document.getElementById('discUploadFill');
+      const statusEl = document.getElementById('discUploadStatus');
+
+      progressDiv.style.display = 'block';
+
+      for (let i = 0; i < discPendingFiles.length; i++) {
+        const { file } = discPendingFiles[i];
+        const pct = Math.round(((i) / discPendingFiles.length) * 100);
+        fillEl.style.width = pct + '%';
+        statusEl.textContent = `Uploading file ${i + 1} of ${discPendingFiles.length}...`;
+
+        try {
+          const base64File = await fileToBase64(file);
+          let thumbnailBase64 = null;
+          if (file.type.startsWith('video/')) {
+            thumbnailBase64 = await extractVideoThumbnailFromFile(file);
+          }
+
+          await fetch(`${API_URL}/discussions/${discId}/media`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ base64File, fileName: file.name, thumbnailBase64 })
+          });
+        } catch (err) {
+          console.warn('Failed to upload media file:', file.name, err);
+        }
+      }
+
+      fillEl.style.width = '100%';
+      statusEl.textContent = 'Upload complete!';
+      setTimeout(() => { progressDiv.style.display = 'none'; }, 1200);
+    }
+
+    // ── Multi-file picker setup ───────────────────────────────────────────────
+
+    const discMediaInput = document.getElementById('discMediaInput');
+    discMediaInput.addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(addDiscPendingFile);
+      e.target.value = '';
+    });
+
+    const discDropZone = document.getElementById('discDropZone');
+    discDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      discDropZone.classList.add('drag-over');
+    });
+    discDropZone.addEventListener('dragleave', () => discDropZone.classList.remove('drag-over'));
+    discDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      discDropZone.classList.remove('drag-over');
+      Array.from(e.dataTransfer.files).forEach(addDiscPendingFile);
+    });
+
+    function addDiscPendingFile(file) {
+      if (discPendingFiles.length >= 5) {
+        alert('Maximum 5 media files per discussion.');
+        return;
+      }
+      const err = validateDiscMediaFile(file);
+      if (err) { alert(err); return; }
+
+      const previewUrl = URL.createObjectURL(file);
+      discPendingFiles.push({ file, previewUrl, type: file.type.startsWith('image/') ? 'image' : 'video' });
+      renderDiscPendingGrid();
+    }
+
+    function removeDiscPendingFile(index) {
+      URL.revokeObjectURL(discPendingFiles[index].previewUrl);
+      discPendingFiles.splice(index, 1);
+      renderDiscPendingGrid();
+    }
+
+    function renderDiscPendingGrid() {
+      const grid = document.getElementById('discPendingGrid');
+      grid.innerHTML = '';
+      discPendingFiles.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'disc-pending-item';
+
+        if (item.type === 'image') {
+          const img = document.createElement('img');
+          img.src = item.previewUrl;
+          img.alt = item.file.name;
+          div.appendChild(img);
+        } else {
+          const vid = document.createElement('video');
+          vid.src = item.previewUrl;
+          vid.muted = true;
+          div.appendChild(vid);
+        }
+
+        const typeBadge = document.createElement('span');
+        typeBadge.className = 'disc-type-badge';
+        typeBadge.textContent = item.type === 'image' ? '🖼' : '🎬';
+        div.appendChild(typeBadge);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'disc-remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.type = 'button';
+        removeBtn.addEventListener('click', () => removeDiscPendingFile(idx));
+        div.appendChild(removeBtn);
+
+        grid.appendChild(div);
+      });
+
+      // Show upload zone or limit message
+      const atLimit = discPendingFiles.length >= 5;
+      discDropZone.style.display = atLimit ? 'none' : 'block';
+      let limitMsg = document.getElementById('discMediaLimitMsg');
+      if (atLimit) {
+        if (!limitMsg) {
+          limitMsg = document.createElement('p');
+          limitMsg.id = 'discMediaLimitMsg';
+          limitMsg.style.cssText = 'font-size:0.85rem;color:var(--text-secondary);margin-top:0.5rem;text-align:center;';
+          limitMsg.textContent = 'Maximum of 5 media files reached. Remove a file to add another.';
+          discDropZone.parentNode.insertBefore(limitMsg, discDropZone.nextSibling);
+        }
+        limitMsg.style.display = 'block';
+      } else if (limitMsg) {
+        limitMsg.style.display = 'none';
+      }
+    }
+
+    function validateDiscMediaFile(file) {
+      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const videoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+      const allTypes = [...imageTypes, ...videoTypes];
+
+      if (!allTypes.includes(file.type)) {
+        return `Unsupported file type: ${file.type}. Use JPEG, PNG, GIF, WebP, MP4, WebM, or MOV.`;
+      }
+      if (imageTypes.includes(file.type) && file.size > 10 * 1024 * 1024) {
+        return `Image "${file.name}" exceeds 10MB limit.`;
+      }
+      if (videoTypes.includes(file.type) && file.size > 100 * 1024 * 1024) {
+        return `Video "${file.name}" exceeds 100MB limit.`;
+      }
+      return null;
+    }
+
+    // ── Utility helpers ───────────────────────────────────────────────────────
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function extractVideoThumbnailFromFile(file) {
+      const url = URL.createObjectURL(file);
+      try {
+        return await extractVideoThumbnailFromUrl(url);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    async function extractVideoThumbnailFromBase64(base64, mimeType) {
+      return extractVideoThumbnailFromUrl(base64);
+    }
+
+    function extractVideoThumbnailFromUrl(src) {
+      return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.muted = true;
+        video.crossOrigin = 'anonymous';
+
+        const doCapture = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 360;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+
+        video.addEventListener('loadeddata', doCapture, { once: true });
+        video.addEventListener('error', () => resolve(null), { once: true });
+        video.src = src;
+        video.load();
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function formatTimeAgo(dateStr) {
+      if (!dateStr) return '';
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 1) return 'just now';
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      return new Date(dateStr).toLocaleDateString();
+    }
+
+    // Patch hideAllSections to include discussions
+    function hideAllSections() {
+      document.getElementById('heroSection').style.display = 'none';
+      document.getElementById('loginForm').classList.remove('active');
+      document.getElementById('signupForm').classList.remove('active');
+      document.getElementById('dashboardSection').classList.remove('active');
+      document.getElementById('profileSection').style.display = 'none';
+      document.getElementById('discoverySection').style.display = 'none';
+      document.getElementById('discussionsSection').classList.remove('active');
     }
   </script>
 </body>
