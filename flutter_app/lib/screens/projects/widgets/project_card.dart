@@ -15,6 +15,7 @@ import '../../../widgets/common/stage_badge.dart';
 import '../../../widgets/common/app_card.dart';
 import '../../../widgets/common/premium_card.dart';
 import '../../../widgets/common/premium_skill_chip.dart';
+import '../../../widgets/common/engagement_metrics.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -105,10 +106,22 @@ class ProjectCard extends StatelessWidget {
                   _buildSkillChips(),
                 ],
 
-                // Roles summary + CTA divider
+                // Engagement metrics
+                if (project.viewsCount != null ||
+                    project.likesCount != null ||
+                    project.applicationsCount != null) ...[
+                  const SizedBox(height: 10),
+                  EngagementMetrics(
+                    views: project.viewsCount,
+                    likes: project.likesCount,
+                    applications: project.applicationsCount,
+                  ),
+                ],
+
+                // Roles progress
                 if (project.totalRolesNeeded > 0) ...[
                   const SizedBox(height: 10),
-                  _buildRolesSummary(),
+                  _buildRolesProgress(),
                 ],
 
                 const SizedBox(height: 14),
@@ -336,6 +349,69 @@ class ProjectCard extends StatelessWidget {
                 color: AppColors.primary,
               ))
           .toList(),
+    );
+  }
+
+  Widget _buildRolesProgress() {
+    final filled = project.rolesFilled;
+    final total = project.totalRolesNeeded;
+    final progress = total > 0 ? filled / total : 0.0;
+    final openRoles = total - filled;
+
+    final Color progressColor;
+    if (progress >= 0.7) {
+      progressColor = AppColors.success;
+    } else if (progress >= 0.3) {
+      progressColor = AppColors.warning;
+    } else {
+      progressColor = AppColors.error;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.group_outlined, size: 14, color: AppColors.grey500),
+            const SizedBox(width: 4),
+            Text(
+              '$filled/$total roles filled',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey500,
+              ),
+            ),
+            const Spacer(),
+            if (openRoles > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.successLight,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: Text(
+                  '$openRoles open',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.success,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress,
+            backgroundColor: AppColors.grey100,
+            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+            minHeight: 6,
+          ),
+        ),
+      ],
     );
   }
 
