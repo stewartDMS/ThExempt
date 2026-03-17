@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'screens/home/dashboard_screen.dart';
+import 'screens/landing/landing_page.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_spacing.dart';
@@ -49,6 +50,11 @@ class ThExemptApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const AuthCheck(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
     );
   }
 }
@@ -103,7 +109,7 @@ class _AuthCheckState extends State<AuthCheck> {
       );
     }
 
-    return _isLoggedIn ? const HomeScreen() : const LoginScreen();
+    return _isLoggedIn ? const HomeScreen() : const LandingPage();
   }
 }
 
