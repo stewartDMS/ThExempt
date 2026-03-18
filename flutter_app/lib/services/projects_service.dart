@@ -10,6 +10,11 @@ import '../utils/retry_helper.dart';
 class ProjectsService {
   static final _supabase = Supabase.instance.client;
 
+  static const _projectSelect =
+      '*, profiles!owner_id(name, avatar_url), '
+      'project_media(id, media_type, file_url, thumbnail_url, '
+      'file_name, file_size, display_order)';
+
   // Get all projects
   static Future<List<Project>> getProjects() async {
     try {
@@ -17,7 +22,7 @@ class ProjectsService {
         operation: () async {
           final response = await _supabase
               .from('projects')
-              .select('*, profiles!owner_id(name, avatar_url)')
+              .select(_projectSelect)
               .order('created_at', ascending: false)
               .timeout(const Duration(seconds: 10));
           return response.map((json) => Project.fromJson(json)).toList();
@@ -37,7 +42,7 @@ class ProjectsService {
         operation: () async {
           final response = await _supabase
               .from('projects')
-              .select('*, profiles!owner_id(name, avatar_url)')
+              .select(_projectSelect)
               .eq('id', id)
               .single()
               .timeout(const Duration(seconds: 10));
@@ -81,7 +86,7 @@ class ProjectsService {
       'description': description,
       'required_skills': skills,
       'stage': stage.name,
-    }).select('*, profiles!owner_id(name, avatar_url)').single();
+    }).select(_projectSelect).single();
 
     return Project.fromJson(response);
   }
@@ -105,7 +110,7 @@ class ProjectsService {
         })
         .eq('id', projectId)
         .eq('owner_id', userId)
-        .select('*, profiles!owner_id(name, avatar_url)')
+        .select(_projectSelect)
         .single();
 
     return Project.fromJson(response);
@@ -132,7 +137,7 @@ class ProjectsService {
         operation: () async {
           final response = await _supabase
               .from('projects')
-              .select('*, profiles!owner_id(name, avatar_url)')
+              .select(_projectSelect)
               .eq('owner_id', userId)
               .order('created_at', ascending: false)
               .timeout(const Duration(seconds: 10));
@@ -391,7 +396,7 @@ class ProjectsService {
 
             var query = _supabase
                 .from('projects')
-                .select('*, profiles!owner_id(name, avatar_url)')
+                .select(_projectSelect)
                 .inFilter('id', projectIds);
 
             final response = sort == 'popular'
@@ -407,7 +412,7 @@ class ProjectsService {
 
           var query = _supabase
               .from('projects')
-              .select('*, profiles!owner_id(name, avatar_url)');
+              .select(_projectSelect);
 
           if (hasOpenRoles) {
             query = query.eq('status', 'open');

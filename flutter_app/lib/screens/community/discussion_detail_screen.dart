@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
 import '../../widgets/reply_card.dart';
+import '../../widgets/common/media_gallery_widget.dart';
 import '../../utils/time_ago.dart';
 
 class DiscussionDetailScreen extends StatefulWidget {
@@ -206,6 +207,11 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen> {
                                   // Content
                                   Text(_discussion!.content,
                                       style: const TextStyle(fontSize: 15, height: 1.6)),
+                                  // Media gallery
+                                  if (_discussion!.hasMedia) ...[
+                                    const SizedBox(height: 16),
+                                    MediaGalleryWidget(media: _discussion!.media),
+                                  ],
                                   // Tags
                                   if (_discussion!.tags.isNotEmpty) ...[
                                     const SizedBox(height: 16),

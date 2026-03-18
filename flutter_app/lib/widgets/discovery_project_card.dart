@@ -8,6 +8,7 @@ import 'common/app_card.dart';
 import 'common/premium_card.dart';
 import 'common/premium_skill_chip.dart';
 import 'common/engagement_metrics.dart';
+import 'common/media_gallery_widget.dart';
 import 'team_composition_indicator.dart';
 import 'video_player_dialog.dart';
 import '../theme/app_colors.dart';
@@ -284,6 +285,10 @@ class DiscoveryProjectCard extends StatelessWidget {
               ),
             ),
           ],
+
+          // ── Media gallery (images / extra videos) ─────────────────────
+          if (project.hasMedia)
+            MediaGalleryWidget(media: project.media),
 
           // Content
           Padding(

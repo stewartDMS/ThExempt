@@ -16,6 +16,7 @@ import '../../../widgets/common/app_card.dart';
 import '../../../widgets/common/premium_card.dart';
 import '../../../widgets/common/premium_skill_chip.dart';
 import '../../../widgets/common/engagement_metrics.dart';
+import '../../../widgets/common/media_gallery_widget.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
@@ -77,6 +78,10 @@ class ProjectCard extends StatelessWidget {
           // ── Video thumbnail ────────────────────────────────────────────
           if (project.videoUrl != null)
             _buildVideoThumbnail(context),
+
+          // ── Media gallery (images / extra videos) ─────────────────────
+          if (project.hasMedia)
+            MediaGalleryWidget(media: project.media),
 
           // ── Content ───────────────────────────────────────────────────
           Padding(

@@ -1,59 +1,5 @@
-class MediaFile {
-  final String id;
-  final String mediaType; // 'image' or 'video'
-  final String fileUrl;
-  final String? thumbnailUrl;
-  final String fileName;
-  final int fileSize;
-  final int? width;
-  final int? height;
-  final int? durationSeconds;
-  final int displayOrder;
-
-  MediaFile({
-    required this.id,
-    required this.mediaType,
-    required this.fileUrl,
-    this.thumbnailUrl,
-    required this.fileName,
-    required this.fileSize,
-    this.width,
-    this.height,
-    this.durationSeconds,
-    this.displayOrder = 0,
-  });
-
-  factory MediaFile.fromJson(Map<String, dynamic> json) {
-    return MediaFile(
-      id: json['id']?.toString() ?? '',
-      mediaType: json['media_type'] ?? 'image',
-      fileUrl: json['file_url'] ?? '',
-      thumbnailUrl: json['thumbnail_url'] as String?,
-      fileName: json['file_name'] ?? '',
-      fileSize: (json['file_size'] as num?)?.toInt() ?? 0,
-      width: (json['width'] as num?)?.toInt(),
-      height: (json['height'] as num?)?.toInt(),
-      durationSeconds: (json['duration_seconds'] as num?)?.toInt(),
-      displayOrder: (json['display_order'] as num?)?.toInt() ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'media_type': mediaType,
-    'file_url': fileUrl,
-    if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-    'file_name': fileName,
-    'file_size': fileSize,
-    if (width != null) 'width': width,
-    if (height != null) 'height': height,
-    if (durationSeconds != null) 'duration_seconds': durationSeconds,
-    'display_order': displayOrder,
-  };
-
-  bool get isImage => mediaType == 'image';
-  bool get isVideo => mediaType == 'video';
-}
+import 'media_file.dart';
+export 'media_file.dart';
 
 class Discussion {
   final String id;
@@ -98,11 +44,15 @@ class Discussion {
 
   factory Discussion.fromJson(Map<String, dynamic> json) {
     final profiles = json['profiles'] as Map<String, dynamic>?;
+    // Supabase returns joined media under 'discussion_media'; fall back to
+    // 'media' for any legacy callers that shape the data differently.
+    final rawMedia = json['discussion_media'] ?? json['media'];
     List<MediaFile> mediaList = [];
-    if (json['media'] != null && json['media'] is List) {
-      mediaList = (json['media'] as List)
+    if (rawMedia is List) {
+      mediaList = rawMedia
           .map((m) => MediaFile.fromJson(m as Map<String, dynamic>))
-          .toList();
+          .toList()
+        ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
     }
     return Discussion(
       id: json['id']?.toString() ?? '',

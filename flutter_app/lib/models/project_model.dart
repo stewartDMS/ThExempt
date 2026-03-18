@@ -1,3 +1,4 @@
+import 'media_file.dart';
 import 'project_stage.dart';
 
 class Project {
@@ -47,6 +48,9 @@ class Project {
   /// Total XP accumulated by the project (used for gamification level).
   final int totalXP;
 
+  /// Additional media files (images/videos) attached to the project.
+  final List<MediaFile> media;
+
   Project({
     required this.id,
     required this.title,
@@ -74,6 +78,7 @@ class Project {
     this.viewsTrend,
     this.daysSinceLastActivity,
     this.totalXP = 0,
+    this.media = const [],
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -109,6 +114,10 @@ class Project {
       daysSinceLastActivity:
           (json['days_since_last_activity'] as num?)?.toInt(),
       totalXP: (json['total_xp'] as num?)?.toInt() ?? 0,
+      media: (json['project_media'] as List<dynamic>? ?? [])
+          .map((m) => MediaFile.fromJson(m as Map<String, dynamic>))
+          .toList()
+        ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder)),
     );
   }
 
@@ -143,4 +152,6 @@ class Project {
       'total_xp': totalXP,
     };
   }
+
+  bool get hasMedia => media.isNotEmpty;
 }

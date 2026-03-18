@@ -6,8 +6,12 @@ import '../utils/retry_helper.dart';
 class DiscussionsService {
   static final _supabase = Supabase.instance.client;
 
+  static const _discussionSelect =
+      '*, profiles!author_id(name, avatar_url), '
+      'discussion_media(id, media_type, file_url, thumbnail_url, '
+      'file_name, file_size, display_order)';
+
   /// Create a new discussion thread.
-  static Future<Discussion> createDiscussion({
     required String category,
     required String title,
     required String content,
@@ -24,7 +28,7 @@ class DiscussionsService {
       'content': content,
       'tags': tags ?? [],
       if (imageUrl != null) 'image_url': imageUrl,
-    }).select('*, profiles!author_id(name, avatar_url)').single();
+    }).select(_discussionSelect).single();
 
     return Discussion.fromJson(response);
   }
@@ -41,7 +45,7 @@ class DiscussionsService {
         operation: () async {
           var query = _supabase
               .from('discussions')
-              .select('*, profiles!author_id(name, avatar_url)');
+              .select(_discussionSelect);
 
           if (category != null) {
             query = query.eq('category', category);
@@ -85,7 +89,7 @@ class DiscussionsService {
   static Future<Discussion> getDiscussion(String id) async {
     final response = await _supabase
         .from('discussions')
-        .select('*, profiles!author_id(name, avatar_url)')
+        .select(_discussionSelect)
         .eq('id', id)
         .single();
 
