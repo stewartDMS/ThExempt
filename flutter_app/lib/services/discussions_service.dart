@@ -1,17 +1,33 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/discussion_model.dart';
-import '../utils/error_handler.dart';
-import '../utils/retry_helper.dart';
 
 class DiscussionsService {
   static final _supabase = Supabase.instance.client;
 
-  static const _discussionSelect =
-      '*, profiles!author_id(name, avatar_url), '
-      'discussion_media(id, media_type, file_url, thumbnail_url, '
-      'file_name, file_size, display_order)';
+  static const String _discussionSelect = '''
+    *,
+    profiles:author_id (
+      id,
+      username,
+      avatar_url,
+      full_name,
+      bio
+    ),
+    discussion_media (
+      id,
+      media_type,
+      file_url,
+      thumbnail_url,
+      file_name,
+      file_size,
+      width,
+      height,
+      duration_seconds,
+      display_order
+    )
+  ''';
 
-  /// Create a new discussion thread.
+  static Future<Discussion> createDiscussion({
     required String category,
     required String title,
     required String content,
@@ -19,7 +35,7 @@ class DiscussionsService {
     String? imageUrl,
   }) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('Not authenticated');
+    if (userId == null) throw Exception('User not authenticated');
 
     final response = await _supabase.from('discussions').insert({
       'author_id': userId,
@@ -33,59 +49,46 @@ class DiscussionsService {
     return Discussion.fromJson(response);
   }
 
-  /// List discussions with optional filters.
   static Future<List<Discussion>> getDiscussions({
     String? category,
-    String? search,
-    String sort = 'recent',
-    int page = 1,
+    String? sort = 'recent',
+    int limit = 20,
+    int offset = 0,
   }) async {
     try {
-      return await RetryHelper.retryWithBackoff(
-        operation: () async {
-          var query = _supabase
-              .from('discussions')
-              .select(_discussionSelect);
+      var query = _supabase
+          .from('discussions')
+          .select(_discussionSelect);
 
-          if (category != null) {
-            query = query.eq('category', category);
-          }
+      if (category != null && category.isNotEmpty) {
+        query = query.eq('category', category);
+      }
 
-          if (search != null && search.isNotEmpty) {
-            final sanitized = search
-                .replaceAll('\\', '\\\\')
-                .replaceAll('%', '\\%')
-                .replaceAll('_', '\\_');
-            query = query
-                .or('title.ilike.%$sanitized%,content.ilike.%$sanitized%');
-          }
+      switch (sort) {
+        case 'popular':
+          query = query.order('likes_count', ascending: false);
+          break;
+        case 'trending':
+          query = query.order('views_count', ascending: false);
+          break;
+        case 'recent':
+        default:
+          query = query.order('created_at', ascending: false);
+      }
 
-          final from = (page - 1) * 20;
-          final to = from + 19;
+      query = query.range(offset, offset + limit - 1);
 
-          final response = sort == 'trending'
-              ? await query
-                  .order('likes_count', ascending: false)
-                  .range(from, to)
-                  .timeout(const Duration(seconds: 10))
-              : await query
-                  .order('created_at', ascending: false)
-                  .range(from, to)
-                  .timeout(const Duration(seconds: 10));
+      final response = await query;
 
-          return response
-              .map((j) => Discussion.fromJson(j as Map<String, dynamic>))
-              .toList();
-        },
-      );
+      return (response as List)
+          .map((json) => Discussion.fromJson(json))
+          .toList();
     } catch (e) {
-      final appError = ErrorHandler.handleError(e);
-      ErrorHandler.log(appError);
-      throw appError;
+      print('Error fetching discussions: $e');
+      rethrow;
     }
   }
 
-  /// Get a single discussion by ID.
   static Future<Discussion> getDiscussion(String id) async {
     final response = await _supabase
         .from('discussions')
@@ -96,43 +99,46 @@ class DiscussionsService {
     return Discussion.fromJson(response);
   }
 
-  /// Add a reply to a discussion.
   static Future<DiscussionReply> addReply({
     required String discussionId,
     required String content,
     String? parentReplyId,
   }) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('Not authenticated');
+    if (userId == null) throw Exception('User not authenticated');
 
     final response = await _supabase.from('discussion_replies').insert({
       'discussion_id': discussionId,
       'author_id': userId,
       'content': content,
-      if (parentReplyId != null) 'parent_reply_id': parentReplyId,
-    }).select('*, profiles!author_id(name, avatar_url)').single();
+      'parent_reply_id': parentReplyId,
+    }).select().single();
 
     return DiscussionReply.fromJson(response);
   }
 
-  /// Get nested replies for a discussion.
   static Future<List<DiscussionReply>> getReplies(String discussionId) async {
     final response = await _supabase
         .from('discussion_replies')
-        .select('*, profiles!author_id(name, avatar_url)')
+        .select('''
+          *,
+          profiles:author_id (
+            username,
+            avatar_url
+          )
+        ''')
         .eq('discussion_id', discussionId)
-        .order('created_at');
+        .order('created_at', ascending: true);
 
-    return response
-        .map((j) => DiscussionReply.fromJson(j as Map<String, dynamic>))
+    return (response as List)
+        .map((json) => DiscussionReply.fromJson(json))
         .toList();
   }
 
-  /// Like a discussion post (or reply if [replyId] is provided).
   static Future<void> likeDiscussion(String discussionId,
       {String? replyId}) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('Not authenticated');
+    if (userId == null) throw Exception('User not authenticated');
 
     if (replyId != null) {
       await _supabase.from('discussion_reply_likes').insert({
@@ -147,11 +153,10 @@ class DiscussionsService {
     }
   }
 
-  /// Remove a like from a discussion (or reply if [replyId] is provided).
   static Future<void> unlikeDiscussion(String discussionId,
       {String? replyId}) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('Not authenticated');
+    if (userId == null) throw Exception('User not authenticated');
 
     if (replyId != null) {
       await _supabase
@@ -168,13 +173,11 @@ class DiscussionsService {
     }
   }
 
-  /// Delete a discussion authored by the current user.
-  /// Removes associated replies and likes before deleting the discussion.
   static Future<void> deleteDiscussion(String discussionId) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('Not authenticated');
+    if (userId == null) throw Exception('User not authenticated');
 
-    // Verify ownership before deletion
+    // Verify ownership
     final discussion = await _supabase
         .from('discussions')
         .select('author_id')
@@ -182,37 +185,35 @@ class DiscussionsService {
         .single();
 
     if (discussion['author_id'] != userId) {
-      throw Exception('You do not have permission to delete this discussion');
+      throw Exception('Not authorized to delete this discussion');
     }
 
-    // Delete reply likes for this discussion's replies
+    // Delete associated replies
     final replies = await _supabase
         .from('discussion_replies')
         .select('id')
         .eq('discussion_id', discussionId);
 
     if (replies.isNotEmpty) {
-      final replyIds =
-          replies.map((r) => r['id'] as String).toList();
       await _supabase
           .from('discussion_reply_likes')
           .delete()
-          .inFilter('reply_id', replyIds);
+          .in_('reply_id', replies.map((r) => r['id']).toList());
     }
 
-    // Delete replies and discussion likes
-    await _supabase
-        .from('discussion_replies')
-        .delete()
-        .eq('discussion_id', discussionId);
-
+    // Delete discussion likes
     await _supabase
         .from('discussion_likes')
         .delete()
         .eq('discussion_id', discussionId);
 
-    // Delete the discussion
+    // Delete replies
+    await _supabase
+        .from('discussion_replies')
+        .delete()
+        .eq('discussion_id', discussionId);
+
+    // Delete discussion
     await _supabase.from('discussions').delete().eq('id', discussionId);
   }
 }
-
