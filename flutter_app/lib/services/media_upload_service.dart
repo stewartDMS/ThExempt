@@ -1,4 +1,5 @@
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Handles picking and uploading images/videos for discussion posts.
@@ -83,10 +84,20 @@ class MediaUploadService {
     final baseName = file.name.isNotEmpty ? file.name : 'media';
     final filePath = '$userId/$subfolder/${timestamp}_$baseName';
 
+    // Resolve MIME type: prefer XFile.mimeType, then look up by file extension,
+    // then fall back to a generic type.  The mime package covers all common
+    // image/video extensions, so the fallback is only reached for unknown types.
+    final mimeType = (file.mimeType?.isNotEmpty == true ? file.mimeType : null)
+        ?? lookupMimeType(file.name)
+        ?? (isVideo ? 'video/mp4' : 'image/jpeg');
+
     await _supabase.storage.from('discussion-media').uploadBinary(
           filePath,
           bytes,
-          fileOptions: const FileOptions(upsert: false),
+          fileOptions: FileOptions(
+            contentType: mimeType,
+            upsert: false,
+          ),
         );
 
     final fileUrl = _supabase.storage

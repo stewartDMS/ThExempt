@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/discussion_model.dart';
@@ -240,15 +242,41 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                                     size: 40, color: Colors.white),
                               ),
                             )
-                          : Image.file(
-                              File(file.path),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.broken_image_outlined,
-                                    color: Colors.grey),
-                              ),
-                            ),
+                          : kIsWeb
+                              ? FutureBuilder<Uint8List>(
+                                  future: file.readAsBytes(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      return Image.memory(
+                                        snapshot.data!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          color: Colors.grey[300],
+                                          child: const Icon(
+                                              Icons.broken_image_outlined,
+                                              color: Colors.grey),
+                                        ),
+                                      );
+                                    }
+                                    return const Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Image.file(
+                                  File(file.path),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.broken_image_outlined,
+                                        color: Colors.grey),
+                                  ),
+                                ),
                     ),
                   ),
                   // Remove button
