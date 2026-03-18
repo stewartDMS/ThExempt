@@ -9,9 +9,7 @@ class DiscussionsService {
     profiles:author_id (
       id,
       username,
-      avatar_url,
-      full_name,
-      bio
+      avatar_url
     ),
     discussion_media (
       id,

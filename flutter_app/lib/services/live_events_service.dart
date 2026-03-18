@@ -38,7 +38,7 @@ class LiveEventsService {
       'max_attendees': maxAttendees,
       'allow_chat': allowChat,
       'allow_reactions': allowReactions,
-    }).select('*, profiles!host_id(name, avatar_url)').single();
+    }).select('*, profiles!host_id(username, avatar_url)').single();
 
     return LiveEvent.fromJson(response);
   }
@@ -54,7 +54,7 @@ class LiveEventsService {
         operation: () async {
           var query = _supabase
               .from('live_events')
-              .select('*, profiles!host_id(name, avatar_url)');
+              .select('*, profiles!host_id(username, avatar_url)');
 
           if (status == 'live') {
             query = query.eq('is_live', true);
@@ -90,7 +90,7 @@ class LiveEventsService {
   static Future<LiveEvent> getLiveEvent(String id) async {
     final response = await _supabase
         .from('live_events')
-        .select('*, profiles!host_id(name, avatar_url)')
+        .select('*, profiles!host_id(username, avatar_url)')
         .eq('id', id)
         .single();
 
@@ -107,7 +107,7 @@ class LiveEventsService {
           if (streamUrl != null) 'stream_url': streamUrl,
         })
         .eq('id', id)
-        .select('*, profiles!host_id(name, avatar_url)')
+        .select('*, profiles!host_id(username, avatar_url)')
         .single();
 
     return LiveEvent.fromJson(response);
@@ -123,7 +123,7 @@ class LiveEventsService {
           if (recordingUrl != null) 'recording_url': recordingUrl,
         })
         .eq('id', id)
-        .select('*, profiles!host_id(name, avatar_url)')
+        .select('*, profiles!host_id(username, avatar_url)')
         .single();
 
     return LiveEvent.fromJson(response);
@@ -157,7 +157,7 @@ class LiveEventsService {
   static Future<List<ChatMessage>> getChatMessages(String id) async {
     final response = await _supabase
         .from('event_chat_messages')
-        .select('*, profiles!user_id(name, avatar_url)')
+        .select('*, profiles!user_id(username, avatar_url)')
         .eq('event_id', id)
         .order('created_at');
 
@@ -175,7 +175,7 @@ class LiveEventsService {
       'event_id': id,
       'user_id': userId,
       'message': message,
-    }).select('*, profiles!user_id(name, avatar_url)').single();
+    }).select('*, profiles!user_id(username, avatar_url)').single();
 
     return ChatMessage.fromJson(response);
   }

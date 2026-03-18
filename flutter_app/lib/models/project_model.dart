@@ -87,7 +87,7 @@ class Project {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       ownerId: json['owner_id']?.toString() ?? '',
-      ownerName: json['owner_name'] ?? json['profiles']?['name'] ?? 'Unknown',
+      ownerName: json['owner_name'] ?? json['profiles']?['username'] ?? 'Unknown',
       requiredSkills: List<String>.from(json['required_skills'] ?? []),
       status: json['status'] ?? 'open',
       stage: ProjectStage.fromString(json['stage'] ?? 'ideation'),

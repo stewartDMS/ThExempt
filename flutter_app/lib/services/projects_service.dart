@@ -11,7 +11,7 @@ class ProjectsService {
   static final _supabase = Supabase.instance.client;
 
   static const _projectSelect =
-      '*, profiles!owner_id(name, avatar_url), '
+      '*, profiles!owner_id(username, avatar_url), '
       'project_media(id, media_type, file_url, thumbnail_url, '
       'file_name, file_size, display_order)';
 
@@ -277,7 +277,7 @@ class ProjectsService {
 
     final appsResponse = await _supabase
         .from('role_applications')
-        .select('*, profiles!user_id(name, avatar_url, reputation_points)')
+        .select('*, profiles!user_id(username, avatar_url, reputation_points)')
         .eq('project_id', projectId);
 
     // Pre-group applications by role_id for O(n) lookup
@@ -294,7 +294,7 @@ class ProjectsService {
         final profiles = app['profiles'] as Map<String, dynamic>?;
         return RoleApplication.fromJson({
           ...app,
-          'applicant_name': profiles?['name'],
+          'applicant_name': profiles?['username'],
           'applicant_avatar_url': profiles?['avatar_url'],
           'applicant_id': app['user_id'],
           'reputation_points': profiles?['reputation_points'] ?? 0,
@@ -461,14 +461,14 @@ class ProjectsService {
       String projectId) async {
     final response = await _supabase
         .from('project_members')
-        .select('*, profiles!user_id(name, avatar_url, bio)')
+        .select('*, profiles!user_id(username, avatar_url)')
         .eq('project_id', projectId);
 
     return response.map((m) {
       final profiles = m['profiles'] as Map<String, dynamic>?;
       return ProjectMember.fromJson({
         ...m,
-        'name': profiles?['name'] ?? 'Unknown',
+        'name': profiles?['username'] ?? 'Unknown',
         'avatar_url': profiles?['avatar_url'],
         'bio': profiles?['bio'],
       });
