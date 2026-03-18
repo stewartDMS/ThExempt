@@ -25,7 +25,7 @@ class ChatMessage {
       id: json['id']?.toString() ?? '',
       projectId: json['project_id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
-      userName: profiles?['name'] ?? json['user_name'] ?? 'Unknown',
+      userName: profiles?['username'] ?? json['user_name'] ?? 'Unknown',
       userAvatar: profiles?['avatar_url'] as String?,
       content: json['content'] ?? '',
       createdAt: json['created_at'] != null
@@ -46,7 +46,7 @@ class ChatService {
     try {
       final response = await _supabase
           .from('project_messages')
-          .select('*, profiles!user_id(name, avatar_url)')
+          .select('*, profiles!user_id(username, avatar_url)')
           .eq('project_id', projectId)
           .order('created_at', ascending: false)
           .limit(limit);

@@ -63,7 +63,7 @@ class LiveEvent {
     return LiveEvent(
       id: json['id']?.toString() ?? '',
       hostId: json['host_id']?.toString() ?? '',
-      hostName: profiles?['name'] ?? 'Unknown',
+      hostName: profiles?['username'] ?? 'Unknown',
       hostAvatarUrl: profiles?['avatar_url'] as String?,
       title: json['title'] ?? '',
       description: json['description'] as String?,
@@ -179,7 +179,7 @@ class ChatMessage {
     return ChatMessage(
       id: json['id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
-      userName: profiles?['name'] ?? 'Unknown',
+      userName: profiles?['username'] ?? 'Unknown',
       userAvatarUrl: profiles?['avatar_url'] as String?,
       message: json['message'] ?? '',
       isPinned: json['is_pinned'] == true,

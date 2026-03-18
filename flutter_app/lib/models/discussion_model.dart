@@ -57,7 +57,7 @@ class Discussion {
     return Discussion(
       id: json['id']?.toString() ?? '',
       authorId: json['author_id']?.toString() ?? '',
-      authorName: profiles?['name'] ?? 'Unknown',
+      authorName: profiles?['username'] ?? 'Unknown',
       authorAvatarUrl: profiles?['avatar_url'] as String?,
       category: json['category'] ?? '',
       title: json['title'] ?? '',
@@ -174,7 +174,7 @@ class DiscussionReply {
       id: json['id']?.toString() ?? '',
       discussionId: json['discussion_id']?.toString() ?? '',
       authorId: json['author_id']?.toString() ?? '',
-      authorName: profiles?['name'] ?? 'Unknown',
+      authorName: profiles?['username'] ?? 'Unknown',
       authorAvatarUrl: profiles?['avatar_url'] as String?,
       parentReplyId: json['parent_reply_id'] as String?,
       content: json['content'] ?? '',
