@@ -52,6 +52,7 @@ class DiscussionsService {
   static Future<List<Discussion>> getDiscussions({
     String? category,
     String? sort = 'recent',
+    String? search,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -64,25 +65,40 @@ class DiscussionsService {
         query = query.eq('category', category);
       }
 
+      if (search != null && search.isNotEmpty) {
+        query = query.or('title.ilike.%$search%,content.ilike.%$search%');
+      }
+
+      final response = await query;
+      
+      var discussions = (response as List)
+          .map((json) => Discussion.fromJson(json))
+          .toList();
+
+      // Sort in memory
       switch (sort) {
         case 'popular':
-          query = query.order('likes_count', ascending: false);
+          discussions.sort((a, b) => b.likesCount.compareTo(a.likesCount));
           break;
         case 'trending':
-          query = query.order('views_count', ascending: false);
+          discussions.sort((a, b) => b.viewsCount.compareTo(a.viewsCount));
           break;
         case 'recent':
         default:
-          query = query.order('created_at', ascending: false);
+          discussions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       }
 
-      query = query.range(offset, offset + limit - 1);
-
-      final response = await query;
-
-      return (response as List)
-          .map((json) => Discussion.fromJson(json))
-          .toList();
+      // Pagination
+      final start = offset;
+      final end = offset + limit;
+      
+      if (start >= discussions.length) return [];
+      
+      return discussions.sublist(
+        start,
+        end > discussions.length ? discussions.length : end,
+      );
+      
     } catch (e) {
       print('Error fetching discussions: $e');
       rethrow;
@@ -188,17 +204,19 @@ class DiscussionsService {
       throw Exception('Not authorized to delete this discussion');
     }
 
-    // Delete associated replies
+    // Delete associated reply likes
     final replies = await _supabase
         .from('discussion_replies')
         .select('id')
         .eq('discussion_id', discussionId);
 
     if (replies.isNotEmpty) {
-      await _supabase
-          .from('discussion_reply_likes')
-          .delete()
-          .in_('reply_id', replies.map((r) => r['id']).toList());
+      for (final reply in replies) {
+        await _supabase
+            .from('discussion_reply_likes')
+            .delete()
+            .eq('reply_id', reply['id']);
+      }
     }
 
     // Delete discussion likes
@@ -210,6 +228,12 @@ class DiscussionsService {
     // Delete replies
     await _supabase
         .from('discussion_replies')
+        .delete()
+        .eq('discussion_id', discussionId);
+
+    // Delete media
+    await _supabase
+        .from('discussion_media')
         .delete()
         .eq('discussion_id', discussionId);
 
