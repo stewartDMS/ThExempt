@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
 import '../../widgets/common/discussion_feed_card.dart';
-import 'discussion_detail_screen.dart';
 
 class CategoryDiscussionsScreen extends StatefulWidget {
   final String category;
@@ -229,16 +228,6 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
           final discussion = _discussions[index];
           return DiscussionFeedCard(
             discussion: discussion,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DiscussionDetailScreen(
-                    discussionId: discussion.id,
-                  ),
-                ),
-              ).then((_) => _loadDiscussions(reset: true));
-            },
           );
         },
       ),
