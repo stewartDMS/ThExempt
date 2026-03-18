@@ -2,35 +2,39 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { UserCircle, Search, Zap } from 'lucide-react'
 
 const steps = [
   {
-    number: '01',
-    icon: <UserCircle size={28} />,
-    title: 'Create Profile',
-    description:
-      'Tell us about your skills, passions, and goals. Build a profile that showcases what you bring to the table.',
-    gradient: 'from-blue-500 to-blue-700',
-    color: 'blue',
+    number: '1',
+    icon: '💬',
+    title: "DISCUSS WHAT'S BROKEN",
+    description: "Join conversations about the systems that aren't working. Bring research, lived experience, expertise.",
+    example: "→ See: 'Why housing is unaffordable' (234 replies, 12 experts)",
+    gradient: 'from-electricBlue to-brightCyan',
   },
   {
-    number: '02',
-    icon: <Search size={28} />,
-    title: 'Discover Projects',
-    description:
-      'Browse curated opportunities that match your expertise and ambitions. Find the ideas that excite you most.',
-    gradient: 'from-purple-500 to-purple-700',
-    color: 'purple',
+    number: '2',
+    icon: '💡',
+    title: 'BUILD REAL SOLUTIONS',
+    description: "Turn discussions into projects. Community-owned. Transparent. Actually solving the problem.",
+    example: "→ Project: 'Community Land Trust' — Making housing affordable forever",
+    gradient: 'from-rebellionOrange to-warmAmber',
   },
   {
-    number: '03',
-    icon: <Zap size={28} />,
-    title: 'Build Together',
-    description:
-      'Start collaborating with your team, hit milestones, and ship something you are genuinely proud of.',
-    gradient: 'from-pink-500 to-rose-600',
-    color: 'pink',
+    number: '3',
+    icon: '💰',
+    title: 'FUND WHAT MATTERS',
+    description: 'Back projects with your membership. Earn equity as they succeed. Build wealth while fixing systems.',
+    example: '→ $19/mo = 20 credits to invest. Already backed 234 projects',
+    gradient: 'from-forestGreen to-brightCyan',
+  },
+  {
+    number: '4',
+    icon: '🤝',
+    title: 'CONTRIBUTE YOUR SKILLS',
+    description: "Offer what you're good at. Build your portfolio. Get paid in credits and equity.",
+    example: '→ Legal help, design, code, strategy. Earn while you learn',
+    gradient: 'from-deepRed to-rebellionOrange',
   },
 ]
 
@@ -39,7 +43,7 @@ export default function HowItWorks() {
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section id="how-it-works" className="py-24 bg-gray-50 dark:bg-gray-900/50">
+    <section id="how-it-works" className="py-24 bg-charcoal">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -49,64 +53,43 @@ export default function HowItWorks() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 mb-4 text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/50 rounded-full border border-blue-200 dark:border-blue-800/50">
-            Simple Process
-          </span>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            From Zero to{' '}
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Shipped
-            </span>{' '}
-            in 3 Steps
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 uppercase">
+            How It Works
           </h2>
-          <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-            Getting started is easy. Find your people, align on a vision, and start building.
+          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+            Four steps from frustrated to funded — and actually making change.
           </p>
         </motion.div>
 
         {/* Steps */}
-        <div ref={ref} className="relative">
-          {/* Connecting dotted line (desktop) */}
-          <div className="hidden lg:block absolute top-16 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px">
-            <div className="w-full h-full border-t-2 border-dashed border-gray-300 dark:border-gray-700" />
-          </div>
+        <div ref={ref} className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {steps.map((step, index) => (
+            <motion.div
+              key={step.title}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, delay: index * 0.15, ease: 'easeOut' }}
+              className="relative flex flex-col items-center text-center group"
+            >
+              {/* Number + icon */}
+              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-3xl shadow-lg mb-6 group-hover:-translate-y-1 transition-transform duration-300`}>
+                {step.icon}
+              </div>
+              <span className="absolute top-0 right-[calc(50%-2.5rem)] w-7 h-7 rounded-full bg-steelGray flex items-center justify-center text-xs font-black text-white ring-2 ring-charcoal">
+                {step.number}
+              </span>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-8">
-            {steps.map((step, index) => {
-              const direction = index % 2 === 0 ? -1 : 1
-              return (
-                <motion.div
-                  key={step.title}
-                  initial={{ opacity: 0, x: direction * 40 }}
-                  animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.7, delay: index * 0.2, ease: 'easeOut' }}
-                  className="relative flex flex-col items-center text-center group"
-                >
-                  {/* Number badge */}
-                  <div className="relative mb-6">
-                    <div
-                      className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white shadow-lg group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300`}
-                    >
-                      {step.icon}
-                    </div>
-                    <span
-                      className={`absolute -top-2 -right-2 w-7 h-7 rounded-full bg-gradient-to-br ${step.gradient} flex items-center justify-center text-xs font-bold text-white shadow-md ring-2 ring-white dark:ring-gray-950`}
-                    >
-                      {index + 1}
-                    </span>
-                  </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                    {step.description}
-                  </p>
-                </motion.div>
-              )
-            })}
-          </div>
+              <h3 className="text-lg font-black text-white mb-3 uppercase">
+                {step.title}
+              </h3>
+              <p className="text-white/60 leading-relaxed mb-4">
+                {step.description}
+              </p>
+              <p className="text-white/40 text-sm italic">
+                {step.example}
+              </p>
+            </motion.div>
+          ))}
         </div>
 
         {/* Bottom CTA */}
@@ -119,9 +102,9 @@ export default function HowItWorks() {
         >
           <a
             href="#get-started"
-            className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-8 py-4 text-lg font-bold text-charcoal rounded-lg bg-white hover:bg-white/90 shadow-xl hover:-translate-y-0.5 transition-all duration-300"
           >
-            Start Building Today
+            Start Making Change
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
