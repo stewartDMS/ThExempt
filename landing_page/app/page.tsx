@@ -4,6 +4,7 @@ import Problem from '@/components/Problem'
 import Stats from '@/components/Stats'
 import Features from '@/components/Features'
 import HowItWorks from '@/components/HowItWorks'
+import Pricing from '@/components/Pricing'
 import LiveProjects from '@/components/LiveProjects'
 import Audience from '@/components/Audience'
 import Testimonials from '@/components/Testimonials'
@@ -18,6 +19,7 @@ export default function Home() {
       <Problem />
       <Stats />
       <HowItWorks />
+      <Pricing />
       <Features />
       <LiveProjects />
       <Audience />
