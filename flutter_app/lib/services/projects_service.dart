@@ -1,3 +1,16 @@
+// IMPORTANT: This service requires the following database schema:
+//
+// 1. Table: project_media
+//    - Must have a foreign key relationship to projects(id)
+//    - Required (NOT NULL) columns: id, project_id, media_type, file_url
+//    - Optional columns: thumbnail_url, file_name, file_size, display_order
+//
+// 2. To create the table, run this SQL in Supabase:
+//    See: supabase/migrations/create_project_media.sql
+//
+// If you see "Could not find a relationship between 'projects' and
+// 'project_media'" error, the foreign key constraint is missing.
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/project_model.dart';
 import '../models/project_role_model.dart';
