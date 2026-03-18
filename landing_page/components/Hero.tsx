@@ -24,23 +24,23 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent" />
       </div>
 
-      {/* Main content */}
+      {/* Main content — pt clears the fixed navbar (h-16 mobile / h-20 desktop) */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 text-center px-6 max-w-5xl mx-auto"
+        className="relative z-10 text-center px-6 max-w-5xl mx-auto pt-20 md:pt-24"
       >
         <motion.h1
           variants={itemVariants}
-          className="text-6xl sm:text-7xl md:text-8xl font-black text-white mb-6 tracking-tight leading-none uppercase"
+          className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight uppercase"
         >
           WHERE CHANGE HAPPENS.
         </motion.h1>
 
         <motion.h2
           variants={itemVariants}
-          className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-8 leading-tight uppercase"
+          className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-8 leading-tight uppercase"
         >
           EVERYDAY PEOPLE MAKE IT HAPPEN.
         </motion.h2>
