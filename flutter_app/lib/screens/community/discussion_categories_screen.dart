@@ -41,7 +41,7 @@ class DiscussionCategoriesScreen extends StatelessWidget {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) =>
-                    CategoryDiscussionsScreen(category: cat),
+                    CategoryDiscussionsScreen(category: cat.value),
               ),
             ),
             child: Container(
