@@ -70,24 +70,6 @@ export default function Hero() {
           </motion.button>
         </motion.div>
 
-        <motion.div
-          variants={itemVariants}
-          className="mt-16 grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
-        >
-          {[
-            { value: '$2,543,290', label: 'INVESTED IN CHANGE' },
-            { value: '10,234', label: 'CHANGEMAKERS BUILDING' },
-            { value: '234', label: 'PROJECTS FUNDED' },
-            { value: '87,432', label: 'HOURS CONTRIBUTED' },
-            { value: '45 CITIES', label: 'ORGANIZING LOCALLY' },
-            { value: '1,203', label: 'SYSTEMS REBUILT' },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">{stat.value}</div>
-              <div className="text-xs font-bold text-white/50 tracking-widest uppercase mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
       </motion.div>
 
       {/* Scroll indicator */}
