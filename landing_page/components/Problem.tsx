@@ -6,8 +6,8 @@ const problems = [
   {
     icon: '🏛️',
     title: "GOVERNANCE ISN'T WORKING",
-    stat: 'Politicians serve donors, not people',
-    description: '78% of Americans trust government "not much"',
+    stat: "Everyday people aren't served by Government.",
+    description: 'We can serve ourself collectively.',
   },
   {
     icon: '💰',
