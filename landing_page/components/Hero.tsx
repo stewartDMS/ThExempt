@@ -45,9 +45,9 @@ export default function Hero() {
           variants={itemVariants}
           className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto font-medium"
         >
-          The old systems are broken. Politicians aren&apos;t fixing them.
+          The old systems are broken. Politicians serve donors, not people.
           <br />
-          But you have power. And we have a plan.
+          Around the world, ordinary people are building the change we need.
         </motion.p>
 
         <motion.div
@@ -72,13 +72,21 @@ export default function Hero() {
 
         <motion.div
           variants={itemVariants}
-          className="mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-white text-sm font-mono"
+          className="mt-16 grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
         >
-          <span>10,234 changemakers</span>
-          <span className="hidden sm:inline">•</span>
-          <span>$2.5M funding real solutions</span>
-          <span className="hidden sm:inline">•</span>
-          <span>234 systems being rebuilt</span>
+          {[
+            { value: '$2,543,290', label: 'INVESTED IN CHANGE' },
+            { value: '10,234', label: 'CHANGEMAKERS BUILDING' },
+            { value: '234', label: 'PROJECTS FUNDED' },
+            { value: '87,432', label: 'HOURS CONTRIBUTED' },
+            { value: '45 CITIES', label: 'ORGANIZING LOCALLY' },
+            { value: '1,203', label: 'SYSTEMS REBUILT' },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">{stat.value}</div>
+              <div className="text-xs font-bold text-white/50 tracking-widest uppercase mt-1">{stat.label}</div>
+            </div>
+          ))}
         </motion.div>
       </motion.div>
 

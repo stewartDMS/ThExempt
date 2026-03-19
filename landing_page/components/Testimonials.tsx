@@ -91,13 +91,13 @@ export default function Testimonials() {
             Stories
           </span>
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            Builders Love{' '}
+            Be One of the First{' '}
             <span className="bg-gradient-to-r from-electricBlue to-brightCyan bg-clip-text text-transparent">
-              ThExempt
+              Changemakers
             </span>
           </h2>
           <p className="text-xl text-white/60 max-w-xl mx-auto">
-            Real stories from real builders shipping real things
+            Join the early wave of builders and activists changing the world from the ground up
           </p>
         </motion.div>
 
