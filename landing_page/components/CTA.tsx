@@ -15,7 +15,7 @@ export default function CTA() {
   return (
     <section className="relative py-28 overflow-hidden">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-pink-600 bg-size-200% animate-gradient-shift" />
+      <div className="absolute inset-0 bg-gradient-to-br from-deepRed via-charcoal to-electricBlue bg-size-200% animate-gradient-shift" />
 
       {/* Overlay for depth */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -78,7 +78,7 @@ export default function CTA() {
             href="#get-started"
             whileHover={{ scale: 1.05, y: -3 }}
             whileTap={{ scale: 0.97 }}
-            className="group inline-flex items-center gap-2 px-10 py-5 text-lg font-bold text-blue-600 bg-white rounded-2xl shadow-2xl hover:shadow-white/30 transition-all duration-300"
+            className="group inline-flex items-center gap-2 px-10 py-5 text-lg font-bold text-charcoal bg-white rounded-2xl shadow-2xl hover:shadow-white/30 transition-all duration-300"
           >
             Start Your Project
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />

@@ -19,10 +19,6 @@ const itemVariants = {
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-charcoal via-steelGray to-deepRed overflow-hidden">
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent" />
-      </div>
 
       {/* Main content — pt clears the fixed navbar (h-16 mobile / h-20 desktop) */}
       <motion.div
@@ -76,7 +72,7 @@ export default function Hero() {
 
         <motion.div
           variants={itemVariants}
-          className="mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-white/80 text-sm font-mono"
+          className="mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-white text-sm font-mono"
         >
           <span>10,234 changemakers</span>
           <span className="hidden sm:inline">•</span>
