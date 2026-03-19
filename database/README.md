@@ -4,7 +4,10 @@
 
 ### 1. Run the schema in Supabase SQL Editor
 
-Copy and paste the contents of `schema.sql` into the Supabase SQL Editor and run it.
+The single source of truth for the database schema is **`supabase/schema.sql`**.
+
+Copy and paste the contents of that file into the Supabase SQL Editor and run it.
+See [`supabase/MIGRATION_GUIDE.md`](../supabase/MIGRATION_GUIDE.md) for full step-by-step instructions, including how to apply the schema to an existing project without losing data.
 
 ### 2. (Optional) Load seed data for local development
 
@@ -23,11 +26,14 @@ GROUP BY schemaname;
 
 | File | Description |
 |------|-------------|
-| `schema.sql` | Complete production-ready PostgreSQL schema |
 | `seed.sql` | Test data for local development |
-| `community_schema.sql` | Community discussions and live events schema |
 | `migrations/README.md` | Migration guide and troubleshooting |
+
+## Schema Location
+
+The complete database schema lives in **[`supabase/schema.sql`](../supabase/schema.sql)** (single source of truth).
 
 ## Documentation
 
+See [`supabase/MIGRATION_GUIDE.md`](../supabase/MIGRATION_GUIDE.md) for migration instructions.
 See [`docs/DATABASE.md`](../docs/DATABASE.md) for full documentation including schema diagrams, common queries, and performance tips.
