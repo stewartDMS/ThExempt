@@ -45,7 +45,7 @@ export default function Hero() {
           variants={itemVariants}
           className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto font-medium"
         >
-          The old systems are broken. Politicians serve donors, not people.
+          Politics is broken — it doesn&apos;t serve the people.
           <br />
           Around the world, ordinary people are building the change we need.
         </motion.p>
