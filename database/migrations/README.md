@@ -2,13 +2,17 @@
 
 ## Initial Setup
 
+The database schema is maintained in a single file:
+
+```
+supabase/schema.sql
+```
+
+For full step-by-step instructions (including migrating an existing database without data loss), see **[`supabase/MIGRATION_GUIDE.md`](../../supabase/MIGRATION_GUIDE.md)**.
+
 ### 1. Run the schema
 
-In Supabase SQL Editor:
-
-```sql
--- Copy/paste contents of database/schema.sql
-```
+In Supabase SQL Editor, copy/paste the full contents of `supabase/schema.sql` and click **Run**.
 
 ### 2. Load seed data (optional, for testing)
 
@@ -26,8 +30,6 @@ SELECT schemaname, COUNT(*)
 FROM pg_tables
 WHERE schemaname = 'public'
 GROUP BY schemaname;
-
--- Should return 20+ tables
 
 -- Test RLS
 SELECT tablename, rowsecurity
@@ -56,7 +58,7 @@ CREATE INDEX idx_projects_tags ON projects USING GIN(tags);
 ### Backfilling data
 
 ```sql
-UPDATE profiles SET trust_score = 50 WHERE created_at < NOW() - INTERVAL '30 days';
+UPDATE contributions SET status = 'pending' WHERE status IS NULL;
 ```
 
 ---
