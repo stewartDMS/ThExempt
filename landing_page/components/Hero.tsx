@@ -45,9 +45,9 @@ export default function Hero() {
           variants={itemVariants}
           className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto font-medium"
         >
-          Politics is broken — it doesn&apos;t serve the people.
+          The old systems are broken.
           <br />
-          Around the world, ordinary people are building the change we need.
+          But you have power. And we have a plan.
         </motion.p>
 
         <motion.div
