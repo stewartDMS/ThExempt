@@ -1,175 +1,229 @@
 # ThExempt
 
-A social network for ambitious young men to discover purpose, implement and build skills, and ownership by contributing to real business ideas that they help build, launch, and scale.
+> **Where change happens. Everyday people make it happen.**
 
-## Features
+A movement-first platform where changemakers discuss broken systems, build real solutions, fund community projects, and earn wealth through meaningful contribution.
 
-### ✨ Core MVP Features Implemented
+## 🌍 Vision
 
-- **🔐 Sign-in/Sign-up Pages** - Secure authentication with JWT tokens and bcrypt password hashing
-- **📋 Project Posting & Application** - Businesses can post projects, users can apply with personalized messages
-- **📊 Contribution Tracking** - Log contributions to projects and track your work history
-- **🏆 Reputation Points & Badges** - Earn reputation points for contributions and unlock achievement badges
-  - Contributor badge (100+ points)
-  - Expert badge (500+ points)
-  - Master badge (1000+ points)
-- **🤖 AI-Assisted Matching** - Basic rule engine calculates match scores based on user skills vs. project requirements
+ThExempt is not just another crowdfunding platform. It's a social movement with financial tools that empower everyday people to:
 
-### 🎨 Modern UI/UX Design
+- **Discuss** systemic problems and envision alternatives
+- **Connect** with collaborators, mentors, and co-conspirators
+- **Build** real projects that fix broken systems
+- **Fund** community-centric solutions with membership credits
+- **Earn** equity and skills through meaningful contributions
 
-The interface features a modern, sleek design that conveys:
-- **Unity** - Connected community through collaboration
-- **Strength** - Bold colors and confident typography
-- **Progress** - Visual feedback on reputation and contributions
+**Target Audience:** Fired-up changemakers aged 25-45 who are done waiting for institutions to fix what's broken.
 
-## Tech Stack
+---
 
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Backend**: Node.js, Express.js
-- **Database**: SQLite3
-- **Authentication**: JWT, bcryptjs
-- **Security**: Rate limiting, input validation
+## 🏗️ Repository Structure
 
-## Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: Bcrypt with salt rounds for secure password storage
-- **Rate Limiting**: 
-  - Auth routes: 5 requests per 15 minutes per IP
-  - API routes: 100 requests per 15 minutes per IP
-- **Environment Variables**: Sensitive data stored in .env file
-- **Input Validation**: Server-side validation for all user inputs
-- **CORS**: Configured for controlled cross-origin access
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/stewartDMS/ThExempt.git
-cd ThExempt
+```
+ThExempt/
+├── landing_page/        # Next.js landing page (marketing site)
+├── flutter_app/         # Flutter app (main platform - discussions, projects, community)
+├── server/              # Express backend (legacy - being replaced by Supabase)
+├── supabase/            # Supabase backend (database, auth, edge functions)
+└── database/            # Database migrations and schemas
 ```
 
-2. Install dependencies:
+---
+
+## 🚀 Platform Architecture
+
+### **Landing Page** (Next.js - Deployed on Vercel)
+- Public-facing marketing site
+- Explains the vision
+- Drives signups
+- **URL:** thexempt.com
+
+### **Main App** (Flutter Web + Mobile)
+- Authenticated user experience
+- Discussions, projects, community features
+- Investment & contribution flows
+- **Tech:** Flutter + Supabase
+- **URL:** app.thexempt.com
+
+### **Backend** (Supabase)
+- PostgreSQL database
+- Row-level security (RLS)
+- Realtime subscriptions
+- Edge functions for webhooks (Stripe, equity platform)
+- **Replacing:** Legacy Express server
+
+---
+
+## 🎯 Current Development Status
+
+### ✅ Completed
+- [x] Landing page (Next.js) deployed on Vercel
+- [x] Flutter app authentication (Supabase)
+- [x] Discussions system (categories, replies, likes)
+- [x] Projects CRUD (create, read, update, delete)
+- [x] User profiles
+- [x] Basic UI components
+
+### 🚧 In Progress
+- [ ] Enhanced landing page with movement messaging
+- [ ] Database schema for credits & investments
+- [ ] Membership tiers (Free, Changemaker, Movement Builder, Founding Partner)
+- [ ] Stripe integration for subscriptions
+- [ ] Project verification system
+
+### 📋 Roadmap
+
+**Phase 1: Community Foundation** (4 weeks)
+- Enhanced discussions (Problem → Solution → Project pipeline)
+- Expert badges & trust system
+- Resource library
+
+**Phase 2: Movement Discovery** (3 weeks)
+- Changemakers directory
+- Skills marketplace
+- Collaboration requests
+
+**Phase 3: Financial Tools** (4 weeks)
+- Membership tiers & Stripe
+- Credits system
+- Investment flow
+- Equity tracking
+
+**Phase 4: Skills Economy** (3 weeks)
+- Skill offers/requests
+- Contribution tracking
+- Credit/equity rewards
+
+Full roadmap: See `docs/ROADMAP.md`
+
+---
+
+## 💻 Tech Stack
+
+### Landing Page
+- **Next.js 15** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Framer Motion** - Animations
+- **Vercel** - Hosting
+
+### Main App
+- **Flutter** - Cross-platform (Web, iOS, Android)
+- **Dart** - Language
+- **Supabase Flutter SDK** - Backend integration
+
+### Backend
+- **Supabase** - Backend-as-a-Service
+  - PostgreSQL database
+  - Authentication
+  - Realtime
+  - Storage
+  - Edge Functions (Deno)
+
+### Integrations
+- **Stripe** - Payment processing & subscriptions
+- **Equity Platform** (Republic.co or similar) - Legal equity management
+- **SendGrid** - Transactional emails
+
+---
+
+## 🔧 Local Development
+
+### Prerequisites
+- Node.js 18+ (for landing page)
+- Flutter 3.0+ (for main app)
+- Supabase account
+
+### Landing Page Setup
+
 ```bash
+cd landing_page
 npm install
+npm run dev
+# Open http://localhost:3000
 ```
 
-3. Create a `.env` file with required environment variables:
-```env
-PORT=5000
-JWT_SECRET=your-secure-random-secret-key-at-least-32-characters-long
-NODE_ENV=development
-```
+### Flutter App Setup
 
-**Important Security Note:** 
-- Never commit your `.env` file to version control
-- Generate a strong, random JWT_SECRET (minimum 32 characters)
-- Change the JWT_SECRET in production environments
-
-4. Start the server:
 ```bash
-npm start
+cd flutter_app
+flutter pub get
+flutter run -d chrome
+# Or: flutter run -d ios / flutter run -d android
 ```
 
-5. Open your browser and navigate to:
+### Environment Variables
+
+Create `flutter_app/.env`:
+```env
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-anon-key
 ```
-http://localhost:5000
+
+---
+
+## 🗄️ Database Schema
+
+See `database/schema.sql` for complete schema.
+
+**Key tables:**
+- `profiles` - User accounts
+- `discussions` - Community discussions
+- `discussion_replies` - Threaded replies
+- `projects` - Fundable projects
+- `project_media` - Project images/videos
+- `investments` - Credit-based investments
+- `credit_transactions` - Credits ledger
+- `subscriptions` - Stripe subscriptions
+- `contributions` - Skill contributions to projects
+
+---
+
+## 🚀 Deployment
+
+### Landing Page
+Auto-deploys to Vercel on push to `main`:
+```bash
+git push origin main
 ```
 
-## Usage
+### Flutter App
+Coming soon: CI/CD for Flutter web deployment
 
-### For New Users
+---
 
-1. **Sign Up**: Click "Sign Up" and create an account with your name, email, and password
-2. **Browse Projects**: View available projects on your dashboard
-3. **Apply to Projects**: Click "Apply" on projects that interest you
-4. **Log Contributions**: Track your work by logging contributions to projects
-5. **Earn Reputation**: Build your reputation by making meaningful contributions
+## 📚 Documentation
 
-### For Project Owners
+- [Landing Page README](landing_page/README.md)
+- [Flutter App README](flutter_app/README.md)
+- [Product Roadmap](docs/ROADMAP.md) *(to be created)*
+- [Database Schema](database/schema.sql) *(to be created)*
 
-1. **Post a Project**: Click "Post Project" to create a new business opportunity
-2. **Add Details**: Provide a title, description, and list required skills
-3. **Review Applications**: See applicants with their match scores
-4. **Track Progress**: Monitor contributions from team members
+---
 
-## API Endpoints
+## 🤝 Contributing
 
-### Authentication
-- `POST /api/auth/signup` - Create a new user account
-- `POST /api/auth/login` - Login with email and password
+This is a movement. Contributions welcome!
 
-### Users
-- `GET /api/users/me` - Get current user profile
-- `GET /api/users/:id/skills` - Get user's skills
-- `POST /api/users/skills` - Add a new skill
-- `GET /api/users/:id/contributions` - Get user's contributions
+1. Fork the repo
+2. Create a feature branch
+3. Make your changes
+4. Submit a Pull Request
 
-### Projects
-- `GET /api/projects` - List all open projects
-- `GET /api/projects/:id` - Get project details
-- `POST /api/projects` - Create a new project
-- `GET /api/projects/:id/applications` - Get project applications
-- `POST /api/projects/:id/apply` - Apply to a project
-- `GET /api/projects/:id/contributions` - Get project contributions
-- `POST /api/projects/:id/contributions` - Log a contribution
+---
 
-## Database Schema
-
-### Users
-- `id`, `email`, `password`, `name`, `role`, `reputation_points`, `badges`, `created_at`
-
-### Projects
-- `id`, `title`, `description`, `owner_id`, `status`, `required_skills`, `created_at`
-
-### Applications
-- `id`, `project_id`, `user_id`, `status`, `message`, `match_score`, `created_at`
-
-### Contributions
-- `id`, `project_id`, `user_id`, `description`, `points`, `created_at`
-
-### User Skills
-- `id`, `user_id`, `skill`, `proficiency`
-
-## AI-Assisted Matching
-
-The matching algorithm compares user skills with project requirements:
-- Calculates percentage of matching skills
-- Displays match score when applying to projects
-- Helps project owners identify qualified candidates
-
-## Future Enhancements
-
-- Advanced ML-based matching algorithm
-- Real-time messaging between team members
-- Video conferencing integration
-- Portfolio showcase for users
-- Project milestones and deadlines
-- Payment integration for project rewards
-- Mobile app (React Native)
-- Enhanced rate limiting per user/route
-- Two-factor authentication
-- OAuth integration (Google, GitHub)
-
-## Production Deployment Notes
-
-Before deploying to production:
-
-1. **Set strong JWT_SECRET**: Generate a cryptographically secure random string (minimum 32 characters)
-2. **Use HTTPS**: Always use SSL/TLS in production
-3. **Database**: Migrate to PostgreSQL or MySQL for production use
-4. **Environment Variables**: Never commit .env files; use secure secret management
-5. **Rate Limiting**: Adjust rate limits based on your traffic patterns
-6. **Monitoring**: Implement logging and monitoring (e.g., Winston, Sentry)
-7. **Backups**: Set up automated database backups
-8. **Security Headers**: Add helmet.js for security headers
-9. **Input Sanitization**: Add additional input sanitization for XSS prevention
-10. **CORS**: Configure CORS for your specific domain only
-
-## License
+## 📜 License
 
 ISC
 
-## Contributing
+---
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 🌍 The Movement
+
+**ThExempt is where everyday people change the world — and build wealth doing it.**
+
+Not waiting for permission. Not asking for approval.
+Just building the future we want to see.
+
+Join us: [thexempt.com](https://thexempt.com)

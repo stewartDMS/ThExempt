@@ -10,6 +10,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // PRIMARY PALETTE - Power & Action
+        deepRed: '#D32F2F',
+        charcoal: '#212121',
+        electricBlue: '#1976D2',
+        // SECONDARY PALETTE - Movement & Growth
+        rebellionOrange: '#FF6F00',
+        forestGreen: '#2E7D32',
+        steelGray: '#455A64',
+        // ACCENT - Hope & Impact
+        brightCyan: '#00BCD4',
+        warmAmber: '#FFA000',
+        // Legacy palette (kept for backward compat)
         primary: {
           DEFAULT: '#3B82F6',
           50: '#EFF6FF',

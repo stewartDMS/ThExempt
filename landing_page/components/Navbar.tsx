@@ -71,7 +71,12 @@ export default function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/50 transition-all duration-200"
+                className={cn(
+                  'px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                  isScrolled
+                    ? 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                )}
               >
                 {link.label}
               </a>
@@ -82,7 +87,12 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <a
               href="#signin"
-              className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200"
+              className={cn(
+                'px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200',
+                isScrolled
+                  ? 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  : 'text-white/80 hover:text-white border-white/30 hover:border-white/60 hover:bg-white/10'
+              )}
             >
               Sign In
             </a>

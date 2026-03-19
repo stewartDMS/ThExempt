@@ -1,60 +1,88 @@
 # ThExempt Landing Page
 
-> The platform for ambitious young people to discover purpose, build skills, and contribute to real business ideas.
+> **Where change happens. Everyday people make it happen.**
 
-## Getting Started
+Public-facing marketing site for ThExempt — a movement-first platform for changemakers.
+
+## 🎨 Design System
+
+### Colors (Bold & Purposeful)
+
+- **Deep Red** `#D32F2F` - Urgent action, passion
+- **Charcoal** `#212121` - Strength, seriousness
+- **Electric Blue** `#1976D2` - Innovation, intelligence
+- **Rebellion Orange** `#FF6F00` - Energy, disruption
+- **Forest Green** `#2E7D32` - Growth, sustainability
+- **Steel Gray** `#455A64` - Industrial, serious
+- **Bright Cyan** `#00BCD4` - Progress, tech
+- **Warm Amber** `#FFA000` - Optimism, warning
+
+### Typography
+
+- **Headers:** Ultra-bold sans-serif (Inter Black)
+- **Body:** Inter Regular/Medium
+- **Stats:** Roboto Mono (monospaced)
+
+### Tone
+
+- **Urgent** but not nihilistic
+- **Confrontational** but inclusive
+- **Hopeful** but realistic
+- **Bold** not corporate
+
+---
+
+## 🚀 Getting Started
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the landing page.
+Open [http://localhost:3000](http://localhost:3000)
 
-## Tech Stack
+---
 
-| Tool | Purpose |
-|------|---------|
-| **Next.js 15** | React framework with App Router |
-| **TypeScript** | Type-safe code |
-| **Tailwind CSS** | Utility-first styling |
-| **Framer Motion** | Animations & transitions |
-| **Lucide React** | Icon library |
-
-## Project Structure
+## 📁 Component Structure
 
 ```
-landing_page/
-├── app/
-│   ├── globals.css       # Global styles, CSS variables, animations
-│   ├── layout.tsx        # Root layout with SEO metadata
-│   └── page.tsx          # Main page (composes all sections)
-├── components/
-│   ├── Navbar.tsx        # Sticky nav with hide-on-scroll + mobile menu
-│   ├── Hero.tsx          # Animated hero with floating blobs
-│   ├── Stats.tsx         # Animated counters (10K+, 5K+, 50K+)
-│   ├── Features.tsx      # 6 feature cards with hover tilt
-│   ├── HowItWorks.tsx    # 3-step process with connecting line
-│   ├── LiveProjects.tsx  # Mock project cards (TODO: API)
-│   ├── Testimonials.tsx  # Auto-rotating testimonial carousel
-│   ├── CTA.tsx           # Animated gradient CTA section
-│   └── Footer.tsx        # 4-column footer + newsletter
-└── lib/
-    └── utils.ts          # cn() helper + formatCount()
+components/
+├── Hero.tsx            # Full-viewport hero with bold movement messaging
+├── Problem.tsx         # 3-column "systems are broken" section (NEW)
+├── HowItWorks.tsx      # 4-step changemaker journey
+├── Features.tsx        # Platform feature highlights
+├── LiveProjects.tsx    # Featured projects with impact metrics
+├── Audience.tsx        # "Who this is for" section (NEW)
+├── Stats.tsx           # Big impact numbers
+├── Testimonials.tsx    # Real changemaker stories
+├── CTA.tsx             # Final urgent call-to-action
+└── Footer.tsx          # Minimal, utilitarian
 ```
 
-## Deployment
+---
 
-Deploy instantly on [Vercel](https://vercel.com):
+## 🎯 Target Audience
 
+- **Age:** 25-45
+- **Mindset:** Frustrated with status quo, ready for action
+- **Not:** Passive observers, corporate types, slacktivists
+- **Energy:** Urgent, determined, rebellious but constructive
+
+---
+
+## 🚀 Deployment
+
+Auto-deploys to Vercel on push to `main`.
+
+**Manual deploy:**
 ```bash
-npx vercel
+npx vercel --prod
 ```
 
-Or connect your GitHub repo to Vercel for automatic deployments on every push.
+---
 
-## Customization
+## 🎨 Customization
 
-- **Colors**: Update `tailwind.config.ts` → `theme.extend.colors`
-- **Content**: Edit component files directly — all copy is hardcoded and easy to find
-- **API data**: Search for `// TODO: Replace with real API data` in `LiveProjects.tsx`
+- **Colors:** `tailwind.config.ts`
+- **Content:** Component files (all copy is hardcoded)
+- **Animations:** Framer Motion in each component

@@ -135,9 +135,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600">
           <span>© 2024 ThExempt. All rights reserved.</span>
           <div className="flex items-center gap-1">
-            <span>Made with</span>
-            <span className="text-pink-500">♥</span>
-            <span>for ambitious builders everywhere</span>
+            <span className="italic text-gray-500">Not waiting for permission.</span>
           </div>
         </div>
       </div>
