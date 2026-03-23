@@ -9,11 +9,21 @@
 --   skills marketplace, live events & chat, social graph, notifications,
 --   membership tiers, and contribution tracking.
 --
+-- Phase 1 additions (Community Foundation):
+--   §2   Discussion Tables      — now includes discussion_categories,
+--                                  pipeline columns on discussions,
+--                                  discussion_votes, discussion_resources
+--   §3   Skills Marketplace     — now includes user_expertise,
+--                                  expert_verifications
+--
 -- Organisation:
 --   §0   Extensions & Helpers
 --   §1   Core Tables            — profiles, projects, contributions
---   §2   Discussion Tables      — discussions, replies, likes, media
---   §3   Skills Marketplace     — skill_categories, skills, offers, requests
+--   §2   Discussion Tables      — discussion_categories, discussions,
+--                                  replies, likes, media,
+--                                  discussion_votes, discussion_resources
+--   §3   Skills Marketplace     — skill_categories, skills, offers, requests,
+--                                  user_expertise, expert_verifications
 --   §4   Project Details        — media, milestones, roles, applications, members
 --   §5   Live Events & Chat     — live_events, rsvps, chat, reactions
 --   §6   Social Graph           — follows, notifications
@@ -23,7 +33,7 @@
 --   §10  Triggers
 --   §11  Row-Level Security
 --   §12  Views
---   §13  Reference Data         — skill_categories seed
+--   §13  Reference Data         — skill_categories seed, discussion_categories seed
 -- ============================================================================
 
 
@@ -192,6 +202,33 @@ COMMENT ON TABLE contributions IS 'Work contributions to projects. Approved cont
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
+-- discussion_categories  (Phase 1 — Community Foundation)
+-- Canonical taxonomy of discussion categories.
+-- Drives UI routing, API filters, and the Problem → Solution → Project pipeline.
+-- ----------------------------------------------------------------------------
+CREATE TABLE discussion_categories (
+  id            UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug          TEXT    UNIQUE NOT NULL,
+  label         TEXT    NOT NULL,
+  description   TEXT    NOT NULL DEFAULT '',
+  emoji         TEXT    NOT NULL DEFAULT '',
+  color_hex     TEXT    NOT NULL DEFAULT '#666666',
+
+  -- is_systemic = TRUE for high-priority categories (climate, inequality, etc.)
+  is_systemic   BOOLEAN NOT NULL DEFAULT FALSE,
+
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE  discussion_categories IS 'Canonical taxonomy of discussion categories. Slugs are used in discussions.category for validation and filtering.';
+COMMENT ON COLUMN discussion_categories.slug        IS 'Machine-readable key used in discussions.category and API filters (e.g. climate_crisis).';
+COMMENT ON COLUMN discussion_categories.is_systemic IS 'TRUE for high-priority systemic issue categories (climate_crisis, economic_inequality, etc.).';
+
+-- ----------------------------------------------------------------------------
 -- discussions
 -- Community discussion threads (problems, ideas, events, networking, etc.).
 -- Central to the Problem → Solution → Project pipeline.
@@ -202,10 +239,22 @@ CREATE TABLE discussions (
 
   -- Content
   category      TEXT      NOT NULL
-    CHECK (category IN ('world_problems', 'ideas', 'learning', 'live_events', 'networking', 'feedback', 'general')),
+    CHECK (category IN (
+      -- Original categories
+      'world_problems', 'ideas', 'learning', 'live_events', 'networking', 'feedback', 'general',
+      -- Phase 1 systemic categories
+      'climate_crisis', 'economic_inequality', 'healthcare_access', 'education_reform',
+      'housing_justice', 'criminal_justice', 'immigration_justice', 'mental_health_crisis'
+    )),
   title         TEXT      NOT NULL,
   content       TEXT      NOT NULL,
   tags          TEXT[]    NOT NULL DEFAULT '{}',
+
+  -- Problem → Solution → Project pipeline  (Phase 1 — Community Foundation)
+  stage             TEXT        NOT NULL DEFAULT 'problem'
+    CHECK (stage IN ('problem', 'solution', 'project_proposal', 'project_linked')),
+  votes_count       INTEGER     NOT NULL DEFAULT 0 CHECK (votes_count >= 0),
+  linked_project_id UUID        REFERENCES projects(id) ON DELETE SET NULL,
 
   -- Moderation
   is_pinned     BOOLEAN   NOT NULL DEFAULT FALSE,
@@ -226,7 +275,10 @@ CREATE TABLE discussions (
 );
 
 COMMENT ON TABLE  discussions IS 'Community discussion threads. Categories drive the Problem→Solution→Project pipeline.';
-COMMENT ON COLUMN discussions.category IS 'Thread category: world_problems | ideas | learning | live_events | networking | feedback | general';
+COMMENT ON COLUMN discussions.category          IS 'Thread category — original: world_problems | ideas | learning | live_events | networking | feedback | general; Phase 1 systemic: climate_crisis | economic_inequality | healthcare_access | education_reform | housing_justice | criminal_justice | immigration_justice | mental_health_crisis';
+COMMENT ON COLUMN discussions.stage             IS 'Pipeline stage: problem → solution → project_proposal → project_linked';
+COMMENT ON COLUMN discussions.votes_count       IS 'Cached net vote tally (upvotes − downvotes); maintained by sync_discussion_votes_count trigger.';
+COMMENT ON COLUMN discussions.linked_project_id IS 'Set when stage = project_linked; points to the project that emerged from this discussion.';
 
 
 -- ----------------------------------------------------------------------------
@@ -310,6 +362,63 @@ CREATE TABLE discussion_media (
 
 COMMENT ON TABLE  discussion_media IS 'Media attachments (images/videos) for discussions. Stored in Supabase Storage under discussion-media/{user_id}/.';
 COMMENT ON COLUMN discussion_media.uploaded_by IS 'Owner of the file; used for storage RLS ownership checks.';
+
+
+-- ----------------------------------------------------------------------------
+-- discussion_votes  (Phase 1 — Problem → Solution → Project pipeline)
+-- Upvotes / downvotes on discussion threads. One vote per user per discussion.
+-- The sync_discussion_votes_count trigger keeps discussions.votes_count current.
+-- ----------------------------------------------------------------------------
+CREATE TABLE discussion_votes (
+  id            UUID     PRIMARY KEY DEFAULT gen_random_uuid(),
+  discussion_id UUID     NOT NULL REFERENCES discussions(id) ON DELETE CASCADE,
+  user_id       UUID     NOT NULL REFERENCES profiles(id)   ON DELETE CASCADE,
+
+  -- 1 = upvote, -1 = downvote
+  value         SMALLINT NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
+
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE (discussion_id, user_id)
+);
+
+COMMENT ON TABLE  discussion_votes IS 'Upvotes/downvotes on pipeline discussions. One vote per user per discussion; value IN (1, -1).';
+COMMENT ON COLUMN discussion_votes.value IS '1 = upvote, -1 = downvote';
+
+
+-- ----------------------------------------------------------------------------
+-- discussion_resources  (Phase 1 — Resource Library)
+-- Links, documents, videos, and datasets attached to a discussion thread.
+-- Files are stored in Supabase Storage bucket: discussion-resources/{user_id}/
+-- ----------------------------------------------------------------------------
+CREATE TABLE discussion_resources (
+  id              UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  discussion_id   UUID    NOT NULL REFERENCES discussions(id) ON DELETE CASCADE,
+  uploaded_by     UUID    NOT NULL REFERENCES profiles(id)   ON DELETE CASCADE,
+
+  -- Type of resource
+  resource_type   TEXT    NOT NULL DEFAULT 'link'
+    CHECK (resource_type IN ('link', 'document', 'video', 'image', 'dataset')),
+
+  -- Content
+  title           TEXT    NOT NULL,
+  description     TEXT,
+  url             TEXT,          -- external link OR Supabase Storage public URL
+  file_name       TEXT,
+  file_size       BIGINT  CHECK (file_size IS NULL OR file_size > 0),
+  mime_type       TEXT,
+
+  -- Discovery
+  tags            TEXT[]  NOT NULL DEFAULT '{}',
+  is_featured     BOOLEAN NOT NULL DEFAULT FALSE,
+
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE  discussion_resources IS 'Resources (links, docs, videos, datasets) attached to a discussion thread. Files stored in Supabase Storage under discussion-resources/{user_id}/.';
+COMMENT ON COLUMN discussion_resources.resource_type IS 'link | document | video | image | dataset';
+COMMENT ON COLUMN discussion_resources.url           IS 'Public URL — either an external link or a Supabase Storage download URL.';
 
 
 -- ============================================================================
@@ -417,6 +526,62 @@ CREATE TABLE skill_requests (
 );
 
 COMMENT ON TABLE skill_requests IS 'Skill gap requests posted by project owners. Matched against skill_offers to connect teams.';
+
+
+-- ----------------------------------------------------------------------------
+-- user_expertise  (Phase 1 — Expert Badges & Trust System)
+-- Expertise areas claimed or verified for each user.
+-- Feeds the trust_score calculation and badge award logic on profiles.
+-- ----------------------------------------------------------------------------
+CREATE TABLE user_expertise (
+  id            UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID    NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+
+  -- The expertise domain (e.g. 'climate_policy', 'public_health', 'fintech')
+  area          TEXT    NOT NULL,
+
+  -- Verification level: escalates as endorsements are received
+  level         TEXT    NOT NULL DEFAULT 'self_declared'
+    CHECK (level IN ('self_declared', 'community_verified', 'expert_verified', 'platform_verified')),
+
+  evidence_url  TEXT,    -- link to credential, publication, portfolio, etc.
+  is_primary    BOOLEAN NOT NULL DEFAULT FALSE,
+
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE (user_id, area)
+);
+
+COMMENT ON TABLE  user_expertise IS 'Expertise areas claimed or verified per user. Level escalates as endorsements accumulate.';
+COMMENT ON COLUMN user_expertise.level        IS 'self_declared → community_verified → expert_verified → platform_verified';
+COMMENT ON COLUMN user_expertise.is_primary   IS 'TRUE for the user''s main expertise area (only one should be TRUE per user).';
+COMMENT ON COLUMN user_expertise.evidence_url IS 'Optional link to credential, publication, or other proof.';
+
+
+-- ----------------------------------------------------------------------------
+-- expert_verifications  (Phase 1 — Expert Badges & Trust System)
+-- Endorsement / verification events for a user_expertise entry.
+-- Multiple verifications raise the target user''s trust_score via trigger.
+-- ----------------------------------------------------------------------------
+CREATE TABLE expert_verifications (
+  id                  UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_expertise_id   UUID    NOT NULL REFERENCES user_expertise(id) ON DELETE CASCADE,
+
+  -- NULL verified_by = platform/admin action
+  verified_by         UUID    REFERENCES profiles(id) ON DELETE SET NULL,
+
+  verification_type   TEXT    NOT NULL DEFAULT 'community'
+    CHECK (verification_type IN ('community', 'admin', 'credential')),
+
+  notes               TEXT,
+
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE  expert_verifications IS 'Verification events for user expertise entries. Each row raises the target user''s trust_score.';
+COMMENT ON COLUMN expert_verifications.verified_by       IS 'NULL = platform/admin verification; otherwise the endorsing user.';
+COMMENT ON COLUMN expert_verifications.verification_type IS 'community = peer endorsement; admin = staff approval; credential = verified credential.';
 
 
 -- ============================================================================
@@ -911,6 +1076,24 @@ CREATE INDEX idx_discussion_likes_reply      ON discussion_likes(reply_id)      
 CREATE INDEX idx_discussion_media_discussion ON discussion_media(discussion_id);
 CREATE INDEX idx_discussion_media_uploader   ON discussion_media(uploaded_by);
 
+-- discussion_votes  (Phase 1)
+CREATE INDEX idx_discussion_votes_discussion ON discussion_votes(discussion_id);
+CREATE INDEX idx_discussion_votes_user       ON discussion_votes(user_id);
+
+-- discussion_resources  (Phase 1)
+CREATE INDEX idx_discussion_resources_discussion ON discussion_resources(discussion_id);
+CREATE INDEX idx_discussion_resources_uploader   ON discussion_resources(uploaded_by);
+CREATE INDEX idx_discussion_resources_type       ON discussion_resources(resource_type);
+CREATE INDEX idx_discussion_resources_tags       ON discussion_resources USING GIN(tags);
+
+-- discussion_categories  (Phase 1)
+CREATE INDEX idx_discussion_categories_slug     ON discussion_categories(slug);
+CREATE INDEX idx_discussion_categories_systemic ON discussion_categories(is_systemic) WHERE is_systemic = TRUE;
+
+-- discussions  pipeline columns  (Phase 1)
+CREATE INDEX idx_discussions_stage          ON discussions(stage);
+CREATE INDEX idx_discussions_linked_project ON discussions(linked_project_id) WHERE linked_project_id IS NOT NULL;
+
 -- skill_categories
 CREATE INDEX idx_skill_categories_parent ON skill_categories(parent_category);
 
@@ -926,6 +1109,14 @@ CREATE INDEX idx_skill_offers_active ON skill_offers(is_active) WHERE is_active 
 CREATE INDEX idx_skill_requests_requester ON skill_requests(requester_id);
 CREATE INDEX idx_skill_requests_project   ON skill_requests(project_id) WHERE project_id IS NOT NULL;
 CREATE INDEX idx_skill_requests_status    ON skill_requests(status);
+
+-- user_expertise  (Phase 1)
+CREATE INDEX idx_user_expertise_user ON user_expertise(user_id);
+CREATE INDEX idx_user_expertise_area ON user_expertise(area);
+
+-- expert_verifications  (Phase 1)
+CREATE INDEX idx_expert_verifications_expertise ON expert_verifications(user_expertise_id);
+CREATE INDEX idx_expert_verifications_verifier  ON expert_verifications(verified_by) WHERE verified_by IS NOT NULL;
 
 -- project_media
 CREATE INDEX idx_project_media_project  ON project_media(project_id);
@@ -1022,6 +1213,11 @@ CREATE TRIGGER trg_investments_updated_at       BEFORE UPDATE ON investments    
 CREATE TRIGGER trg_project_updates_updated_at   BEFORE UPDATE ON project_updates    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TRIGGER trg_comments_updated_at          BEFORE UPDATE ON comments           FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- Phase 1 — updated_at triggers for new tables
+CREATE TRIGGER trg_discussion_categories_updated_at BEFORE UPDATE ON discussion_categories FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_discussion_resources_updated_at  BEFORE UPDATE ON discussion_resources  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_user_expertise_updated_at        BEFORE UPDATE ON user_expertise        FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- ─── Discussion like counters ───────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION fn_increment_discussion_likes()
@@ -1053,6 +1249,26 @@ CREATE TRIGGER trg_increment_discussion_likes
 
 CREATE TRIGGER trg_decrement_discussion_likes
   AFTER DELETE ON discussion_likes FOR EACH ROW EXECUTE FUNCTION fn_decrement_discussion_likes();
+
+-- ─── Discussion vote counter  (Phase 1 — pipeline) ─────────────────────────
+
+CREATE OR REPLACE FUNCTION sync_discussion_votes_count()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE discussions
+  SET    votes_count = (
+    SELECT COALESCE(SUM(value), 0)
+    FROM   discussion_votes
+    WHERE  discussion_id = COALESCE(NEW.discussion_id, OLD.discussion_id)
+  )
+  WHERE id = COALESCE(NEW.discussion_id, OLD.discussion_id);
+  RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+CREATE TRIGGER trg_sync_discussion_votes
+  AFTER INSERT OR UPDATE OR DELETE ON discussion_votes
+  FOR EACH ROW EXECUTE FUNCTION sync_discussion_votes_count();
 
 -- ─── Discussion reply counters ─────────────────────────────────────────────
 
@@ -1221,6 +1437,13 @@ ALTER TABLE investments         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE project_updates     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments            ENABLE ROW LEVEL SECURITY;
 
+-- Phase 1 tables
+ALTER TABLE discussion_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE discussion_votes      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE discussion_resources  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_expertise        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expert_verifications  ENABLE ROW LEVEL SECURITY;
+
 -- ─── profiles ──────────────────────────────────────────────────────────────
 CREATE POLICY "profiles_select_public"
   ON profiles FOR SELECT USING (deleted_at IS NULL);
@@ -1298,6 +1521,31 @@ CREATE POLICY "discussion_media_update_own"
 CREATE POLICY "discussion_media_delete_own"
   ON discussion_media FOR DELETE USING (auth.uid() = uploaded_by);
 
+-- ─── discussion_categories  (Phase 1) ──────────────────────────────────────
+-- Reference data: publicly readable, write-protected.
+CREATE POLICY "discussion_categories_select_public"
+  ON discussion_categories FOR SELECT USING (is_active = TRUE);
+
+-- ─── discussion_votes  (Phase 1) ──────────────────────────────────────────
+CREATE POLICY "discussion_votes_select_public"
+  ON discussion_votes FOR SELECT USING (TRUE);
+CREATE POLICY "discussion_votes_insert_own"
+  ON discussion_votes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "discussion_votes_update_own"
+  ON discussion_votes FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "discussion_votes_delete_own"
+  ON discussion_votes FOR DELETE USING (auth.uid() = user_id);
+
+-- ─── discussion_resources  (Phase 1) ──────────────────────────────────────
+CREATE POLICY "discussion_resources_select_public"
+  ON discussion_resources FOR SELECT USING (TRUE);
+CREATE POLICY "discussion_resources_insert_own"
+  ON discussion_resources FOR INSERT WITH CHECK (auth.uid() = uploaded_by);
+CREATE POLICY "discussion_resources_update_own"
+  ON discussion_resources FOR UPDATE USING (auth.uid() = uploaded_by);
+CREATE POLICY "discussion_resources_delete_own"
+  ON discussion_resources FOR DELETE USING (auth.uid() = uploaded_by);
+
 -- ─── skill_categories ─────────────────────────────────────────────────────
 -- Reference data: read-only for all authenticated and anonymous users.
 CREATE POLICY "skill_categories_select_public"
@@ -1336,6 +1584,25 @@ CREATE POLICY "skill_requests_update_own"
   ON skill_requests FOR UPDATE USING (auth.uid() = requester_id);
 CREATE POLICY "skill_requests_delete_own"
   ON skill_requests FOR DELETE USING (auth.uid() = requester_id);
+
+-- ─── user_expertise  (Phase 1) ────────────────────────────────────────────
+CREATE POLICY "user_expertise_select_public"
+  ON user_expertise FOR SELECT USING (TRUE);
+CREATE POLICY "user_expertise_insert_own"
+  ON user_expertise FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "user_expertise_update_own"
+  ON user_expertise FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "user_expertise_delete_own"
+  ON user_expertise FOR DELETE USING (auth.uid() = user_id);
+
+-- ─── expert_verifications  (Phase 1) ──────────────────────────────────────
+CREATE POLICY "expert_verifications_select_public"
+  ON expert_verifications FOR SELECT USING (TRUE);
+-- Any authenticated user can endorse another user's expertise (community verifications).
+-- Admin/credential verifications are applied server-side with the service role key.
+CREATE POLICY "expert_verifications_insert_authenticated"
+  ON expert_verifications FOR INSERT
+  WITH CHECK (auth.uid() = verified_by OR verified_by IS NULL);
 
 -- ─── project_media ────────────────────────────────────────────────────────
 CREATE POLICY "project_media_select_public"
@@ -1583,10 +1850,17 @@ SELECT
   d.category,
   d.tags,
   d.author_id,
+  d.stage,
+  d.votes_count,
+  d.linked_project_id,
   d.likes_count,
   d.replies_count,
   d.views_count,
   d.media_count,
+  d.is_pinned,
+  d.is_verified,
+  d.is_archived,
+  d.deleted_at,
   d.created_at,
   d.updated_at,
   p.full_name   AS author_name,
@@ -1614,7 +1888,7 @@ LEFT JOIN discussion_media dm ON d.id = dm.discussion_id
 WHERE d.deleted_at IS NULL
 GROUP BY d.id, p.id, p.full_name, p.avatar_url;
 
-COMMENT ON VIEW discussions_with_media IS 'Discussions with author info and media attachments pre-aggregated as a JSON array.';
+COMMENT ON VIEW discussions_with_media IS 'Discussions with author info, Phase 1 pipeline columns (stage, votes_count, linked_project_id), and media attachments pre-aggregated as a JSON array.';
 
 
 -- ============================================================================
@@ -1716,3 +1990,25 @@ INSERT INTO skill_categories (name, parent_category, description, icon, color, d
   ('Consulting',            'Soft Skills', 'Advisory, Expert Guidance',                   '💡', '#06B6D4',  9),
   ('Community Organizing',  'Soft Skills', 'Grassroots Organizing, Advocacy, Mobilization','✊', '#06B6D4', 10)
 ON CONFLICT (name) DO NOTHING;
+
+
+-- ─── discussion_categories seed  (Phase 1 — Community Foundation) ─────────
+INSERT INTO discussion_categories
+  (slug, label, description, emoji, color_hex, is_systemic, display_order)
+VALUES
+  ('world_problems',       '🌍 World Problems',         'Discuss global challenges to solve',                    '🌍', '#057642', FALSE,  1),
+  ('ideas',                '💡 Ideas & Brainstorming',   'Share startup ideas, get feedback',                     '💡', '#F5A623', FALSE,  2),
+  ('learning',             '🎓 Learning & Resources',    'Share knowledge, tutorials',                            '🎓', '#0A66C2', FALSE,  3),
+  ('live_events',          '🎤 Live Events',             'Upcoming training, workshops, AMAs',                    '🎤', '#CC1016', FALSE,  4),
+  ('networking',           '🤝 Networking',              'Introductions, looking for co-founders',                '🤝', '#7B61FF', FALSE,  5),
+  ('feedback',             '🐛 Feedback',                'Platform suggestions, bug reports',                     '🐛', '#E91E8C', FALSE,  6),
+  ('general',              '💬 General',                 'Off-topic, community chat',                             '💬', '#666666', FALSE,  7),
+  ('climate_crisis',       '🌡️ Climate Crisis',          'Climate change, environmental justice, clean energy',   '🌡️', '#E53935', TRUE,  10),
+  ('economic_inequality',  '⚖️ Economic Inequality',     'Wealth gaps, fair wages, economic justice',             '⚖️', '#FB8C00', TRUE,  11),
+  ('healthcare_access',    '🏥 Healthcare Access',       'Universal healthcare, mental health, public health',    '🏥', '#E91E63', TRUE,  12),
+  ('education_reform',     '📚 Education Reform',        'Public education, student debt, lifelong learning',     '📚', '#3F51B5', TRUE,  13),
+  ('housing_justice',      '🏠 Housing Justice',         'Affordable housing, homelessness, tenant rights',       '🏠', '#009688', TRUE,  14),
+  ('criminal_justice',     '🔒 Criminal Justice',        'Policing reform, prison abolition, restorative justice','🔒', '#795548', TRUE,  15),
+  ('immigration_justice',  '🌐 Immigration Justice',     'Immigration reform, refugee support, human rights',     '🌐', '#607D8B', TRUE,  16),
+  ('mental_health_crisis', '🧠 Mental Health Crisis',    'Mental health access, stigma reduction, support systems','🧠', '#9C27B0', TRUE,  17)
+ON CONFLICT (slug) DO NOTHING;

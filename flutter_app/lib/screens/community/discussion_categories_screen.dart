@@ -9,13 +9,23 @@ class DiscussionCategoriesScreen extends StatelessWidget {
   const DiscussionCategoriesScreen({super.key});
 
   static const _categoryColors = {
-    'world_problems': Color(0xFF057642),
-    'ideas': Color(0xFFF5A623),
-    'learning': Color(0xFF0A66C2),
-    'live_events': Color(0xFFCC1016),
-    'networking': Color(0xFF7B61FF),
-    'feedback': Color(0xFFE91E8C),
-    'general': Color(0xFF666666),
+    // Original categories
+    'world_problems':       Color(0xFF057642),
+    'ideas':                Color(0xFFF5A623),
+    'learning':             Color(0xFF0A66C2),
+    'live_events':          Color(0xFFCC1016),
+    'networking':           Color(0xFF7B61FF),
+    'feedback':             Color(0xFFE91E8C),
+    'general':              Color(0xFF666666),
+    // Phase 1 systemic categories
+    'climate_crisis':       Color(0xFFE53935),
+    'economic_inequality':  Color(0xFFFB8C00),
+    'healthcare_access':    Color(0xFFE91E63),
+    'education_reform':     Color(0xFF3F51B5),
+    'housing_justice':      Color(0xFF009688),
+    'criminal_justice':     Color(0xFF795548),
+    'immigration_justice':  Color(0xFF607D8B),
+    'mental_health_crisis': Color(0xFF9C27B0),
   };
 
   @override
@@ -67,13 +77,40 @@ class DiscussionCategoriesScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.grey900,
-                          ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.grey900,
+                                ),
+                              ),
+                            ),
+                            if (cat.isSystemic) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: color.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                      color: color.withAlpha(80), width: 1),
+                                ),
+                                child: Text(
+                                  'Systemic',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: color,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
