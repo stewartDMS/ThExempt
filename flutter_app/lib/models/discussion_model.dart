@@ -21,6 +21,11 @@ class Discussion {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // Phase 1 — Problem → Solution → Project pipeline
+  final DiscussionStage stage;
+  final int votesCount;
+  final String? linkedProjectId;
+
   Discussion({
     required this.id,
     required this.authorId,
@@ -40,6 +45,9 @@ class Discussion {
     this.media = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.stage = DiscussionStage.problem,
+    this.votesCount = 0,
+    this.linkedProjectId,
   });
 
   factory Discussion.fromJson(Map<String, dynamic> json) {
@@ -73,6 +81,10 @@ class Discussion {
       media: mediaList,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : DateTime.now(),
+      // Phase 1 pipeline fields
+      stage: DiscussionStage.fromValue(json['stage'] as String? ?? 'problem'),
+      votesCount: (json['votes_count'] as num?)?.toInt() ?? 0,
+      linkedProjectId: json['linked_project_id'] as String?,
     );
   }
 
@@ -92,6 +104,10 @@ class Discussion {
     'media_count': mediaCount,
     'created_at': createdAt.toIso8601String(),
     'updated_at': updatedAt.toIso8601String(),
+    // Phase 1
+    'stage': stage.value,
+    'votes_count': votesCount,
+    if (linkedProjectId != null) 'linked_project_id': linkedProjectId,
   };
 
   bool get hasMedia => media.isNotEmpty;
@@ -117,6 +133,9 @@ class Discussion {
     List<MediaFile>? media,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DiscussionStage? stage,
+    int? votesCount,
+    String? linkedProjectId,
   }) {
     return Discussion(
       id: id ?? this.id,
@@ -137,6 +156,10 @@ class Discussion {
       media: media ?? this.media,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      // Phase 1
+      stage: stage ?? this.stage,
+      votesCount: votesCount ?? this.votesCount,
+      linkedProjectId: linkedProjectId ?? this.linkedProjectId,
     );
   }
 }
@@ -216,17 +239,52 @@ enum DiscussionCategory {
   liveEvents('live_events', '🎤 Live Events', 'Upcoming training, workshops, AMAs'),
   networking('networking', '🤝 Networking', 'Introductions, looking for co-founders'),
   general('general', '💬 General', 'Off-topic, community chat'),
-  feedback('feedback', '🐛 Feedback', 'Platform suggestions, bug reports');
+  feedback('feedback', '🐛 Feedback', 'Platform suggestions, bug reports'),
+
+  // Phase 1 — systemic issue categories
+  climateCrisis('climate_crisis', '🌡️ Climate Crisis', 'Climate change, environmental justice, clean energy'),
+  economicInequality('economic_inequality', '⚖️ Economic Inequality', 'Wealth gaps, fair wages, economic justice'),
+  healthcareAccess('healthcare_access', '🏥 Healthcare Access', 'Universal healthcare, mental health, public health'),
+  educationReform('education_reform', '📚 Education Reform', 'Public education, student debt, lifelong learning'),
+  housingJustice('housing_justice', '🏠 Housing Justice', 'Affordable housing, homelessness, tenant rights'),
+  criminalJustice('criminal_justice', '🔒 Criminal Justice', 'Policing reform, prison abolition, restorative justice'),
+  immigrationJustice('immigration_justice', '🌐 Immigration Justice', 'Immigration reform, refugee support, human rights'),
+  mentalHealthCrisis('mental_health_crisis', '🧠 Mental Health Crisis', 'Mental health access, stigma reduction, support systems');
 
   const DiscussionCategory(this.value, this.label, this.description);
   final String value;
   final String label;
   final String description;
 
+  bool get isSystemic => const {
+    'climate_crisis', 'economic_inequality', 'healthcare_access', 'education_reform',
+    'housing_justice', 'criminal_justice', 'immigration_justice', 'mental_health_crisis',
+  }.contains(value);
+
   static DiscussionCategory? fromValue(String value) {
     for (final cat in DiscussionCategory.values) {
       if (cat.value == value) return cat;
     }
     return null;
+  }
+}
+
+/// Phase 1 — Problem → Solution → Project pipeline stage.
+enum DiscussionStage {
+  problem('problem', '🔴 Problem', 'Identifying a systemic problem'),
+  solution('solution', '🟡 Solution', 'Proposing solutions to the problem'),
+  projectProposal('project_proposal', '🔵 Project Proposal', 'Forming a concrete project proposal'),
+  projectLinked('project_linked', '🟢 Project Linked', 'A project has been created from this discussion');
+
+  const DiscussionStage(this.value, this.label, this.description);
+  final String value;
+  final String label;
+  final String description;
+
+  static DiscussionStage fromValue(String value) {
+    for (final stage in DiscussionStage.values) {
+      if (stage.value == value) return stage;
+    }
+    return DiscussionStage.problem;
   }
 }

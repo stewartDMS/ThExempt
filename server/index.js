@@ -7,6 +7,12 @@ require('dotenv').config();
 
 const supabase = require('./supabase');
 
+// ── Phase 1 route modules ────────────────────────────────────────────────────
+const createDiscussionCategoriesRouter = require('./routes/discussionCategories');
+const createDiscussionPipelineRouter   = require('./routes/discussionPipeline');
+const createExpertBadgesRouter         = require('./routes/expertBadges');
+const createDiscussionResourcesRouter  = require('./routes/discussionResources');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -2562,6 +2568,12 @@ app.get('/api/live-events/:id/viewers', async (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/public/index.html'));
 });
+
+// ── Phase 1: Community Foundation routes ─────────────────────────────────────
+app.use('/api/discussion-categories', createDiscussionCategoriesRouter(supabase));
+app.use('/api/discussions/:id',        createDiscussionPipelineRouter(supabase, authenticateToken));
+app.use('/api/discussions/:id/resources', createDiscussionResourcesRouter(supabase, authenticateToken));
+app.use('/api',                        createExpertBadgesRouter(supabase, authenticateToken));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
