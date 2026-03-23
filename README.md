@@ -165,18 +165,22 @@ SUPABASE_ANON_KEY=your-anon-key
 
 ## 🗄️ Database Schema
 
-See `database/schema.sql` for complete schema.
+See [`supabase/schema.sql`](supabase/schema.sql) for the complete schema and
+[`supabase/MIGRATION_GUIDE.md`](supabase/MIGRATION_GUIDE.md) for setup and
+migration instructions.
 
-**Key tables:**
-- `profiles` - User accounts
-- `discussions` - Community discussions
-- `discussion_replies` - Threaded replies
-- `projects` - Fundable projects
-- `project_media` - Project images/videos
-- `investments` - Credit-based investments
-- `credit_transactions` - Credits ledger
-- `subscriptions` - Stripe subscriptions
-- `contributions` - Skill contributions to projects
+**Tables covered:**
+- `profiles` — User accounts, membership tiers, reputation, credits
+- `discussions` — Community threads (problems, ideas, networking, …)
+- `discussion_replies`, `discussion_likes`, `discussion_media` — Thread engagement
+- `projects` — Fundable initiatives with milestones and team roles
+- `project_media`, `project_milestones`, `project_roles`, `project_members` — Project details
+- `project_updates`, `comments` — Project announcements and responses
+- `live_events`, `event_rsvps`, `live_chat_messages`, `live_reactions` — Live events
+- `skill_categories`, `skills`, `skill_offers`, `skill_requests` — Skills marketplace
+- `follows`, `notifications` — Social graph and notifications
+- `subscriptions`, `credit_transactions`, `investments` — Financial engine
+- `contributions` — Work tracking and reward flow
 
 ---
 
