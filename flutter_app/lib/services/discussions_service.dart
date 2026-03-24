@@ -6,7 +6,7 @@ class DiscussionsService {
 
   static const String _discussionSelect = '''
     *,
-    profiles:user_id (
+    profiles:author_id (
       id,
       username,
       avatar_url
@@ -36,7 +36,7 @@ class DiscussionsService {
     if (userId == null) throw Exception('User not authenticated');
 
     final response = await _supabase.from('discussions').insert({
-      'user_id': userId,
+      'author_id': userId,
       'category': category,
       'title': title,
       'content': content,
@@ -194,11 +194,11 @@ class DiscussionsService {
     // Verify ownership
     final discussion = await _supabase
         .from('discussions')
-        .select('user_id')
+        .select('author_id')
         .eq('id', discussionId)
         .single();
 
-    if (discussion['user_id'] != userId) {
+    if (discussion['author_id'] != userId) {
       throw Exception('Not authorized to delete this discussion');
     }
 
