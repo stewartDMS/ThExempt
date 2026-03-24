@@ -1706,7 +1706,7 @@ app.get('/api/discussions', async (req, res) => {
     const offset = (page - 1) * limit;
     let query = supabase
       .from('discussions')
-      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
       .range(offset, offset + limit - 1);
 
     if (category) query = query.eq('category', category);
@@ -1777,7 +1777,7 @@ app.get('/api/discussions/:id', async (req, res) => {
 
     const { data: discussion, error } = await supabase
       .from('discussions')
-      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
       .eq('id', id)
       .single();
 
