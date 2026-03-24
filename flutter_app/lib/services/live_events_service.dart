@@ -1,7 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/live_event_model.dart';
-import '../utils/error_handler.dart';
-import '../utils/retry_helper.dart';
 
 class LiveEventsService {
   static final _supabase = Supabase.instance.client;
@@ -20,27 +18,9 @@ class LiveEventsService {
     bool allowChat = true,
     bool allowReactions = true,
   }) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('Not authenticated');
-
-    final response = await _supabase.from('live_events').insert({
-      'host_id': userId,
-      'title': title,
-      if (description != null) 'description': description,
-      'category': category,
-      'event_type': eventType,
-      if (scheduledStart != null)
-        'scheduled_start': scheduledStart.toIso8601String(),
-      if (scheduledEnd != null)
-        'scheduled_end': scheduledEnd.toIso8601String(),
-      'timezone': timezone,
-      if (meetingLink != null) 'meeting_link': meetingLink,
-      'max_attendees': maxAttendees,
-      'allow_chat': allowChat,
-      'allow_reactions': allowReactions,
-    }).select('*, profiles!host_id(username, avatar_url)').single();
-
-    return LiveEvent.fromJson(response);
+    // TODO: The live_events table does not exist in the current schema.
+    // Create the live_events table before enabling this functionality.
+    throw UnsupportedError('live_events table is not available in the current schema.');
   }
 
   /// List live events with optional filters.
@@ -49,84 +29,30 @@ class LiveEventsService {
     String? category,
     String? hostId,
   }) async {
-    try {
-      return await RetryHelper.retryWithBackoff(
-        operation: () async {
-          var query = _supabase
-              .from('live_events')
-              .select('*, profiles!host_id(username, avatar_url)');
-
-          if (status == 'live') {
-            query = query.eq('is_live', true);
-          } else if (status == 'upcoming') {
-            query = query.eq('is_live', false).filter('ended_at', 'is', null);
-          }
-
-          if (category != null) {
-            query = query.eq('category', category);
-          }
-
-          if (hostId != null) {
-            query = query.eq('host_id', hostId);
-          }
-
-          final response = await query
-              .order('scheduled_start', ascending: false)
-              .timeout(const Duration(seconds: 10));
-
-          return response
-              .map((j) => LiveEvent.fromJson(j as Map<String, dynamic>))
-              .toList();
-        },
-      );
-    } catch (e) {
-      final appError = ErrorHandler.handleError(e);
-      ErrorHandler.log(appError);
-      throw appError;
-    }
+    // TODO: The live_events table does not exist in the current schema.
+    // Create the live_events table before enabling this functionality.
+    return [];
   }
 
   /// Get a single live event by ID.
   static Future<LiveEvent> getLiveEvent(String id) async {
-    final response = await _supabase
-        .from('live_events')
-        .select('*, profiles!host_id(username, avatar_url)')
-        .eq('id', id)
-        .single();
-
-    return LiveEvent.fromJson(response);
+    // TODO: The live_events table does not exist in the current schema.
+    // Create the live_events table before enabling this functionality.
+    throw UnsupportedError('live_events table is not available in the current schema.');
   }
 
   /// Start a live stream (host only).
   static Future<LiveEvent> goLive(String id, {String? streamUrl}) async {
-    final response = await _supabase
-        .from('live_events')
-        .update({
-          'is_live': true,
-          'started_at': DateTime.now().toIso8601String(),
-          if (streamUrl != null) 'stream_url': streamUrl,
-        })
-        .eq('id', id)
-        .select('*, profiles!host_id(username, avatar_url)')
-        .single();
-
-    return LiveEvent.fromJson(response);
+    // TODO: The live_events table does not exist in the current schema.
+    // Create the live_events table before enabling this functionality.
+    throw UnsupportedError('live_events table is not available in the current schema.');
   }
 
   /// End a live stream (host only).
   static Future<LiveEvent> endStream(String id, {String? recordingUrl}) async {
-    final response = await _supabase
-        .from('live_events')
-        .update({
-          'is_live': false,
-          'ended_at': DateTime.now().toIso8601String(),
-          if (recordingUrl != null) 'recording_url': recordingUrl,
-        })
-        .eq('id', id)
-        .select('*, profiles!host_id(username, avatar_url)')
-        .single();
-
-    return LiveEvent.fromJson(response);
+    // TODO: The live_events table does not exist in the current schema.
+    // Create the live_events table before enabling this functionality.
+    throw UnsupportedError('live_events table is not available in the current schema.');
   }
 
   /// RSVP to an event.
@@ -194,13 +120,9 @@ class LiveEventsService {
 
   /// Get the current viewer count for an event.
   static Future<int> getViewerCount(String id) async {
-    final response = await _supabase
-        .from('live_events')
-        .select('viewers_count')
-        .eq('id', id)
-        .single();
-
-    return (response['viewers_count'] as num?)?.toInt() ?? 0;
+    // TODO: The live_events table does not exist in the current schema.
+    // Create the live_events table before enabling this functionality.
+    return 0;
   }
 }
 
