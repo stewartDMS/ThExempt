@@ -594,16 +594,15 @@ class _SignupScreenState extends State<SignupScreen>
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
-        data: {'name': name},
+        data: {
+          'full_name': name,
+          'username': email.split('@').first,
+        },
       );
 
       if (response.user != null) {
-        // Create profile row in profiles table
-        await Supabase.instance.client.from('profiles').upsert({
-          'id': response.user!.id,
-          'name': name,
-          'email': email,
-        });
+        // The database trigger (fn_handle_new_user) automatically creates
+        // the profile row from auth.users — no direct insert needed here.
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', response.user!.id);
