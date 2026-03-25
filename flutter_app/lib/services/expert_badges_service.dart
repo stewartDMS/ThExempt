@@ -160,7 +160,7 @@ class ExpertBadgesService {
     final linkedCount = await _supabase
         .from('discussions')
         .select('id', const FetchOptions(count: CountOption.exact))
-        .eq('author_id', userId)
+        .eq('user_id', userId)
         .eq('stage', 'project_linked');
     if ((linkedCount.count ?? 0) >= 1) existing.add('Movement Builder');
 

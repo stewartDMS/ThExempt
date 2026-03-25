@@ -1668,14 +1668,14 @@ app.post('/api/discussions', authenticateToken, async (req, res) => {
     const { data, error } = await supabase
       .from('discussions')
       .insert({
-        author_id: req.user.id,
+        user_id: req.user.id,
         category,
         title,
         content,
         tags: tags || [],
         image_url: image_url || null,
       })
-      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
       .single();
 
     if (error) throw error;
@@ -1827,11 +1827,11 @@ app.post('/api/discussions/:id/replies', authenticateToken, async (req, res) => 
       .from('discussion_replies')
       .insert({
         discussion_id: id,
-        author_id: req.user.id,
+        user_id: req.user.id,
         parent_reply_id: parent_reply_id || null,
         content,
       })
-      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
       .single();
 
     if (error) throw error;
@@ -1867,7 +1867,7 @@ app.get('/api/discussions/:id/replies', async (req, res) => {
 
     const { data: replies, error } = await supabase
       .from('discussion_replies')
-      .select(`*, profiles:author_id (id, name, avatar_url)`)
+      .select(`*, profiles:user_id (id, name, avatar_url)`)
       .eq('discussion_id', id)
       .order('created_at', { ascending: true });
 

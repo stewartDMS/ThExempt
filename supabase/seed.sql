@@ -17,7 +17,7 @@ INSERT INTO profiles (id, username, full_name, bio, membership_tier, total_credi
 
 
 -- ─── Discussions ──────────────────────────────────────────────────────────
-INSERT INTO discussions (author_id, category, title, content, tags) VALUES
+INSERT INTO discussions (user_id, category, title, content, tags) VALUES
   ('USER_ID_1', 'world_problems',
    'Why is housing still unaffordable in 2024?',
    'Despite decades of policy debate, housing costs have outpaced wages everywhere. Let''s break down the structural causes and what communities can actually do.',
@@ -148,7 +148,7 @@ INSERT INTO follows (follower_id, following_id) VALUES
 
 
 -- ─── Project Update ───────────────────────────────────────────────────────
-INSERT INTO project_updates (project_id, author_id, title, content, update_type)
+INSERT INTO project_updates (project_id, user_id, title, content, update_type)
 SELECT
   p.id,
   'USER_ID_3',

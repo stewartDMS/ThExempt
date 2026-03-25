@@ -38,12 +38,12 @@ function createRouter(supabase, authenticateToken) {
 
       const { data: discussion, error: fetchErr } = await supabase
         .from('discussions')
-        .select('author_id')
+        .select('user_id')
         .eq('id', id)
         .single();
 
       if (fetchErr || !discussion) return res.status(404).json({ error: 'Discussion not found' });
-      if (discussion.author_id !== req.user.id) {
+      if (discussion.user_id !== req.user.id) {
         return res.status(403).json({ error: 'Only the discussion author can change the pipeline stage' });
       }
 
@@ -177,12 +177,12 @@ function createRouter(supabase, authenticateToken) {
 
       const { data: discussion, error: discErr } = await supabase
         .from('discussions')
-        .select('author_id')
+        .select('user_id')
         .eq('id', id)
         .single();
 
       if (discErr || !discussion) return res.status(404).json({ error: 'Discussion not found' });
-      if (discussion.author_id !== req.user.id) {
+      if (discussion.user_id !== req.user.id) {
         return res.status(403).json({ error: 'Only the discussion author can link a project' });
       }
 

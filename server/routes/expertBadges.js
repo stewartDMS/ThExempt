@@ -198,7 +198,7 @@ function createRouter(supabase, authenticateToken) {
       const { count: linkedDiscussions } = await supabase
         .from('discussions')
         .select('id', { count: 'exact', head: true })
-        .eq('author_id', userId)
+        .eq('user_id', userId)
         .eq('stage', 'project_linked');
 
       // Count resources contributed

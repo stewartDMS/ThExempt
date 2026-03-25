@@ -235,7 +235,7 @@ COMMENT ON COLUMN discussion_categories.is_systemic IS 'TRUE for high-priority s
 -- ----------------------------------------------------------------------------
 CREATE TABLE discussions (
   id            UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
-  author_id     UUID      NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id     UUID      NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
 
   -- Content
   category      TEXT      NOT NULL
@@ -288,7 +288,7 @@ COMMENT ON COLUMN discussions.linked_project_id IS 'Set when stage = project_lin
 CREATE TABLE discussion_replies (
   id              UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
   discussion_id   UUID      NOT NULL REFERENCES discussions(id) ON DELETE CASCADE,
-  author_id       UUID      NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id       UUID      NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   parent_reply_id UUID      REFERENCES discussion_replies(id) ON DELETE CASCADE,
 
   -- Content
@@ -987,7 +987,7 @@ COMMENT ON TABLE investments IS 'Credit investments in projects. equity_percenta
 CREATE TABLE project_updates (
   id           UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id   UUID    NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  author_id    UUID    NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id    UUID    NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
 
   title        TEXT    NOT NULL,
   content      TEXT    NOT NULL,
@@ -1014,7 +1014,7 @@ COMMENT ON TABLE project_updates IS 'Project owner announcements visible to back
 CREATE TABLE comments (
   id          UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
   update_id   UUID    NOT NULL REFERENCES project_updates(id) ON DELETE CASCADE,
-  author_id   UUID    NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id   UUID    NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   parent_id   UUID    REFERENCES comments(id) ON DELETE CASCADE,
 
   content     TEXT    NOT NULL,
@@ -1055,7 +1055,7 @@ CREATE INDEX idx_contributions_project     ON contributions(project_id);
 CREATE INDEX idx_contributions_status      ON contributions(status);
 
 -- discussions
-CREATE INDEX idx_discussions_author   ON discussions(author_id);
+CREATE INDEX idx_discussions_user     ON discussions(user_id);
 CREATE INDEX idx_discussions_category ON discussions(category);
 CREATE INDEX idx_discussions_created  ON discussions(created_at DESC);
 CREATE INDEX idx_discussions_trending ON discussions(likes_count DESC, replies_count DESC);
@@ -1065,7 +1065,7 @@ CREATE INDEX idx_discussions_tags     ON discussions USING GIN(tags);
 -- discussion_replies
 CREATE INDEX idx_replies_discussion ON discussion_replies(discussion_id);
 CREATE INDEX idx_replies_parent     ON discussion_replies(parent_reply_id) WHERE parent_reply_id IS NOT NULL;
-CREATE INDEX idx_replies_author     ON discussion_replies(author_id);
+CREATE INDEX idx_replies_user        ON discussion_replies(user_id);
 
 -- discussion_likes
 CREATE INDEX idx_discussion_likes_user       ON discussion_likes(user_id);
@@ -1180,11 +1180,11 @@ CREATE INDEX idx_investments_status   ON investments(status);
 
 -- project_updates
 CREATE INDEX idx_project_updates_project ON project_updates(project_id);
-CREATE INDEX idx_project_updates_author  ON project_updates(author_id);
+CREATE INDEX idx_project_updates_user  ON project_updates(user_id);
 
 -- comments
 CREATE INDEX idx_comments_update ON comments(update_id);
-CREATE INDEX idx_comments_author ON comments(author_id);
+CREATE INDEX idx_comments_user ON comments(user_id);
 CREATE INDEX idx_comments_parent ON comments(parent_id) WHERE parent_id IS NOT NULL;
 
 
@@ -1494,21 +1494,21 @@ CREATE POLICY "discussions_select_public"
   ON discussions FOR SELECT
   USING (deleted_at IS NULL AND is_archived = FALSE);
 CREATE POLICY "discussions_insert_authenticated"
-  ON discussions FOR INSERT WITH CHECK (auth.uid() = author_id);
+  ON discussions FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "discussions_update_own"
-  ON discussions FOR UPDATE USING (auth.uid() = author_id);
+  ON discussions FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "discussions_delete_own"
-  ON discussions FOR DELETE USING (auth.uid() = author_id);
+  ON discussions FOR DELETE USING (auth.uid() = user_id);
 
 -- ─── discussion_replies ────────────────────────────────────────────────────
 CREATE POLICY "replies_select_public"
   ON discussion_replies FOR SELECT USING (deleted_at IS NULL);
 CREATE POLICY "replies_insert_authenticated"
-  ON discussion_replies FOR INSERT WITH CHECK (auth.uid() = author_id);
+  ON discussion_replies FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "replies_update_own"
-  ON discussion_replies FOR UPDATE USING (auth.uid() = author_id);
+  ON discussion_replies FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "replies_delete_own"
-  ON discussion_replies FOR DELETE USING (auth.uid() = author_id);
+  ON discussion_replies FOR DELETE USING (auth.uid() = user_id);
 
 -- ─── discussion_likes ──────────────────────────────────────────────────────
 CREATE POLICY "discussion_likes_select_public"
@@ -1764,23 +1764,23 @@ CREATE POLICY "project_updates_select_public"
 CREATE POLICY "project_updates_insert_owner"
   ON project_updates FOR INSERT
   WITH CHECK (
-    auth.uid() = author_id
+    auth.uid() = user_id
     AND auth.uid() IN (SELECT owner_id FROM projects WHERE id = project_id)
   );
 CREATE POLICY "project_updates_update_owner"
-  ON project_updates FOR UPDATE USING (auth.uid() = author_id);
+  ON project_updates FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "project_updates_delete_owner"
-  ON project_updates FOR DELETE USING (auth.uid() = author_id);
+  ON project_updates FOR DELETE USING (auth.uid() = user_id);
 
 -- ─── comments ─────────────────────────────────────────────────────────────
 CREATE POLICY "comments_select_public"
   ON comments FOR SELECT USING (deleted_at IS NULL);
 CREATE POLICY "comments_insert_authenticated"
-  ON comments FOR INSERT WITH CHECK (auth.uid() = author_id);
+  ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "comments_update_own"
-  ON comments FOR UPDATE USING (auth.uid() = author_id);
+  ON comments FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "comments_delete_own"
-  ON comments FOR DELETE USING (auth.uid() = author_id);
+  ON comments FOR DELETE USING (auth.uid() = user_id);
 
 
 -- ============================================================================
@@ -1829,7 +1829,7 @@ SELECT
   d.id,
   d.title,
   d.category,
-  d.author_id,
+  d.user_id,
   d.likes_count,
   d.replies_count,
   d.views_count,
@@ -1839,7 +1839,7 @@ SELECT
   p.full_name   AS author_name,
   p.avatar_url  AS author_avatar
 FROM discussions d
-JOIN profiles p ON d.author_id = p.id
+JOIN profiles p ON d.user_id = p.id
 WHERE d.created_at > NOW() - INTERVAL '7 days'
   AND d.deleted_at  IS NULL
   AND d.is_archived = FALSE
@@ -1856,7 +1856,7 @@ SELECT
   d.content,
   d.category,
   d.tags,
-  d.author_id,
+  d.user_id,
   d.stage,
   d.votes_count,
   d.linked_project_id,
@@ -1890,7 +1890,7 @@ SELECT
     '[]'::JSON
   ) AS media
 FROM discussions d
-JOIN profiles p ON d.author_id = p.id
+JOIN profiles p ON d.user_id = p.id
 LEFT JOIN discussion_media dm ON d.id = dm.discussion_id
 WHERE d.deleted_at IS NULL
 GROUP BY d.id, p.id, p.full_name, p.avatar_url;

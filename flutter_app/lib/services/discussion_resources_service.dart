@@ -136,7 +136,7 @@ class DiscussionResourcesService {
         .from('discussions')
         .update({'stage': stage})
         .eq('id', discussionId)
-        .eq('author_id', userId);
+        .eq('user_id', userId);
   }
 
   /// Casts or updates a vote (+1 upvote / -1 downvote) on a discussion.
@@ -180,6 +180,7 @@ class DiscussionResourcesService {
           'linked_project_id': projectId,
         })
         .eq('id', discussionId)
-        .eq('author_id', userId);
+        .eq('user_id', userId);
   }
 }
+
