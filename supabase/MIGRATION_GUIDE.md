@@ -313,6 +313,60 @@ All schema evolution must follow this process to keep things tidy:
 4. **Update `docs/DATABASE.md`** if the change affects documented queries or
    behaviour.
 
+### Migration 003 — Add `category` column to `discussions`
+
+**File:** `supabase/migrations/003_add_category_to_discussions.sql`
+
+**What it does:**
+- Adds `category TEXT NULL` to `public.discussions` (nullable so existing rows
+  are unaffected).
+- Creates `idx_discussions_category` index for fast category-filter queries.
+
+**Apply it:**
+
+```sql
+-- Paste the contents of supabase/migrations/003_add_category_to_discussions.sql
+-- into the Supabase SQL Editor and click Run.
+-- Or via CLI:  supabase db push
+```
+
+**Verify:**
+
+```sql
+-- Column exists and is nullable
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name   = 'discussions'
+  AND column_name  = 'category';
+-- Expected: category | text | YES
+
+-- Index exists
+SELECT indexname FROM pg_indexes
+WHERE schemaname = 'public'
+  AND tablename  = 'discussions'
+  AND indexname  = 'idx_discussions_category';
+
+-- Insert without category (NULL)
+INSERT INTO public.discussions (user_id, title, content)
+VALUES ('<valid-user-uuid>', 'Test no-category', 'body')
+RETURNING id, category;   -- category should be NULL
+
+-- Insert with category
+INSERT INTO public.discussions (user_id, title, content, category)
+VALUES ('<valid-user-uuid>', 'Test with category', 'body', 'general')
+RETURNING id, category;   -- category should be 'general'
+```
+
+**Rollback:**
+
+```sql
+ALTER TABLE public.discussions DROP COLUMN IF EXISTS category;
+DROP INDEX IF EXISTS public.idx_discussions_category;
+```
+
+---
+
 ### v1.0 → vNext example (template)
 
 ```sql
