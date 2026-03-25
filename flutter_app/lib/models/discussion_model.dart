@@ -242,6 +242,7 @@ enum DiscussionCategory {
   feedback('feedback', '🐛 Feedback', 'Platform suggestions, bug reports'),
 
   // Phase 1 — systemic issue categories
+  democracy('democracy', '🏛️ Democracy', 'Voting rights, electoral reform, civic participation, open government'),
   climateCrisis('climate_crisis', '🌡️ Climate Crisis', 'Climate change, environmental justice, clean energy'),
   economicInequality('economic_inequality', '⚖️ Economic Inequality', 'Wealth gaps, fair wages, economic justice'),
   healthcareAccess('healthcare_access', '🏥 Healthcare Access', 'Universal healthcare, mental health, public health'),
@@ -249,7 +250,9 @@ enum DiscussionCategory {
   housingJustice('housing_justice', '🏠 Housing Justice', 'Affordable housing, homelessness, tenant rights'),
   criminalJustice('criminal_justice', '🔒 Criminal Justice', 'Policing reform, prison abolition, restorative justice'),
   immigrationJustice('immigration_justice', '🌐 Immigration Justice', 'Immigration reform, refugee support, human rights'),
-  mentalHealthCrisis('mental_health_crisis', '🧠 Mental Health Crisis', 'Mental health access, stigma reduction, support systems');
+  mentalHealthCrisis('mental_health_crisis', '🧠 Mental Health Crisis', 'Mental health access, stigma reduction, support systems'),
+  communityBuilding('community_building', '🤝 Community', 'Mutual aid, grassroots organizing, local resilience'),
+  technology('technology', '💻 Technology', 'Open source, digital rights, ethical AI, civic tech');
 
   const DiscussionCategory(this.value, this.label, this.description);
   final String value;
@@ -257,8 +260,9 @@ enum DiscussionCategory {
   final String description;
 
   bool get isSystemic => const {
-    'climate_crisis', 'economic_inequality', 'healthcare_access', 'education_reform',
+    'democracy', 'climate_crisis', 'economic_inequality', 'healthcare_access', 'education_reform',
     'housing_justice', 'criminal_justice', 'immigration_justice', 'mental_health_crisis',
+    'community_building', 'technology',
   }.contains(value);
 
   static DiscussionCategory? fromValue(String value) {

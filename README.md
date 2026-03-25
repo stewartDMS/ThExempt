@@ -64,6 +64,9 @@ ThExempt/
 - [x] Projects CRUD (create, read, update, delete)
 - [x] User profiles
 - [x] Basic UI components
+- [x] **Phase 1 — Enhanced discussion categories** (Democracy, Climate, Economic, Education, Healthcare, Justice, Community, Technology)
+- [x] **Phase 1 — "Turn this into a project" button** on discussion threads (pre-fills project form from discussion)
+- [x] **Phase 1 — Seed discussions** (5–10 sample discussions per systemic-change category in `supabase/seed.sql`)
 
 ### 🚧 In Progress
 - [ ] Enhanced landing page with movement messaging
@@ -74,28 +77,80 @@ ThExempt/
 
 ### 📋 Roadmap
 
-**Phase 1: Community Foundation** (4 weeks)
-- Enhanced discussions (Problem → Solution → Project pipeline)
-- Expert badges & trust system
-- Resource library
+#### **Phase 1: Community Foundation** (4 weeks) 🚀 *In Progress*
 
-**Phase 2: Movement Discovery** (3 weeks)
+**Goal:** Build the conversation layer
+
+| Feature | Status |
+|---------|--------|
+| Discussions system | ✅ Done |
+| Enhanced categories (systemic-change focused) | ✅ Done |
+| Problem → Solution → Project pipeline | ✅ Done — "Turn this into a project" button live |
+| Seed discussions (5–10 per category) | ✅ Done |
+| Expert badges & trust system | 🔜 Next |
+| Resource library in discussions | 🔜 Next |
+
+**New systemic-change categories available:**
+`democracy` · `climate_crisis` · `economic_inequality` · `healthcare_access` · `education_reform` · `housing_justice` · `criminal_justice` · `immigration_justice` · `mental_health_crisis` · `community_building` · `technology`
+
+#### **Phase 2: Movement Discovery** (3 weeks)
 - Changemakers directory
 - Skills marketplace
+- Map view of community
+- User profiles (impact-focused)
 - Collaboration requests
 
-**Phase 3: Financial Tools** (4 weeks)
+#### **Phase 3: Project Foundation** (4 weeks)
+- Enhanced project pages (problem/solution/impact)
+- Community endorsements
+- Progress tracking
+- Link projects ↔ discussions
+
+#### **Phase 4: Financial Tools** (4 weeks)
 - Membership tiers & Stripe
 - Credits system
 - Investment flow
+- Contribution tracking
 - Equity tracking
 
-**Phase 4: Skills Economy** (3 weeks)
+#### **Phase 5: Skills Economy** (3 weeks)
 - Skill offers/requests
-- Contribution tracking
+- Contribution proposals
+- Time tracking
 - Credit/equity rewards
+- Portfolio building
 
-Full roadmap: See `docs/ROADMAP.md`
+#### **Phase 6: Learning & Growth** (2 weeks)
+- Learning content library
+- Skill paths
+- Templates & guides
+- Webinar system
+
+#### **Phase 7: Impact & Gamification** (2 weeks)
+- Impact dashboard
+- Badges & achievements
+- Leaderboards (impact, not just $)
+- Monthly impact reports
+- Social sharing
+
+#### **Phase 8: Polish & Launch** (3 weeks)
+- Mobile responsive
+- Legal pages
+- Onboarding flow
+- Email system
+- Beta testing
+- Soft launch
+
+**Total: ~6 months** to full launch
+
+---
+
+## 🌱 Quick Wins (Month 1 — Phase 1)
+
+1. ✅ Enhanced discussions with systemic-change categories
+2. ✅ "Turn this into a project" button on all discussion threads
+3. ✅ Seed script for 5–10 sample discussions per category
+4. 🔜 Recruit 3–5 experts per category
 
 ---
 

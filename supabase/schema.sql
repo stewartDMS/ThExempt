@@ -270,7 +270,7 @@ CREATE TABLE discussions (
 );
 
 COMMENT ON TABLE  discussions IS 'Community discussion threads. Categories drive the Problem→Solution→Project pipeline.';
-COMMENT ON COLUMN discussions.category          IS 'Optional thread category. Values: world_problems | ideas | learning | live_events | networking | feedback | general | climate_crisis | economic_inequality | healthcare_access | education_reform | housing_justice | criminal_justice | immigration_justice | mental_health_crisis. Nullable to allow posts without a category.';
+COMMENT ON COLUMN discussions.category          IS 'Optional thread category. Values: world_problems | ideas | learning | live_events | networking | feedback | general | democracy | climate_crisis | economic_inequality | healthcare_access | education_reform | housing_justice | criminal_justice | immigration_justice | mental_health_crisis | community_building | technology. Nullable to allow posts without a category.';
 COMMENT ON COLUMN discussions.stage             IS 'Pipeline stage: problem → solution → project_proposal → project_linked';
 COMMENT ON COLUMN discussions.votes_count       IS 'Cached net vote tally (upvotes − downvotes); maintained by sync_discussion_votes_count trigger.';
 COMMENT ON COLUMN discussions.linked_project_id IS 'Set when stage = project_linked; points to the project that emerged from this discussion.';
