@@ -64,7 +64,7 @@ class Discussion {
     }
     return Discussion(
       id: json['id']?.toString() ?? '',
-      authorId: json['author_id']?.toString() ?? '',
+      authorId: json['user_id']?.toString() ?? '',
       authorName: profiles?['username'] ?? 'Unknown',
       authorAvatarUrl: profiles?['avatar_url'] as String?,
       category: json['category'] ?? '',
@@ -90,7 +90,7 @@ class Discussion {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'author_id': authorId,
+    'user_id': authorId,
     'category': category,
     'title': title,
     'content': content,
@@ -196,7 +196,7 @@ class DiscussionReply {
     return DiscussionReply(
       id: json['id']?.toString() ?? '',
       discussionId: json['discussion_id']?.toString() ?? '',
-      authorId: json['author_id']?.toString() ?? '',
+      authorId: json['user_id']?.toString() ?? '',
       authorName: profiles?['username'] ?? 'Unknown',
       authorAvatarUrl: profiles?['avatar_url'] as String?,
       parentReplyId: json['parent_reply_id'] as String?,

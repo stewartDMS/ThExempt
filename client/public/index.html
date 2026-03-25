@@ -2761,7 +2761,7 @@
       const avatarUrl = author.avatar_url || 'https://via.placeholder.com/38';
       const authorName = author.name || 'Unknown';
       const media = disc.media || [];
-      const isOwn = currentUser && currentUser.id === disc.author_id;
+      const isOwn = currentUser && currentUser.id === disc.user_id;
 
       const tagsHtml = (disc.tags || []).map(t => `<span class="disc-tag">${escapeHtml(t)}</span>`).join('');
 

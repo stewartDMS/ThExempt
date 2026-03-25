@@ -319,7 +319,7 @@ SELECT
   d.content,
   d.category,
   d.tags,
-  d.author_id,
+  d.user_id,
   d.stage,
   d.votes_count,
   d.linked_project_id,
@@ -353,7 +353,7 @@ SELECT
     '[]'::JSON
   ) AS media
 FROM discussions d
-JOIN profiles p ON d.author_id = p.id
+JOIN profiles p ON d.user_id = p.id
 LEFT JOIN discussion_media dm ON d.id = dm.discussion_id
 WHERE d.deleted_at IS NULL
 GROUP BY d.id, p.id, p.full_name, p.avatar_url;
