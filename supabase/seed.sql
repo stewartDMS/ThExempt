@@ -31,7 +31,111 @@ INSERT INTO discussions (user_id, category, title, content, tags) VALUES
   ('USER_ID_3', 'networking',
    'Looking for a Flutter co-founder with civic tech experience',
    'Building a platform to connect community organizers nationwide. Need a technical co-founder who cares as much about impact as code quality.',
-   ARRAY['co-founder', 'flutter', 'civic-tech', 'networking']);
+   ARRAY['co-founder', 'flutter', 'civic-tech', 'networking']),
+
+  -- Democracy
+  ('USER_ID_1', 'democracy',
+   'Ranked-choice voting: does it actually make elections fairer?',
+   'Several cities have adopted ranked-choice voting (RCV) to reduce spoiler effects and encourage consensus candidates. What does the evidence say—and how do we get more jurisdictions to try it?',
+   ARRAY['voting', 'electoral-reform', 'democracy', 'ranked-choice']),
+
+  ('USER_ID_2', 'democracy',
+   'Open-source voting platforms: building public trust in elections',
+   'Every line of code in an election system should be publicly auditable. Let''s discuss what an open-source, end-to-end verifiable voting system would look like and which organizations are already building them.',
+   ARRAY['open-source', 'elections', 'transparency', 'civic-tech']),
+
+  ('USER_ID_3', 'democracy',
+   'Why is voter turnout so low—and what actually works to fix it?',
+   'In the last midterms, fewer than 50% of eligible voters participated. Automatic voter registration, same-day registration, and voting holidays have all shown promise. What can local organizers do right now?',
+   ARRAY['voter-turnout', 'civic-engagement', 'policy', 'democracy']),
+
+  -- Climate
+  ('USER_ID_1', 'climate_crisis',
+   'Community solar co-ops: how to bring renewable energy to renters',
+   'Homeowners can put panels on their roofs—but what about the 36% of Americans who rent? Community solar programs let renters subscribe to a share of a local solar farm. Let''s map what''s working.',
+   ARRAY['solar', 'renewable-energy', 'cooperatives', 'climate']),
+
+  ('USER_ID_2', 'climate_crisis',
+   'Carbon budgets at the city level: a grassroots accountability tool',
+   'National pledges are too abstract. What if every city published a real-time carbon budget visible to residents? Discuss how to build the data infrastructure and political will for this.',
+   ARRAY['carbon', 'cities', 'accountability', 'climate-policy']),
+
+  ('USER_ID_3', 'climate_crisis',
+   'Urban farming networks: food sovereignty in the face of climate chaos',
+   'As supply chains become more fragile, decentralized urban agriculture offers resilience. How do we connect rooftop gardens, community plots, and food forests into a coordinated network?',
+   ARRAY['urban-farming', 'food-sovereignty', 'climate', 'community']),
+
+  -- Economic
+  ('USER_ID_1', 'economic_inequality',
+   'Local currency systems: keeping wealth circulating in communities',
+   'Bristol Pound, Berkshares, and dozens of other local currencies have shown that keeping money circulating locally creates jobs and reduces inequality. What does a digital version look like?',
+   ARRAY['local-currency', 'economics', 'community-wealth', 'fintech']),
+
+  ('USER_ID_2', 'economic_inequality',
+   'Worker-owned platforms vs. gig economy: what will it take to win?',
+   'Apps like Uber and DoorDash extract value from workers while offering none of the benefits of employment. What would a worker-owned ride-share or delivery cooperative look like? Who''s building them?',
+   ARRAY['worker-ownership', 'cooperatives', 'gig-economy', 'labor']),
+
+  ('USER_ID_3', 'economic_inequality',
+   'Universal basic income pilots: lessons learned so far',
+   'Stockton, Finland, Kenya—UBI experiments are multiplying. What patterns are emerging? How do we build the political will for a permanent program?',
+   ARRAY['ubi', 'basic-income', 'economic-policy', 'inequality']),
+
+  -- Education
+  ('USER_ID_1', 'education_reform',
+   'Peer-to-peer skill exchanges: learning without student debt',
+   'What if you could trade skills with your neighbors—coding for gardening, writing for design? Platforms like TimeBank are already doing this. How do we scale and legitimize peer learning?',
+   ARRAY['peer-learning', 'skills', 'education', 'debt-free']),
+
+  ('USER_ID_2', 'education_reform',
+   'Open educational resources: dismantling the textbook monopoly',
+   'Textbook publishers extract billions from students every year. OER (open educational resources) offer a path to free, high-quality curriculum. What''s stopping widespread adoption?',
+   ARRAY['oer', 'open-source', 'education', 'access']),
+
+  -- Healthcare
+  ('USER_ID_1', 'healthcare_access',
+   'Transparent drug pricing: breaking pharma monopolies community by community',
+   'Mark Cuban''s Cost Plus Drugs proved that generic medications can be sold at near-cost. How do we build community buying groups to extend this model to branded drugs and local pharmacies?',
+   ARRAY['healthcare', 'drug-pricing', 'pharma', 'community']),
+
+  ('USER_ID_2', 'healthcare_access',
+   'Community health workers: the most cost-effective healthcare innovation',
+   'Trained community health workers can dramatically improve outcomes for chronic disease management and maternal health—at a fraction of clinical costs. How do we fund and scale CHW programs?',
+   ARRAY['community-health', 'prevention', 'healthcare', 'equity']),
+
+  -- Justice
+  ('USER_ID_1', 'criminal_justice',
+   'Community defense funds: building legal support for activists',
+   'Organizers face arrest, legal harassment, and civil suits designed to silence them. Community defense funds provide rapid-response legal support. Let''s talk about how to structure them.',
+   ARRAY['legal', 'activism', 'defense', 'justice']),
+
+  ('USER_ID_3', 'criminal_justice',
+   'Restorative justice circles: what happens when communities lead healing',
+   'Traditional incarceration fails victims, offenders, and communities alike. Restorative justice practices center healing over punishment. Where is this working, and how do we expand it?',
+   ARRAY['restorative-justice', 'healing', 'community', 'prison-reform']),
+
+  -- Community
+  ('USER_ID_1', 'community_building',
+   'Mutual aid networks: digital tools for grassroots organizing',
+   'During COVID, mutual aid networks sprung up overnight using WhatsApp and spreadsheets. What purpose-built tools would make these networks more durable and scalable between crises?',
+   ARRAY['mutual-aid', 'organizing', 'community', 'tech']),
+
+  ('USER_ID_2', 'community_building',
+   'Third places: why we need more non-commercial community gathering spaces',
+   'Libraries, parks, and community centers are disappearing or defunded. Without third places, community ties fray. How do we fund and design new gathering spaces that everyone can access?',
+   ARRAY['community', 'public-space', 'belonging', 'urban-planning']),
+
+  -- Technology
+  ('USER_ID_2', 'technology',
+   'Open research collectives: science not owned by corporations',
+   'Paywalled journals and corporate IP lock up knowledge that should benefit everyone. What would a fully open, community-funded research collective look like? Who''s building it?',
+   ARRAY['open-science', 'research', 'knowledge-commons', 'technology']),
+
+  ('USER_ID_3', 'technology',
+   'Ethical AI auditing: how communities can hold algorithms accountable',
+   'Algorithmic systems make decisions about housing, bail, and hiring—with almost no public oversight. What tools and processes would allow affected communities to audit and challenge these systems?',
+   ARRAY['ai', 'accountability', 'ethics', 'digital-rights']);
+
 
 
 -- ─── Projects ─────────────────────────────────────────────────────────────

@@ -12,7 +12,17 @@ import '../../utils/layout_constants.dart';
 import '../../theme/app_colors.dart';
 
 class CreateProjectScreen extends StatefulWidget {
-  const CreateProjectScreen({super.key});
+  /// Optional pre-fill values when launching from a discussion thread.
+  final String? initialTitle;
+  final String? initialDescription;
+  final String? sourceDiscussionId;
+
+  const CreateProjectScreen({
+    super.key,
+    this.initialTitle,
+    this.initialDescription,
+    this.sourceDiscussionId,
+  });
 
   @override
   State<CreateProjectScreen> createState() => _CreateProjectScreenState();
@@ -31,6 +41,17 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   
   bool _isLoading = false;
   double _uploadProgress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialTitle != null) {
+      _titleController.text = widget.initialTitle!;
+    }
+    if (widget.initialDescription != null) {
+      _descriptionController.text = widget.initialDescription!;
+    }
+  }
 
   @override
   void dispose() {
@@ -118,7 +139,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Project'),
+        title: Text(widget.sourceDiscussionId != null
+            ? 'Turn into a Project'
+            : 'Create Project'),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -129,6 +152,32 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Source discussion banner
+                if (widget.sourceDiscussionId != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.primary.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.forum_outlined,
+                            color: AppColors.primary, size: 18),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Pre-filled from your discussion. Review and refine before publishing.',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 // Title field
                 TextFormField(
                   controller: _titleController,
@@ -331,7 +380,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   width: double.infinity,
                   height: 50,
                   child: LoadingButton(
-                    label: 'Create Project',
+                    label: widget.sourceDiscussionId != null
+                        ? 'Launch Project'
+                        : 'Create Project',
                     icon: Icons.add_circle_outline,
                     isLoading: _isLoading,
                     onPressed: _createProject,

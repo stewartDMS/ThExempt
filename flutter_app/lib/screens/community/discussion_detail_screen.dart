@@ -4,6 +4,7 @@ import '../../services/discussions_service.dart';
 import '../../widgets/reply_card.dart';
 import '../../widgets/common/media_gallery_widget.dart';
 import '../../utils/time_ago.dart';
+import '../projects/create_project_screen.dart';
 
 class DiscussionDetailScreen extends StatefulWidget {
   final String discussionId;
@@ -52,6 +53,19 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen> {
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _launchProjectFlow() async {
+    if (_discussion == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CreateProjectScreen(
+          initialTitle: _discussion!.title,
+          initialDescription: _discussion!.content,
+          sourceDiscussionId: _discussion!.id,
+        ),
+      ),
+    );
   }
 
   Future<void> _toggleLike() async {
@@ -243,6 +257,24 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen> {
                                       const SizedBox(width: 16),
                                       _StatItem(icon: Icons.visibility_outlined, count: _discussion!.viewsCount),
                                     ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Turn this into a project button
+                                  OutlinedButton.icon(
+                                    onPressed: _launchProjectFlow,
+                                    icon: const Icon(Icons.rocket_launch_outlined, size: 18),
+                                    label: const Text('Turn this into a project'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Theme.of(context).colorScheme.primary,
+                                      side: BorderSide(
+                                          color: Theme.of(context).colorScheme.primary.withAlpha(120)),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(24)),
+                                      textStyle: const TextStyle(
+                                          fontSize: 14, fontWeight: FontWeight.w600),
+                                    ),
                                   ),
                                 ],
                               ),

@@ -18,6 +18,7 @@ class DiscussionCategoriesScreen extends StatelessWidget {
     'feedback':             Color(0xFFE91E8C),
     'general':              Color(0xFF666666),
     // Phase 1 systemic categories
+    'democracy':            Color(0xFF1565C0),
     'climate_crisis':       Color(0xFFE53935),
     'economic_inequality':  Color(0xFFFB8C00),
     'healthcare_access':    Color(0xFFE91E63),
@@ -26,6 +27,8 @@ class DiscussionCategoriesScreen extends StatelessWidget {
     'criminal_justice':     Color(0xFF795548),
     'immigration_justice':  Color(0xFF607D8B),
     'mental_health_crisis': Color(0xFF9C27B0),
+    'community_building':   Color(0xFF43A047),
+    'technology':           Color(0xFF00ACC1),
   };
 
   @override
