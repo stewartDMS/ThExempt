@@ -16,6 +16,9 @@ import '../../widgets/common/filter_panel.dart';
 import '../../utils/error_handler.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/error_snackbar.dart';
+import '../discovery/changemakers_screen.dart';
+import '../discovery/skills_marketplace_screen.dart';
+import '../discovery/community_map_screen.dart';
 
 /// Calculates how well a user profile matches a given project.
 /// Returns an integer score in the range [0, 100].
@@ -36,7 +39,10 @@ class DiscoveryScreen extends StatefulWidget {
   State<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
 
-class _DiscoveryScreenState extends State<DiscoveryScreen> {
+class _DiscoveryScreenState extends State<DiscoveryScreen>
+    with SingleTickerProviderStateMixin {
+  // ─── Tab ──────────────────────────────────────────────────────────────────
+  late TabController _tabController;
   // ─── State ────────────────────────────────────────────────────────────────
   List<Project> _allProjects = [];
   UserProfile? _currentUser;
@@ -53,7 +59,14 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 4, vsync: this);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   // ─── Data loading ─────────────────────────────────────────────────────────
@@ -169,20 +182,45 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       appBar: AppBar(
         title: const Text('Discover'),
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.grey500,
+          indicatorColor: AppColors.primary,
+          isScrollable: true,
+          tabs: const [
+            Tab(text: 'Projects'),
+            Tab(text: 'Changemakers'),
+            Tab(text: 'Skills'),
+            Tab(text: 'Map'),
+          ],
+        ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // ── Search hint bar ───────────────────────────────────────────
-          _buildSearchHint(),
-
-          // ── Dropdown filter panel ─────────────────────────────────────
-          _buildFilters(),
-
-          // ── Main content ──────────────────────────────────────────────
-          Expanded(child: _buildBody()),
+          _buildProjectsTab(),
+          const ChangemakersScreen(),
+          const SkillsMarketplaceScreen(),
+          const CommunityMapScreen(),
         ],
       ),
+    );
+  }
+
+  Widget _buildProjectsTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Search hint bar ───────────────────────────────────────────
+        _buildSearchHint(),
+
+        // ── Dropdown filter panel ─────────────────────────────────────
+        _buildFilters(),
+
+        // ── Main content ──────────────────────────────────────────────
+        Expanded(child: _buildBody()),
+      ],
     );
   }
 
