@@ -120,7 +120,9 @@ class Project {
       rolesFilled: json['roles_filled'] ?? 0,
       problemStatement: json['problem_statement'] as String?,
       solutionApproach: json['solution_approach'] as String?,
-      impactMetrics: (json['impact_metrics'] as Map<String, dynamic>?) ?? {},
+      impactMetrics: json['impact_metrics'] is Map
+          ? Map<String, dynamic>.from(json['impact_metrics'] as Map)
+          : {},
       viewsCount: (json['views_count'] as num?)?.toInt(),
       likesCount: (json['likes_count'] as num?)?.toInt(),
       applicationsCount: (json['applications_count'] as num?)?.toInt(),

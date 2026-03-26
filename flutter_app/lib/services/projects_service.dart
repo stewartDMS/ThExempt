@@ -124,7 +124,7 @@ class ProjectsService {
           'required_skills': skills,
           'problem_statement': problemStatement,
           'solution_approach': solutionApproach,
-          if (impactMetrics != null) 'impact_metrics': impactMetrics,
+          'impact_metrics': impactMetrics ?? {},
         })
         .eq('id', projectId)
         .eq('owner_id', userId)

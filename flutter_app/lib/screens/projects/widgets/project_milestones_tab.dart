@@ -4,6 +4,10 @@ import '../../../models/milestone.dart';
 import '../../../models/project_stage.dart';
 import '../../../services/projects_service.dart';
 
+/// Formats a [DateTime] as a compact YYYY-MM-DD string.
+String _formatDate(DateTime d) =>
+    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
 class ProjectMilestonesTab extends StatefulWidget {
   final Project project;
   final bool isOwner;
@@ -126,7 +130,7 @@ class _ProjectMilestonesTabState extends State<ProjectMilestonesTab> {
                   icon: const Icon(Icons.calendar_today, size: 16),
                   label: Text(dueDate == null
                       ? 'Set Due Date (optional)'
-                      : 'Due: ${dueDate!.year}-${dueDate!.month.toString().padLeft(2, '0')}-${dueDate!.day.toString().padLeft(2, '0')}'),
+                      : 'Due: ${_formatDate(dueDate!)}'),
                 ),
               ],
             ),
@@ -388,7 +392,7 @@ class _DbMilestoneRow extends StatelessWidget {
                               size: 13, color: Colors.grey[500]),
                           const SizedBox(width: 4),
                           Text(
-                            'Due ${dueDate.year}-${dueDate.month.toString().padLeft(2, '0')}-${dueDate.day.toString().padLeft(2, '0')}',
+                            'Due ${_formatDate(dueDate)}',
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey[500]),
                           ),

@@ -90,7 +90,7 @@ class _ProjectEndorsementsTabState extends State<ProjectEndorsementsTab> {
         await ProjectsService.unendorseProject(widget.project.id);
         setState(() {
           _isEndorsed = false;
-          _endorsementsCount = (_endorsementsCount - 1).clamp(0, 999999);
+          if (_endorsementsCount > 0) _endorsementsCount--;
         });
       } else {
         // Optionally ask for a message
