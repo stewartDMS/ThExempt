@@ -238,4 +238,52 @@ class DiscussionsService {
     // Delete discussion
     await _supabase.from('discussions').delete().eq('id', discussionId);
   }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Phase 3 — Project ↔ Discussion linking helpers
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /// Returns discussions linked to [projectId] via the `linked_project_id`
+  /// foreign key (i.e. discussions whose pipeline stage resolved to this
+  /// project). Used on the project detail screen's Discussions tab.
+  static Future<List<Discussion>> getDiscussionsForProject(
+      String projectId) async {
+    try {
+      final response = await _supabase
+          .from('discussions')
+          .select(_discussionSelect)
+          .eq('linked_project_id', projectId)
+          .order('created_at', ascending: false)
+          .timeout(const Duration(seconds: 10));
+
+      return (response as List)
+          .map((json) => Discussion.fromJson(json))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Links a discussion to a project by updating `linked_project_id` and
+  /// advancing the stage to `project_linked`.
+  static Future<Discussion> linkDiscussionToProject({
+    required String discussionId,
+    required String projectId,
+  }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not authenticated');
+
+    final response = await _supabase
+        .from('discussions')
+        .update({
+          'linked_project_id': projectId,
+          'stage': 'project_linked',
+        })
+        .eq('id', discussionId)
+        .eq('user_id', userId)
+        .select(_discussionSelect)
+        .single();
+
+    return Discussion.fromJson(response);
+  }
 }

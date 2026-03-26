@@ -144,6 +144,7 @@ CREATE TABLE projects (
 
   -- Engagement counters (maintained by triggers)
   backers_count       INTEGER       NOT NULL DEFAULT 0 CHECK (backers_count >= 0),
+  endorsements_count  INTEGER       NOT NULL DEFAULT 0 CHECK (endorsements_count >= 0),
   views_count         INTEGER       NOT NULL DEFAULT 0 CHECK (views_count >= 0),
   likes_count         INTEGER       NOT NULL DEFAULT 0 CHECK (likes_count >= 0),
 
@@ -158,9 +159,10 @@ CREATE TABLE projects (
 );
 
 COMMENT ON TABLE  projects IS 'Fundable community projects. Users invest credits to earn equity; contributors earn credits and equity for work.';
-COMMENT ON COLUMN projects.equity_offered  IS 'Total percentage of project equity offered to all backers combined (0–100).';
-COMMENT ON COLUMN projects.impact_metrics  IS 'Free-form JSONB for tracking social/environmental impact metrics.';
-COMMENT ON COLUMN projects.deleted_at      IS 'Soft-delete timestamp.';
+COMMENT ON COLUMN projects.equity_offered       IS 'Total percentage of project equity offered to all backers combined (0–100).';
+COMMENT ON COLUMN projects.impact_metrics       IS 'Free-form JSONB for tracking social/environmental impact metrics.';
+COMMENT ON COLUMN projects.endorsements_count   IS 'Cached count of community endorsements; maintained by trigger.';
+COMMENT ON COLUMN projects.deleted_at           IS 'Soft-delete timestamp.';
 
 
 -- ----------------------------------------------------------------------------
@@ -1026,6 +1028,54 @@ COMMENT ON TABLE comments IS 'Threaded comments on project updates.';
 
 
 -- ============================================================================
+-- §8b  Phase 3 — Project Foundation
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- project_endorsements
+-- One row per (user, project) pair. Deleted to un-endorse. Trigger keeps
+-- projects.endorsements_count in sync.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS project_endorsements (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id  UUID        NOT NULL REFERENCES projects(id)  ON DELETE CASCADE,
+  user_id     UUID        NOT NULL REFERENCES profiles(id)  ON DELETE CASCADE,
+
+  message     TEXT,
+
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_endorsement UNIQUE (project_id, user_id)
+);
+
+COMMENT ON TABLE project_endorsements IS
+  'Community endorsements of projects. One row per user-project pair. Deleting the row removes the endorsement.';
+
+-- ----------------------------------------------------------------------------
+-- project_discussion_links
+-- Explicit M:M between projects and discussions (supplements
+-- discussions.linked_project_id for bi-directional look-ups and for linking
+-- related discussions that did not originally spawn the project).
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS project_discussion_links (
+  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id    UUID        NOT NULL REFERENCES projects(id)    ON DELETE CASCADE,
+  discussion_id UUID        NOT NULL REFERENCES discussions(id) ON DELETE CASCADE,
+
+  linked_by     UUID        NOT NULL REFERENCES profiles(id)    ON DELETE CASCADE,
+  link_type     TEXT        NOT NULL DEFAULT 'related'
+    CHECK (link_type IN ('source', 'related', 'update')),
+
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_project_discussion UNIQUE (project_id, discussion_id)
+);
+
+COMMENT ON TABLE project_discussion_links IS
+  'Explicit links between projects and discussions. link_type: source = discussion that spawned the project; related = tangentially related; update = discussion referencing project progress.';
+
+
+-- ============================================================================
 -- §9  Indexes
 -- ============================================================================
 
@@ -1182,6 +1232,12 @@ CREATE INDEX idx_comments_update ON comments(update_id);
 CREATE INDEX idx_comments_user ON comments(user_id);
 CREATE INDEX idx_comments_parent ON comments(parent_id) WHERE parent_id IS NOT NULL;
 
+-- Phase 3 — project_endorsements & project_discussion_links
+CREATE INDEX idx_endorsements_project  ON project_endorsements(project_id);
+CREATE INDEX idx_endorsements_user     ON project_endorsements(user_id);
+CREATE INDEX idx_pdlinks_project       ON project_discussion_links(project_id);
+CREATE INDEX idx_pdlinks_discussion    ON project_discussion_links(discussion_id);
+
 
 -- ============================================================================
 -- §10  Triggers
@@ -1212,6 +1268,25 @@ CREATE TRIGGER trg_comments_updated_at          BEFORE UPDATE ON comments       
 CREATE TRIGGER trg_discussion_categories_updated_at BEFORE UPDATE ON discussion_categories FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TRIGGER trg_discussion_resources_updated_at  BEFORE UPDATE ON discussion_resources  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TRIGGER trg_user_expertise_updated_at        BEFORE UPDATE ON user_expertise        FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Phase 3 — endorsements count trigger
+CREATE OR REPLACE FUNCTION sync_project_endorsements_count()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE projects SET endorsements_count = endorsements_count + 1 WHERE id = NEW.project_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE projects SET endorsements_count = GREATEST(endorsements_count - 1, 0) WHERE id = OLD.project_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER trg_endorsement_count
+  AFTER INSERT OR DELETE ON project_endorsements
+  FOR EACH ROW EXECUTE FUNCTION sync_project_endorsements_count();
 
 -- ─── Discussion like counters ───────────────────────────────────────────────
 
@@ -1445,6 +1520,10 @@ ALTER TABLE discussion_votes      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE discussion_resources  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_expertise        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expert_verifications  ENABLE ROW LEVEL SECURITY;
+
+-- Phase 3
+ALTER TABLE project_endorsements     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_discussion_links ENABLE ROW LEVEL SECURITY;
 
 -- ─── profiles ──────────────────────────────────────────────────────────────
 CREATE POLICY "profiles_select_public"
@@ -1776,6 +1855,29 @@ CREATE POLICY "comments_update_own"
   ON comments FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "comments_delete_own"
   ON comments FOR DELETE USING (auth.uid() = user_id);
+
+-- ─── Phase 3: project_endorsements ──────────────────────────────────────────
+CREATE POLICY "endorsements_select_public"
+  ON project_endorsements FOR SELECT USING (TRUE);
+CREATE POLICY "endorsements_insert_own"
+  ON project_endorsements FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "endorsements_delete_own"
+  ON project_endorsements FOR DELETE USING (auth.uid() = user_id);
+
+-- ─── Phase 3: project_discussion_links ──────────────────────────────────────
+CREATE POLICY "pdlinks_select_public"
+  ON project_discussion_links FOR SELECT USING (TRUE);
+CREATE POLICY "pdlinks_insert_owner"
+  ON project_discussion_links FOR INSERT
+  WITH CHECK (
+    auth.uid() = linked_by AND (
+      EXISTS (SELECT 1 FROM projects    p WHERE p.id = project_id    AND p.owner_id = auth.uid())
+      OR
+      EXISTS (SELECT 1 FROM discussions d WHERE d.id = discussion_id AND d.user_id  = auth.uid())
+    )
+  );
+CREATE POLICY "pdlinks_delete_owner"
+  ON project_discussion_links FOR DELETE USING (auth.uid() = linked_by);
 
 
 -- ============================================================================

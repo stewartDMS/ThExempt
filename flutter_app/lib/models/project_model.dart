@@ -18,10 +18,21 @@ class Project {
   final int totalRolesNeeded;
   final int rolesFilled;
 
+  // --- Phase 3: Problem / Solution / Impact structured fields ---
+  final String? problemStatement;
+  final String? solutionApproach;
+  final Map<String, dynamic> impactMetrics;
+
   /// Engagement metrics – populated from the database when available.
   final int? viewsCount;
   final int? likesCount;
   final int? applicationsCount;
+
+  /// Community endorsements count (Phase 3).
+  final int endorsementsCount;
+
+  /// Whether the current user has endorsed this project (Phase 3).
+  final bool isEndorsedByUser;
 
   // --- Extended tracking fields ---
   /// Total number of tasks for health-score calculation.
@@ -67,9 +78,14 @@ class Project {
     this.ownerAvatarUrl,
     this.totalRolesNeeded = 0,
     this.rolesFilled = 0,
+    this.problemStatement,
+    this.solutionApproach,
+    this.impactMetrics = const {},
     this.viewsCount,
     this.likesCount,
     this.applicationsCount,
+    this.endorsementsCount = 0,
+    this.isEndorsedByUser = false,
     this.totalTasks,
     this.completedTasks,
     this.overdueTasks,
@@ -102,9 +118,14 @@ class Project {
       ownerAvatarUrl: json['owner_avatar_url'] as String?,
       totalRolesNeeded: json['total_roles_needed'] ?? 0,
       rolesFilled: json['roles_filled'] ?? 0,
+      problemStatement: json['problem_statement'] as String?,
+      solutionApproach: json['solution_approach'] as String?,
+      impactMetrics: (json['impact_metrics'] as Map<String, dynamic>?) ?? {},
       viewsCount: (json['views_count'] as num?)?.toInt(),
       likesCount: (json['likes_count'] as num?)?.toInt(),
       applicationsCount: (json['applications_count'] as num?)?.toInt(),
+      endorsementsCount: (json['endorsements_count'] as num?)?.toInt() ?? 0,
+      isEndorsedByUser: json['is_endorsed_by_user'] == true,
       totalTasks: (json['total_tasks'] as num?)?.toInt(),
       completedTasks: (json['completed_tasks'] as num?)?.toInt(),
       overdueTasks: (json['overdue_tasks'] as num?)?.toInt(),
@@ -138,9 +159,13 @@ class Project {
       if (ownerAvatarUrl != null) 'owner_avatar_url': ownerAvatarUrl,
       'total_roles_needed': totalRolesNeeded,
       'roles_filled': rolesFilled,
+      if (problemStatement != null) 'problem_statement': problemStatement,
+      if (solutionApproach != null) 'solution_approach': solutionApproach,
+      'impact_metrics': impactMetrics,
       if (viewsCount != null) 'views_count': viewsCount,
       if (likesCount != null) 'likes_count': likesCount,
       if (applicationsCount != null) 'applications_count': applicationsCount,
+      'endorsements_count': endorsementsCount,
       if (totalTasks != null) 'total_tasks': totalTasks,
       if (completedTasks != null) 'completed_tasks': completedTasks,
       if (overdueTasks != null) 'overdue_tasks': overdueTasks,
@@ -153,5 +178,53 @@ class Project {
     };
   }
 
+  Project copyWith({
+    String? problemStatement,
+    String? solutionApproach,
+    Map<String, dynamic>? impactMetrics,
+    int? endorsementsCount,
+    bool? isEndorsedByUser,
+  }) {
+    return Project(
+      id: id,
+      title: title,
+      description: description,
+      ownerId: ownerId,
+      ownerName: ownerName,
+      requiredSkills: requiredSkills,
+      status: status,
+      stage: stage,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      videoUrl: videoUrl,
+      thumbnailUrl: thumbnailUrl,
+      ownerAvatarUrl: ownerAvatarUrl,
+      totalRolesNeeded: totalRolesNeeded,
+      rolesFilled: rolesFilled,
+      problemStatement: problemStatement ?? this.problemStatement,
+      solutionApproach: solutionApproach ?? this.solutionApproach,
+      impactMetrics: impactMetrics ?? this.impactMetrics,
+      viewsCount: viewsCount,
+      likesCount: likesCount,
+      applicationsCount: applicationsCount,
+      endorsementsCount: endorsementsCount ?? this.endorsementsCount,
+      isEndorsedByUser: isEndorsedByUser ?? this.isEndorsedByUser,
+      totalTasks: totalTasks,
+      completedTasks: completedTasks,
+      overdueTasks: overdueTasks,
+      taskProgress: taskProgress,
+      daysDelayed: daysDelayed,
+      viewsTrend: viewsTrend,
+      daysSinceLastActivity: daysSinceLastActivity,
+      totalXP: totalXP,
+      media: media,
+    );
+  }
+
   bool get hasMedia => media.isNotEmpty;
+  bool get hasProblemStatement =>
+      problemStatement != null && problemStatement!.isNotEmpty;
+  bool get hasSolutionApproach =>
+      solutionApproach != null && solutionApproach!.isNotEmpty;
+  bool get hasImpactMetrics => impactMetrics.isNotEmpty;
 }
