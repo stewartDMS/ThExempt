@@ -4,6 +4,7 @@ import '../../models/discussion_model.dart';
 import '../../utils/time_ago.dart';
 import '../../theme/app_colors.dart';
 import '../../screens/community/discussion_detail_screen.dart';
+import '../../screens/community/discussion_pipeline_panel.dart';
 import '../../services/discussions_service.dart';
 import '../../utils/error_handler.dart';
 import 'delete_confirmation_dialog.dart';
@@ -102,6 +103,10 @@ class DiscussionFeedCard extends StatelessWidget {
                   const Icon(Icons.push_pin_outlined,
                       size: 14, color: AppColors.grey500),
                 ],
+                if (discussion.stage != DiscussionStage.problem) ...[
+                  const SizedBox(width: 8),
+                  PipelineStageBadge(stage: discussion.stage),
+                ],
               ],
             ),
 
@@ -182,6 +187,20 @@ class DiscussionFeedCard extends StatelessWidget {
                   label: '${discussion.viewsCount}',
                   color: AppColors.grey500,
                 ),
+                if (discussion.votesCount != 0) ...[
+                  const SizedBox(width: 4),
+                  _EngagementBtn(
+                    icon: discussion.votesCount > 0
+                        ? Icons.thumb_up_outlined
+                        : Icons.thumb_down_outlined,
+                    label: discussion.votesCount > 0
+                        ? '+${discussion.votesCount}'
+                        : '${discussion.votesCount}',
+                    color: discussion.votesCount > 0
+                        ? AppColors.success
+                        : AppColors.error,
+                  ),
+                ],
                 const Spacer(),
                 _EngagementBtn(
                   icon: Icons.share_outlined,

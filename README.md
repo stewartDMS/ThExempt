@@ -67,6 +67,10 @@ ThExempt/
 - [x] **Phase 1 — Enhanced discussion categories** (Democracy, Climate, Economic, Education, Healthcare, Justice, Community, Technology)
 - [x] **Phase 1 — "Turn this into a project" button** on discussion threads (pre-fills project form from discussion)
 - [x] **Phase 1 — Seed discussions** (5–10 sample discussions per systemic-change category in `supabase/seed.sql`)
+- [x] **Phase 1 — Problem → Solution → Project pipeline UI** (stage stepper, community voting, stage advancement for authors)
+- [x] **Phase 1 — Resource Library** (attach links, documents, videos, images, datasets to any discussion; filter by type)
+- [x] **Phase 1 — Expert Badges & Trust System** (declare expertise, community endorsements, earned badges, trust scores)
+- [x] **Phase 1 — Enhanced category browsing** (filter between All / Systemic-Change / General categories; per-category stage filter)
 
 ### 🚧 In Progress
 - [ ] Enhanced landing page with movement messaging
@@ -77,21 +81,31 @@ ThExempt/
 
 ### 📋 Roadmap
 
-#### **Phase 1: Community Foundation** (4 weeks) 🚀 *In Progress*
+#### **Phase 1: Community Foundation** (4 weeks) ✅ *Complete*
 
 **Goal:** Build the conversation layer
 
 | Feature | Status |
 |---------|--------|
 | Discussions system | ✅ Done |
-| Enhanced categories (systemic-change focused) | ✅ Done |
-| Problem → Solution → Project pipeline | ✅ Done — "Turn this into a project" button live |
+| Enhanced categories (systemic-change focused) | ✅ Done — 18 categories, filter by systemic/general |
+| Problem → Solution → Project pipeline UI | ✅ Done — stage stepper, voting, author stage advancement |
+| Resource Library in discussions | ✅ Done — attach links, docs, videos, images, datasets |
+| Expert Badges & Trust System | ✅ Done — expertise declaration, community endorsements, badges |
 | Seed discussions (5–10 per category) | ✅ Done |
-| Expert badges & trust system | 🔜 Next |
-| Resource library in discussions | 🔜 Next |
 
 **New systemic-change categories available:**
 `democracy` · `climate_crisis` · `economic_inequality` · `healthcare_access` · `education_reform` · `housing_justice` · `criminal_justice` · `immigration_justice` · `mental_health_crisis` · `community_building` · `technology`
+
+**Phase 1 — Key User Flows:**
+
+1. **Category Browsing** → Filter categories by "Systemic Change" vs "General" → browse discussions per category → filter by pipeline stage (Problem / Solution / Proposal / Project)
+
+2. **Pipeline Progression** → In a discussion's "Pipeline" tab, view the stage stepper, cast upvote/downvote, and (as the author) advance the discussion from Problem → Solution → Project Proposal → Create Project
+
+3. **Resource Library** → In a discussion's "Resources" tab, view attached resources filtered by type, and add your own links, documents, videos, images, or datasets
+
+4. **Expert Profile** → Tap the shield icon in the Community hub, declare your expertise areas (e.g., "Climate Policy", "Healthcare Access"), earn badges based on trust score, and endorse other users' expertise
 
 #### **Phase 2: Movement Discovery** (3 weeks)
 - Changemakers directory
