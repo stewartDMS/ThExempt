@@ -23,14 +23,14 @@ class DiscussionResourcesService {
     var query = _supabase
         .from('discussion_resources')
         .select(_select)
-        .eq('discussion_id', discussionId)
-        .order('is_featured', ascending: false)
-        .order('created_at', ascending: false);
+        .eq('discussion_id', discussionId);
 
     if (type != null)    query = query.eq('resource_type', type);
     if (featuredOnly)    query = query.eq('is_featured', true);
 
-    final response = await query;
+    final response = await query
+        .order('is_featured', ascending: false)
+        .order('created_at', ascending: false);
     return (response as List)
         .map((r) => DiscussionResource.fromJson(r as Map<String, dynamic>))
         .toList();
