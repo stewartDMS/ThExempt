@@ -97,9 +97,10 @@ class ExpertBadgesService {
     if (verificationType == 'community') {
       final count = await _supabase
           .from('expert_verifications')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('user_expertise_id', expertiseId)
-          .eq('verification_type', 'community');
+          .eq('verification_type', 'community')
+          .count(CountOption.exact);
 
       if ((count.count ?? 0) >= 3) {
         final expertise = await _supabase
@@ -143,32 +144,36 @@ class ExpertBadgesService {
     // Verified Expert — has at least one expert_verified expertise entry
     final expertCount = await _supabase
         .from('user_expertise')
-        .select('id', const FetchOptions(count: CountOption.exact))
+        .select('id')
         .eq('user_id', userId)
-        .inFilter('level', ['expert_verified', 'platform_verified']);
+        .inFilter('level', ['expert_verified', 'platform_verified'])
+        .count(CountOption.exact);
     if ((expertCount.count ?? 0) >= 1) existing.add('Verified Expert');
 
     // Community Pillar — has given >= 10 community verifications
     final givenCount = await _supabase
         .from('expert_verifications')
-        .select('id', const FetchOptions(count: CountOption.exact))
+        .select('id')
         .eq('verified_by', userId)
-        .eq('verification_type', 'community');
+        .eq('verification_type', 'community')
+        .count(CountOption.exact);
     if ((givenCount.count ?? 0) >= 10) existing.add('Community Pillar');
 
     // Movement Builder — linked at least one discussion to a project
     final linkedCount = await _supabase
         .from('discussions')
-        .select('id', const FetchOptions(count: CountOption.exact))
+        .select('id')
         .eq('user_id', userId)
-        .eq('stage', 'project_linked');
+        .eq('stage', 'project_linked')
+        .count(CountOption.exact);
     if ((linkedCount.count ?? 0) >= 1) existing.add('Movement Builder');
 
     // Resource Contributor — added >= 5 discussion resources
     final resourceCount = await _supabase
         .from('discussion_resources')
-        .select('id', const FetchOptions(count: CountOption.exact))
-        .eq('uploaded_by', userId);
+        .select('id')
+        .eq('uploaded_by', userId)
+        .count(CountOption.exact);
     if ((resourceCount.count ?? 0) >= 5) existing.add('Resource Contributor');
 
     final badgeList = existing.toList();
