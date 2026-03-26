@@ -261,3 +261,98 @@ SELECT
   'funding'
 FROM projects p
 WHERE p.title = 'Open Source Community Land Trust Platform';
+
+
+-- ============================================================================
+-- Phase 3 — Project Foundation Seed Data
+-- ============================================================================
+
+-- ─── Update projects with Problem / Solution / Impact fields ─────────────────
+UPDATE projects
+SET
+  problem_statement = 'Millions of people are being priced out of housing due to speculative real estate markets driven by corporate landlords and investment funds. Community members have no way to reclaim ownership of their own neighborhoods.',
+  solution_approach  = 'A decentralized land trust model using open-source software that allows communities to collectively purchase and manage housing stock, removing it from the speculative market permanently.',
+  impact_metrics     = '{"households_stabilized": "500+", "communities_targeted": "12", "avg_rent_reduction": "35%", "land_acres_protected": "150"}'
+WHERE title = 'Open Source Community Land Trust Platform';
+
+
+-- ─── Phase 3: Project Milestones ─────────────────────────────────────────────
+INSERT INTO project_milestones (project_id, title, description, due_date, display_order)
+SELECT
+  p.id,
+  'Research & Community Engagement',
+  'Survey 200+ community members, document housing needs, identify target neighborhoods.',
+  NOW() + INTERVAL '1 month',
+  0
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform'
+UNION ALL
+SELECT
+  p.id,
+  'MVP Platform Build',
+  'Core land trust registry, member portal, and voting mechanisms.',
+  NOW() + INTERVAL '3 months',
+  1
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform'
+UNION ALL
+SELECT
+  p.id,
+  'Pilot in First Neighborhood',
+  'Launch with one partner neighborhood, onboard 20 households.',
+  NOW() + INTERVAL '6 months',
+  2
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform';
+
+-- Mark first milestone complete (demo data)
+UPDATE project_milestones
+SET completed_at = NOW() - INTERVAL '3 days'
+WHERE title = 'Research & Community Engagement';
+
+
+-- ─── Phase 3: Additional Project Updates ─────────────────────────────────────
+INSERT INTO project_updates (project_id, user_id, title, content, update_type)
+SELECT
+  p.id,
+  'USER_ID_3',
+  '🏁 Research milestone completed!',
+  'We finished surveying 230 community members across 3 neighborhoods. The data is clear: 78% say speculative pricing is the #1 threat to their community. Full report linked in Resources.',
+  'milestone'
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform'
+UNION ALL
+SELECT
+  p.id,
+  'USER_ID_3',
+  'New team members joining!',
+  'Excited to welcome two experienced housing advocates and a full-stack developer to the team. We''re now 5 strong and accelerating development.',
+  'team'
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform';
+
+
+-- ─── Phase 3: Project Endorsements ───────────────────────────────────────────
+INSERT INTO project_endorsements (project_id, user_id, message)
+SELECT
+  p.id,
+  'USER_ID_1',
+  'This is exactly the kind of structural solution we need. Community land trusts have worked in Vermont and Boston — scale it up!'
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform'
+UNION ALL
+SELECT
+  p.id,
+  'USER_ID_2',
+  'Backed! The open-source approach means other communities can fork and adapt this for their local context.'
+FROM projects p WHERE p.title = 'Open Source Community Land Trust Platform';
+
+
+-- ─── Phase 3: Project ↔ Discussion Links ─────────────────────────────────────
+-- Link any existing "housing_justice" discussions to the land trust project
+INSERT INTO project_discussion_links (project_id, discussion_id, linked_by, link_type)
+SELECT
+  p.id,
+  d.id,
+  'USER_ID_3',
+  'source'
+FROM projects p
+CROSS JOIN discussions d
+WHERE p.title = 'Open Source Community Land Trust Platform'
+  AND d.category = 'housing_justice'
+LIMIT 2
+ON CONFLICT (project_id, discussion_id) DO NOTHING;

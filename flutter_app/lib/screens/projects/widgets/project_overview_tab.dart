@@ -23,6 +23,31 @@ class ProjectOverviewTab extends StatelessWidget {
         children: [
           _buildQuickStats(context),
           const SizedBox(height: 16),
+          // Phase 3 — Problem / Solution / Impact cards
+          if (project.hasProblemStatement) ...[
+            _buildStructuredCard(
+              context,
+              icon: Icons.warning_amber_rounded,
+              iconColor: Colors.red[600]!,
+              title: 'Problem',
+              content: project.problemStatement!,
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (project.hasSolutionApproach) ...[
+            _buildStructuredCard(
+              context,
+              icon: Icons.lightbulb_outline,
+              iconColor: Colors.amber[700]!,
+              title: 'Solution Approach',
+              content: project.solutionApproach!,
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (project.hasImpactMetrics) ...[
+            _buildImpactMetricsCard(context),
+            const SizedBox(height: 12),
+          ],
           _buildHealthBreakdown(context),
           if (health.warnings.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -74,10 +99,10 @@ class ProjectOverviewTab extends StatelessWidget {
                   Colors.teal,
                 ),
                 _statItem(
-                  Icons.inbox_outlined,
-                  '${project.applicationsCount ?? 0}',
-                  'Applications',
-                  Colors.purple,
+                  Icons.thumb_up_alt_outlined,
+                  '${project.endorsementsCount}',
+                  'Endorsed',
+                  Colors.indigo,
                 ),
               ],
             ),
@@ -112,6 +137,103 @@ class ProjectOverviewTab extends StatelessWidget {
                 TextStyle(fontSize: 11, color: Colors.grey[600]),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Phase 3 — generic structured content card (Problem / Solution).
+  Widget _buildStructuredCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String content,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              content,
+              style: TextStyle(
+                  fontSize: 14, color: Colors.grey[700], height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Phase 3 — Impact Metrics card.
+  Widget _buildImpactMetricsCard(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.auto_graph, color: Colors.green[600], size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Impact Metrics',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: project.impactMetrics.entries.map((e) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: Colors.green[200]!),
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 12),
+                      children: [
+                        TextSpan(
+                          text: '${e.key}: ',
+                          style: TextStyle(
+                              color: Colors.green[800],
+                              fontWeight: FontWeight.w600),
+                        ),
+                        TextSpan(
+                          text: e.value.toString(),
+                          style: TextStyle(color: Colors.green[700]),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

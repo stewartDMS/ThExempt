@@ -13,6 +13,10 @@ import 'widgets/project_analytics_tab.dart';
 import 'widgets/project_resources_tab.dart';
 import 'widgets/project_activity_tab.dart';
 import 'widgets/project_chat_widget.dart';
+// Phase 3 tabs
+import 'widgets/project_endorsements_tab.dart';
+import 'widgets/project_updates_tab.dart';
+import 'widgets/project_linked_discussions_tab.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
@@ -45,6 +49,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     Tab(icon: Icon(Icons.analytics_outlined), text: 'Analytics'),
     Tab(icon: Icon(Icons.folder_outlined), text: 'Resources'),
     Tab(icon: Icon(Icons.timeline_outlined), text: 'Activity'),
+    // Phase 3
+    Tab(icon: Icon(Icons.thumb_up_alt_outlined), text: 'Endorsements'),
+    Tab(icon: Icon(Icons.campaign_outlined), text: 'Updates'),
+    Tab(icon: Icon(Icons.forum_outlined), text: 'Discussions'),
   ];
 
   @override
@@ -217,12 +225,23 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               controller: _tabController,
               children: [
                 ProjectOverviewTab(project: project, health: health),
-                ProjectMilestonesTab(project: project),
+                ProjectMilestonesTab(project: project, isOwner: _isOwner),
                 ProjectTeamTab(project: project, isOwner: _isOwner),
                 ProjectTasksTab(project: project, isTeamMember: _isOwner),
                 ProjectAnalyticsTab(project: project),
                 ProjectResourcesTab(project: project),
                 ProjectActivityTab(project: project),
+                // Phase 3
+                ProjectEndorsementsTab(
+                  project: project,
+                  currentUserId: _currentUserId,
+                  onProjectUpdated: (updated) {
+                    if (mounted) setState(() => _project = updated);
+                  },
+                ),
+                ProjectUpdatesTab(project: project, isOwner: _isOwner),
+                ProjectLinkedDiscussionsTab(
+                    project: project, isOwner: _isOwner),
               ],
             ),
             // Floating team chat (only visible to the project owner)

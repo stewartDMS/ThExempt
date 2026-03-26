@@ -71,10 +71,17 @@ ThExempt/
 - [x] **Phase 1 — Resource Library** (attach links, documents, videos, images, datasets to any discussion; filter by type)
 - [x] **Phase 1 — Expert Badges & Trust System** (declare expertise, community endorsements, earned badges, trust scores)
 - [x] **Phase 1 — Enhanced category browsing** (filter between All / Systemic-Change / General categories; per-category stage filter)
+- [x] **Phase 2 — Changemakers directory** (browse by skill / availability / location)
+- [x] **Phase 2 — Skills marketplace** (offer and request skills)
+- [x] **Phase 2 — Community map** (location-based changemaker view)
+- [x] **Phase 2 — Collaboration request workflow** (connect / join_project)
+- [x] **Phase 3 — Structured project fields** (Problem Statement, Solution Approach, Impact Metrics — stored in DB, displayed in project Overview tab)
+- [x] **Phase 3 — Community endorsements** (endorse/un-endorse any project; optional message; live count in Quick Stats)
+- [x] **Phase 3 — Progress tracking** (DB-backed milestones with due dates; owner can add, complete, delete; progress update posts with type labels)
+- [x] **Phase 3 — Project ↔ Discussion linking** (Discussions tab on project shows spawned + explicitly linked discussions; `project_discussion_links` M:M table)
 
 ### 🚧 In Progress
 - [ ] Enhanced landing page with movement messaging
-- [ ] Database schema for credits & investments
 - [ ] Membership tiers (Free, Changemaker, Movement Builder, Founding Partner)
 - [ ] Stripe integration for subscriptions
 - [ ] Project verification system
@@ -163,11 +170,69 @@ ThExempt/
 
 4. **Collaboration Request** → View any user profile → press "Connect" (app bar action) → request is sent → recipient sees it in their Notifications or can check via `CollaborationService.getIncomingRequests()`
 
-#### **Phase 3: Project Foundation** (4 weeks)
-- Enhanced project pages (problem/solution/impact)
-- Community endorsements
-- Progress tracking
-- Link projects ↔ discussions
+#### **Phase 3: Project Foundation** (4 weeks) ✅ *Complete*
+- Enhanced project pages with structured **Problem Statement**, **Solution Approach**, and **Impact Metrics** fields  
+- **Community Endorsements** — any authenticated user can endorse a project with an optional message; cached `endorsements_count` shown in Quick Stats
+- **Progress Tracking** — real DB-backed milestones (add, mark complete, delete); project owners can post progress updates with type labels (milestone/funding/team/media/general)
+- **Bi-directional Project ↔ Discussion Linking** — Discussions tab on each project shows spawned discussions (via `linked_project_id`) plus explicitly linked discussions; `project_discussion_links` table provides the M:M join
+
+**Phase 3 — New DB Objects:**
+- `project_endorsements` table + `endorsements_count` column on `projects` + trigger to keep it in sync
+- `project_discussion_links` table for explicit M:M project↔discussion relationships
+- RLS policies for both new tables (public select, authenticated insert own, delete own)
+- DB migration: `supabase/migrations/007_phase3_project_foundation.sql`
+
+**Phase 3 — New Flutter Models:**
+| File | Purpose |
+|------|---------|
+| `lib/models/project_endorsement_model.dart` | `ProjectEndorsement` — single endorsement row |
+| `lib/models/project_update_model.dart` | `ProjectUpdate` + `ProjectUpdateType` enum |
+
+**Phase 3 — New API Methods (`ProjectsService`):**
+| Method | Description |
+|--------|-------------|
+| `getEndorsements(projectId)` | List all endorsements for a project |
+| `hasUserEndorsed(projectId)` | Check if current user has already endorsed |
+| `endorseProject(projectId, message?)` | Create endorsement row |
+| `unendorseProject(projectId)` | Delete own endorsement |
+| `getProjectUpdates(projectId)` | List progress updates |
+| `addProjectUpdate(projectId, title, content, type)` | Post a new update |
+| `deleteProjectUpdate(updateId)` | Soft-delete an update |
+| `getLinkedDiscussions(projectId)` | Fetch all discussions linked to a project |
+| `linkDiscussion(projectId, discussionId, linkType)` | Create explicit link |
+| `unlinkDiscussion(projectId, discussionId)` | Remove link |
+| `getProjectMilestones(projectId)` | Fetch real milestones from DB |
+| `addMilestone(projectId, title, description?, dueDate?)` | Create milestone |
+| `completeMilestone(milestoneId)` | Mark complete |
+| `reopenMilestone(milestoneId)` | Reopen completed milestone |
+| `deleteMilestone(milestoneId)` | Remove milestone |
+| `createProject(…, problemStatement?, solutionApproach?, impactMetrics?)` | Extended to accept Phase 3 fields |
+| `updateProject(…, problemStatement?, solutionApproach?, impactMetrics?)` | Extended to accept Phase 3 fields |
+
+**Phase 3 — New Screens / Tabs:**
+| File | Purpose |
+|------|---------|
+| `widgets/project_endorsements_tab.dart` | Endorsement count, toggle button, list of endorsers |
+| `widgets/project_updates_tab.dart` | Progress update feed; owners can post new updates |
+| `widgets/project_linked_discussions_tab.dart` | Discussions linked to this project |
+
+**Phase 3 — Key User Flows:**
+
+1. **Endorse a project** → Project Detail → "Endorsements" tab → tap "Endorse this project" → optionally add a message → endorsement is recorded and count increments immediately
+
+2. **Post a progress update** (owner) → Project Detail → "Updates" tab → FAB "Post Update" → choose type (milestone/funding/team/media/general) → enter title & content → update appears in feed
+
+3. **View linked discussions** → Project Detail → "Discussions" tab → see all discussions that were the source of or are related to this project
+
+4. **Add a milestone** (owner) → Project Detail → "Milestones" tab → FAB "Add Milestone" → enter title, description, optional due date → milestone appears in DB-backed timeline; tap ⋮ to mark complete or delete
+
+5. **Create project with structured fields** → "Create Project" form now includes optional "Problem Statement" and "Solution Approach" text fields → displayed as dedicated cards in the Overview tab
+
+**Phase 3 — `DiscussionsService` additions:**
+| Method | Description |
+|--------|-------------|
+| `getDiscussionsForProject(projectId)` | Fetch discussions with `linked_project_id = projectId` |
+| `linkDiscussionToProject(discussionId, projectId)` | Set `linked_project_id` and advance stage to `project_linked` |
 
 #### **Phase 4: Financial Tools** (4 weeks)
 - Membership tiers & Stripe

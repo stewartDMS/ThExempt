@@ -32,6 +32,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  // Phase 3 — structured fields
+  final _problemController = TextEditingController();
+  final _solutionController = TextEditingController();
+  final Map<String, String> _impactMetrics = {};
   List<String> _selectedSkills = [];
   ProjectStage _selectedStage = ProjectStage.ideation;
   
@@ -57,6 +61,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _problemController.dispose();
+    _solutionController.dispose();
     super.dispose();
   }
 
@@ -79,6 +85,15 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         description: _descriptionController.text.trim(),
         skills: _selectedSkills,
         stage: _selectedStage,
+        problemStatement: _problemController.text.trim().isEmpty
+            ? null
+            : _problemController.text.trim(),
+        solutionApproach: _solutionController.text.trim().isEmpty
+            ? null
+            : _solutionController.text.trim(),
+        impactMetrics: _impactMetrics.isEmpty
+            ? null
+            : Map<String, dynamic>.from(_impactMetrics),
       );
 
       // Upload video if selected
@@ -225,6 +240,40 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   },
                   maxLines: 5,
                   maxLength: 1000,
+                ),
+                const SizedBox(height: 16),
+
+                // Phase 3 — Problem Statement field
+                TextFormField(
+                  controller: _problemController,
+                  decoration: InputDecoration(
+                    labelText: 'Problem Statement (optional)',
+                    hintText: 'What systemic problem does this project address?',
+                    prefixIcon: const Icon(Icons.warning_amber_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignLabelWithHint: true,
+                  ),
+                  maxLines: 3,
+                  maxLength: 500,
+                ),
+                const SizedBox(height: 16),
+
+                // Phase 3 — Solution Approach field
+                TextFormField(
+                  controller: _solutionController,
+                  decoration: InputDecoration(
+                    labelText: 'Solution Approach (optional)',
+                    hintText: 'How does this project solve the problem?',
+                    prefixIcon: const Icon(Icons.lightbulb_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignLabelWithHint: true,
+                  ),
+                  maxLines: 3,
+                  maxLength: 500,
                 ),
                 const SizedBox(height: 16),
 
