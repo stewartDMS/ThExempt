@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
 import '../../widgets/common/discussion_feed_card.dart';
+import '../../screens/community/discussion_pipeline_panel.dart';
 
 class CategoryDiscussionsScreen extends StatefulWidget {
   final String category;
@@ -23,6 +24,7 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
   String? _error;
   String _selectedSort = 'recent';
   String _search = '';
+  String? _selectedStage; // null = all stages
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -56,13 +58,20 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
     });
 
     try {
-      final result = await DiscussionsService.getDiscussions(
+      var result = await DiscussionsService.getDiscussions(
         category: widget.category,
         sort: _selectedSort,
         search: _search.isEmpty ? null : _search,
         limit: 20,
         offset: reset ? 0 : _discussions.length,
       );
+
+      // Client-side stage filter (server-side filtering can be added later)
+      if (_selectedStage != null) {
+        result = result
+            .where((d) => d.stage.value == _selectedStage)
+            .toList();
+      }
 
       if (mounted) {
         setState(() {
@@ -92,12 +101,12 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
       appBar: AppBar(
         title: Text(widget.category),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(120),
+          preferredSize: const Size.fromHeight(160),
           child: Column(
             children: [
               // Search bar
               Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: TextField(
                   onChanged: (value) {
                     setState(() => _search = value);
@@ -105,7 +114,7 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
                   },
                   decoration: InputDecoration(
                     hintText: 'Search discussions...',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -116,44 +125,83 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
               ),
               // Sort options
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    Text('Sort by: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                    SizedBox(width: 8),
-                    ChoiceChip(
-                      label: Text('Recent'),
-                      selected: _selectedSort == 'recent',
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedSort = 'recent');
-                          _loadDiscussions(reset: true);
-                        }
-                      },
-                    ),
-                    SizedBox(width: 8),
-                    ChoiceChip(
-                      label: Text('Popular'),
-                      selected: _selectedSort == 'popular',
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedSort = 'popular');
-                          _loadDiscussions(reset: true);
-                        }
-                      },
-                    ),
-                    SizedBox(width: 8),
-                    ChoiceChip(
-                      label: Text('Trending'),
-                      selected: _selectedSort == 'trending',
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedSort = 'trending');
-                          _loadDiscussions(reset: true);
-                        }
-                      },
-                    ),
-                  ],
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      const Text('Sort: ', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('Recent'),
+                        selected: _selectedSort == 'recent',
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _selectedSort = 'recent');
+                            _loadDiscussions(reset: true);
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('Popular'),
+                        selected: _selectedSort == 'popular',
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _selectedSort = 'popular');
+                            _loadDiscussions(reset: true);
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('Trending'),
+                        selected: _selectedSort == 'trending',
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _selectedSort = 'trending');
+                            _loadDiscussions(reset: true);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Stage filter
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      const Text('Stage: ', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(width: 6),
+                      ChoiceChip(
+                        label: const Text('All'),
+                        selected: _selectedStage == null,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _selectedStage = null);
+                            _loadDiscussions(reset: true);
+                          }
+                        },
+                      ),
+                      ...DiscussionStage.values.map((stage) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: ChoiceChip(
+                            label: Text(stage.label),
+                            selected: _selectedStage == stage.value,
+                            onSelected: (selected) {
+                              setState(() => _selectedStage = selected ? stage.value : null);
+                              _loadDiscussions(reset: true);
+                            },
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ],

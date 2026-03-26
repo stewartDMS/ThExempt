@@ -16,6 +16,7 @@ import 'discussion_categories_screen.dart';
 import 'create_discussion_screen.dart';
 import 'my_discussions_screen.dart';
 import '../live_events/events_home_screen.dart';
+import '../profile/expert_profile_screen.dart';
 
 class CommunityHubScreen extends StatefulWidget {
   const CommunityHubScreen({super.key});
@@ -106,6 +107,14 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             tooltip: 'Live Events',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const EventsHomeScreen()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.verified_outlined),
+            tooltip: 'My Expertise & Badges',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const ExpertProfileScreen()),
             ),
           ),
         ],
