@@ -29,6 +29,7 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
   late final TabController _tabController;
 
   static const _tabs = ['Discussion', 'Resources', 'Pipeline'];
+  static const _pipelineTabIndex = 2;
 
   @override
   void initState() {
@@ -282,7 +283,7 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
                                           _StatItem(
                                             icon: Icons.how_to_vote_outlined,
                                             count: _discussion!.votesCount,
-                                            onTap: () => _tabController.animateTo(2),
+                                            onTap: () => _tabController.animateTo(_pipelineTabIndex),
                                           ),
                                         ],
                                       ),

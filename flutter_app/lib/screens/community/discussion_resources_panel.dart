@@ -43,7 +43,12 @@ class _DiscussionResourcesPanelState extends State<DiscussionResourcesPanel> {
         widget.discussionId,
         type: _filterType,
       );
-      if (mounted) setState(() { _resources = resources; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _resources = resources;
+          _loading = false;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _loading = false);
     }

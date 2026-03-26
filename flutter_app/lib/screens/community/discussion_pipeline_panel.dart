@@ -176,7 +176,7 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
       case DiscussionStage.solution:
         return DiscussionStage.projectProposal;
       case DiscussionStage.projectProposal:
-        return null; // Advancing to project_linked is done via "Turn into project"
+        return null; // Advancing to projectLinked is done via "Create Project from This"
       case DiscussionStage.projectLinked:
         return null;
     }
