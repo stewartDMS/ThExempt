@@ -107,12 +107,61 @@ ThExempt/
 
 4. **Expert Profile** → Tap the shield icon in the Community hub, declare your expertise areas (e.g., "Climate Policy", "Healthcare Access"), earn badges based on trust score, and endorse other users' expertise
 
-#### **Phase 2: Movement Discovery** (3 weeks)
-- Changemakers directory
-- Skills marketplace
-- Map view of community
-- User profiles (impact-focused)
-- Collaboration requests
+#### **Phase 2: Movement Discovery** (3 weeks) ✅ *Complete*
+
+**Goal:** Connect changemakers and enable collaboration
+
+| Feature | Status |
+|---------|--------|
+| Changemakers directory (discover & filter users) | ✅ Done — skill/availability/location filters, reputation sort |
+| Skills marketplace (offers & requests) | ✅ Done — post skill offers, browse open skill requests |
+| Community map / location view | ✅ Done — groups changemakers by location, search by city |
+| User profiles with impact/activity focus | ✅ Done — impact stats, badges, project count, connect button |
+| Collaboration request workflow | ✅ Done — send/accept/decline/withdraw requests |
+
+**Phase 2 — New DB Objects:**
+
+- `collaboration_requests` table — sender, recipient, optional project, type (`connect` | `join_project`), status pipeline (`pending → accepted | declined | withdrawn`), RLS policies
+- `skill_offers` & `skill_requests` — RLS policies added (tables existed in base schema)
+
+**Phase 2 — New API Methods:**
+
+| Service | Method | Description |
+|---------|--------|-------------|
+| `ChangemakersService` | `getChangemakers(skillFilter, availabilityFilter, locationFilter, sort)` | Paginated user directory |
+| `ChangemakersService` | `getUsersBySkills(skills)` | Find users by skill overlap |
+| `ChangemakersService` | `getChangemakersWithLocation()` | All users with location (for map) |
+| `ChangemakersService` | `getUserImpactStats(userId)` | Projects, discussions, badges counts |
+| `CollaborationService` | `sendRequest(recipientId, requestType, projectId?, message?)` | Send collab request |
+| `CollaborationService` | `acceptRequest(requestId)` | Accept incoming request |
+| `CollaborationService` | `declineRequest(requestId)` | Decline incoming request |
+| `CollaborationService` | `withdrawRequest(requestId)` | Withdraw sent request |
+| `CollaborationService` | `getIncomingRequests()` | List pending incoming requests |
+| `CollaborationService` | `getOutgoingRequests()` | List sent requests |
+| `CollaborationService` | `getRequestStatus(otherUserId, projectId?)` | Check existing request status |
+| `SkillsService` | `getSkillOffers(skillCategory?)` | Browse active skill offers |
+| `SkillsService` | `createSkillOffer(title, description, skillCategories, ...)` | Post a skill offer |
+| `SkillsService` | `getSkillRequests(skillCategory?)` | Browse open skill requests |
+| `SkillsService` | `createSkillRequest(title, description, skillCategories, ...)` | Post a skill request |
+
+**Phase 2 — New Screens:**
+
+| Screen | File | Description |
+|--------|------|-------------|
+| Discover (tabbed) | `screens/feed/discovery_screen.dart` | 4 tabs: Projects · Changemakers · Skills · Map |
+| Changemakers | `screens/discovery/changemakers_screen.dart` | Directory with skill/availability filter |
+| Skills Marketplace | `screens/discovery/skills_marketplace_screen.dart` | Skill Offers & Requests tabs |
+| Community Map | `screens/discovery/community_map_screen.dart` | Location-grouped view |
+
+**Phase 2 — Key User Flows:**
+
+1. **Discover Changemakers** → Open the "Discover" tab → tap "Changemakers" → search by skill (e.g., "Climate Policy") → filter by "Available" / "Open to Collab" → tap a card to view their profile → press "Connect" to send a collaboration request
+
+2. **Skills Marketplace** → Discover tab → "Skills" → browse "Skill Offers" (people advertising their availability) or "Skill Requests" (projects seeking skills) → contact poster via their profile
+
+3. **Community Map** → Discover tab → "Map" → see changemakers grouped by city → tap an avatar to view their profile
+
+4. **Collaboration Request** → View any user profile → press "Connect" (app bar action) → request is sent → recipient sees it in their Notifications or can check via `CollaborationService.getIncomingRequests()`
 
 #### **Phase 3: Project Foundation** (4 weeks)
 - Enhanced project pages (problem/solution/impact)

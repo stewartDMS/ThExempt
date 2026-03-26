@@ -4,7 +4,15 @@ import '../../models/user_model.dart';
 import '../../models/project_model.dart';
 import '../../services/user_service.dart';
 import '../../services/projects_service.dart';
+import '../../services/changemakers_service.dart';
+import '../../services/collaboration_service.dart';
+import '../../models/collaboration_request_model.dart';
 import '../../screens/projects/project_detail_screen.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
+import '../../theme/text_styles.dart';
+import '../../utils/error_handler.dart';
+import '../../widgets/common/error_snackbar.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
@@ -19,7 +27,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   UserProfile? _user;
   List<Project> _projects = [];
   Map<String, int> _stats = {};
+  Map<String, dynamic> _impactStats = {};
   bool _isLoading = true;
+  bool _sendingRequest = false;
+  CollabRequestStatus? _requestStatus;
 
   @override
   void initState() {
@@ -34,13 +45,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         UserService.getProfile(widget.userId),
         ProjectsService.getUserProjects(widget.userId),
         UserService.getUserStats(widget.userId),
+        ChangemakersService.getUserImpactStats(widget.userId),
       ]);
+
+      // Check existing collaboration request status (best effort)
+      CollabRequestStatus? reqStatus;
+      try {
+        final existing = await CollaborationService.getRequestStatus(
+            otherUserId: widget.userId);
+        reqStatus = existing?.status;
+      } catch (_) {}
 
       if (mounted) {
         setState(() {
           _user = results[0] as UserProfile;
           _projects = results[1] as List<Project>;
           _stats = results[2] as Map<String, int>;
+          _impactStats = results[3] as Map<String, dynamic>;
+          _requestStatus = reqStatus;
           _isLoading = false;
         });
       }
@@ -50,6 +72,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load profile: $e')),
         );
+      }
+    }
+  }
+
+  Future<void> _sendCollabRequest() async {
+    setState(() => _sendingRequest = true);
+    try {
+      await CollaborationService.sendRequest(recipientId: widget.userId);
+      if (mounted) {
+        setState(() {
+          _requestStatus = CollabRequestStatus.pending;
+          _sendingRequest = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Connection request sent to ${_user?.name ?? 'user'}!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _sendingRequest = false);
+        final appError = e is AppError ? e : ErrorHandler.handleError(e);
+        ErrorSnackbar.show(context, appError);
       }
     }
   }
@@ -77,6 +124,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       appBar: AppBar(
         title: Text(_user?.name ?? 'Profile'),
         elevation: 0,
+        actions: [
+          if (!_isLoading && _user != null)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: _buildConnectButton(),
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -88,6 +142,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     _buildHeader(),
                     _buildStats(),
+                    _buildImpactSection(),
                     if (_user?.bio != null && _user!.bio!.isNotEmpty)
                       _buildBioSection(),
                     if (_user?.location != null && _user!.location!.isNotEmpty)
@@ -101,6 +156,138 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildConnectButton() {
+    if (_requestStatus == CollabRequestStatus.accepted) {
+      return const Chip(
+        label: Text('Connected'),
+        backgroundColor: AppColors.successLight,
+        labelStyle: TextStyle(color: AppColors.success, fontSize: 12),
+        padding: EdgeInsets.zero,
+      );
+    }
+    if (_requestStatus == CollabRequestStatus.pending) {
+      return const Chip(
+        label: Text('Pending'),
+        backgroundColor: AppColors.warningLight,
+        labelStyle: TextStyle(color: AppColors.warning, fontSize: 12),
+        padding: EdgeInsets.zero,
+      );
+    }
+    return _sendingRequest
+        ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.primary),
+          )
+        : TextButton(
+            onPressed: _sendCollabRequest,
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              ),
+            ),
+            child: const Text('Connect',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+          );
+  }
+
+  Widget _buildImpactSection() {
+    if (_impactStats.isEmpty) return const SizedBox.shrink();
+    final projectsCount = _impactStats['projects_count'] as int? ?? 0;
+    final discussionsCount = _impactStats['discussions_count'] as int? ?? 0;
+    final badges =
+        List<String>.from(_impactStats['badges'] as List? ?? []);
+
+    if (projectsCount == 0 && discussionsCount == 0 && badges.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.grey300.withAlpha(40),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bolt, size: 18, color: AppColors.primary),
+              const SizedBox(width: AppSpacing.xs),
+              Text('Impact & Activity',
+                  style: AppTextStyles.heading5
+                      .copyWith(color: AppColors.grey900)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              _impactChip('$projectsCount Projects', Icons.folder_outlined,
+                  AppColors.primary),
+              const SizedBox(width: AppSpacing.sm),
+              _impactChip('$discussionsCount Discussions',
+                  Icons.forum_outlined, AppColors.secondary),
+            ],
+          ),
+          if (badges.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: badges
+                  .map((b) => Chip(
+                        label: Text(b,
+                            style: AppTextStyles.caption
+                                .copyWith(color: AppColors.primary)),
+                        backgroundColor: AppColors.primaryContainer,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _impactChip(String label, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: AppColors.primaryContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: AppSpacing.xs),
+          Text(label,
+              style: AppTextStyles.caption.copyWith(color: color)),
+        ],
+      ),
     );
   }
 
