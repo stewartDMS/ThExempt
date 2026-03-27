@@ -8,6 +8,8 @@ import '../../main.dart';
 import '../../widgets/video_player_dialog.dart';
 import 'edit_profile_screen.dart';
 import 'my_applications_screen.dart';
+import '../wallet/wallet_screen.dart';
+import '../membership/membership_screen.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/text_styles.dart';
@@ -519,6 +521,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
                 icon: const Icon(Icons.description_outlined, size: 18),
                 label: const Text('Applications'),
+                style: OutlinedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const WalletScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.account_balance_wallet_outlined,
+                    size: 18),
+                label: const Text('My Wallet'),
+                style: OutlinedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MembershipScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.star_outline, size: 18),
+                label: const Text('Membership'),
                 style: OutlinedButton.styleFrom(
                   padding:
                       const EdgeInsets.symmetric(vertical: AppSpacing.md),
