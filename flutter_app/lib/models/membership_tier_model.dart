@@ -61,6 +61,9 @@ class MembershipTier {
   Color get color {
     try {
       final hex = badgeColor.replaceAll('#', '');
+      if (hex.length != 6 && hex.length != 8) {
+        return const Color(0xFF0A66C2);
+      }
       final value = int.parse(hex.length == 6 ? 'FF$hex' : hex, radix: 16);
       return Color(value);
     } catch (_) {

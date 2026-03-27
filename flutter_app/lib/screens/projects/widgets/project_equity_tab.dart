@@ -6,6 +6,9 @@ import '../../../services/financial_service.dart';
 import '../../../utils/time_ago.dart';
 import '../../../theme/app_colors.dart';
 
+const double _kMinEquityPct = 0.01;
+const double _kMaxEquityPct = 100.0;
+
 class ProjectEquityTab extends StatefulWidget {
   final Project project;
   final bool isOwner;
@@ -87,7 +90,7 @@ class _ProjectEquityTabState extends State<ProjectEquityTab> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
-                labelText: 'Equity % (0.01–100)',
+                labelText: 'Equity % ($_kMinEquityPct–$_kMaxEquityPct)',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -141,17 +144,16 @@ class _ProjectEquityTabState extends State<ProjectEquityTab> {
       return;
     }
 
-    if (percentage == null || percentage <= 0 || percentage > 100) {
+    if (percentage == null || percentage < _kMinEquityPct || percentage > _kMaxEquityPct) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Enter a valid percentage between 0.01 and 100')),
+          SnackBar(content: Text('Enter a valid percentage between $_kMinEquityPct and $_kMaxEquityPct')),
         );
       }
       return;
     }
 
-    if (_totalEquityGranted + percentage > 100) {
+    if (_totalEquityGranted + percentage > _kMaxEquityPct) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -271,9 +273,9 @@ class _ProjectEquityTabState extends State<ProjectEquityTab> {
               const Icon(Icons.pie_chart_outline,
                   size: 22, color: AppColors.primary),
               const SizedBox(width: 8),
-              Text(
+              const Text(
                 'Equity Distribution',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),

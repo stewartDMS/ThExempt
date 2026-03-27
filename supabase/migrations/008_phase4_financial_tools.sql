@@ -87,6 +87,9 @@ create index if not exists idx_project_investments_project_id
   on project_investments(project_id);
 create index if not exists idx_project_investments_user_id
   on project_investments(user_id);
+-- Composite index to optimize the SUM(credits_amount) aggregation in the trigger
+create index if not exists idx_project_investments_project_credits
+  on project_investments(project_id, credits_amount);
 
 -- ──────────────────────────────────────────────────────────────────────────
 -- project_contributions

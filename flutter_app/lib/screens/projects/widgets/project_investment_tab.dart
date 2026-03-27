@@ -5,6 +5,9 @@ import '../../../services/financial_service.dart';
 import '../../../utils/time_ago.dart';
 import '../../../theme/app_colors.dart';
 
+const int _kMinInvestment = 1;
+const int _kMaxInvestment = 999;
+
 class ProjectInvestmentTab extends StatefulWidget {
   final Project project;
   final String? currentUserId;
@@ -93,7 +96,7 @@ class _ProjectInvestmentTabState extends State<ProjectInvestmentTab> {
               controller: creditsController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Credits (1-999)',
+                labelText: 'Credits ($_kMinInvestment–$_kMaxInvestment)',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -128,10 +131,10 @@ class _ProjectInvestmentTabState extends State<ProjectInvestmentTab> {
     if (confirmed != true) return;
 
     final raw = int.tryParse(creditsController.text.trim());
-    if (raw == null || raw < 1 || raw > 999) {
+    if (raw == null || raw < _kMinInvestment || raw > _kMaxInvestment) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enter a valid amount between 1 and 999')),
+          SnackBar(content: Text('Enter a valid amount between $_kMinInvestment and $_kMaxInvestment')),
         );
       }
       return;
