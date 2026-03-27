@@ -234,12 +234,62 @@ ThExempt/
 | `getDiscussionsForProject(projectId)` | Fetch discussions with `linked_project_id = projectId` |
 | `linkDiscussionToProject(discussionId, projectId)` | Set `linked_project_id` and advance stage to `project_linked` |
 
-#### **Phase 4: Financial Tools** (4 weeks)
-- Membership tiers & Stripe
-- Credits system
-- Investment flow
-- Contribution tracking
-- Equity tracking
+#### **Phase 4: Financial Tools** (4 weeks) ✅ *Complete*
+- **Membership Tiers** — Free, Supporter ($9.99/mo), Changemaker ($24.99/mo) tiers seeded in DB; `MembershipScreen` shows current plan and upgrade CTAs (Stripe pending)
+- **Credits System** — `credit_balances` + `credit_transactions` tables; `WalletScreen` shows balance and full transaction history with type icons
+- **Investment Flow** — users can invest credits in any project; `project_investments` table with per-user upsert; `projects.total_invested` / `investor_count` kept in sync by DB trigger
+- **Contribution Tracking** — any authenticated user can record credits/skills/time/other contributions via the new "Contributors" tab
+- **Equity Tracking** — project owners can grant equity percentages to contributors; "Equity" tab shows distribution with total percentage guard
+
+**Phase 4 — New DB Tables (migration 008):**
+- `membership_tiers` — plan catalogue (name, slug, pricing, features, badge color)
+- `user_memberships` — one active membership per user; status in (`active`, `cancelled`, `expired`)
+- `credit_balances` — running credit total per user (balance ≥ 0)
+- `credit_transactions` — immutable ledger of all credit events (earn/spend/purchase/refund/invest/receive_investment)
+- `project_investments` — one investment record per (project, user); triggers sync `projects.total_invested` + `investor_count`
+- `project_contributions` — many contribution records per project (credits/skills/time/other)
+- `project_equity` — unique equity grant per (project, user); percentage validated 0.01–100
+
+**Phase 4 — New Flutter Models:**
+`MembershipTier`, `UserMembership`, `CreditBalance`, `CreditTransaction`, `ProjectInvestment`, `ProjectContribution`, `ProjectEquity`
+
+**Phase 4 — New Service (`FinancialService`):**
+| Method | Description |
+|--------|-------------|
+| `getMembershipTiers()` | All active tiers ordered by sort_order |
+| `getUserMembership(userId)` | Active membership with tier join |
+| `getCreditBalance(userId)` | User's current credit balance |
+| `getCreditTransactions(userId)` | Last 50 transactions desc |
+| `getProjectInvestments(projectId)` | All investors with profile join |
+| `getUserInvestment(projectId)` | Current user's own investment |
+| `investInProject(projectId, amount)` | Upsert investment (idempotent) |
+| `getProjectContributions(projectId)` | All contributions with profile join |
+| `addContribution(projectId, type, desc)` | Insert new contribution |
+| `getProjectEquity(projectId)` | All equity grants with profile join |
+
+**Phase 4 — New Screens / Tabs:**
+| Screen | Path | Notes |
+|--------|------|-------|
+| `WalletScreen` | `screens/wallet/wallet_screen.dart` | Balance card + transaction history |
+| `MembershipScreen` | `screens/membership/membership_screen.dart` | Tier cards with upgrade CTAs |
+| `ProjectInvestmentTab` | `screens/projects/widgets/project_investment_tab.dart` | Stats + invest dialog |
+| `ProjectContributorsTab` | `screens/projects/widgets/project_contributors_tab.dart` | Contribution list + add dialog |
+| `ProjectEquityTab` | `screens/projects/widgets/project_equity_tab.dart` | Equity distribution + grant dialog |
+
+**Phase 4 — Key User Flows:**
+
+1. **Check wallet** → Profile → "My Wallet" → see credit balance and full transaction history; tap "Buy Credits" → Stripe coming soon SnackBar
+
+2. **Upgrade membership** → Profile → "Membership" → browse Free/Supporter/Changemaker plans → tap "Upgrade" → Stripe coming soon SnackBar
+
+3. **Invest in a project** → Project Detail → "Invest" tab → tap "Invest Credits" → enter amount (1–999) + optional message → credits are upserted; stats update immediately
+
+4. **Log a contribution** → Project Detail → "Contributors" tab → tap "Add Contribution" → pick type (credits/skills/time/other), enter description and optional amount
+
+5. **Grant equity** (project owner) → Project Detail → "Equity" tab → tap "Grant Equity" → enter recipient user ID, percentage, and description; total equity guard warns if would exceed 100%
+
+> **Note:** Stripe payment integration is scaffolded. All payment buttons show "Stripe integration coming soon" until production keys are configured.
+
 
 #### **Phase 5: Skills Economy** (3 weeks)
 - Skill offers/requests

@@ -17,6 +17,10 @@ import 'widgets/project_chat_widget.dart';
 import 'widgets/project_endorsements_tab.dart';
 import 'widgets/project_updates_tab.dart';
 import 'widgets/project_linked_discussions_tab.dart';
+// Phase 4 tabs
+import 'widgets/project_investment_tab.dart';
+import 'widgets/project_contributors_tab.dart';
+import 'widgets/project_equity_tab.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
@@ -53,6 +57,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     Tab(icon: Icon(Icons.thumb_up_alt_outlined), text: 'Endorsements'),
     Tab(icon: Icon(Icons.campaign_outlined), text: 'Updates'),
     Tab(icon: Icon(Icons.forum_outlined), text: 'Discussions'),
+    // Phase 4
+    Tab(icon: Icon(Icons.trending_up_outlined), text: 'Invest'),
+    Tab(icon: Icon(Icons.volunteer_activism_outlined), text: 'Contributors'),
+    Tab(icon: Icon(Icons.pie_chart_outline), text: 'Equity'),
   ];
 
   @override
@@ -242,6 +250,23 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 ProjectUpdatesTab(project: project, isOwner: _isOwner),
                 ProjectLinkedDiscussionsTab(
                     project: project, isOwner: _isOwner),
+                // Phase 4
+                ProjectInvestmentTab(
+                  project: project,
+                  currentUserId: _currentUserId,
+                  onProjectUpdated: (updated) {
+                    if (mounted) setState(() => _project = updated);
+                  },
+                ),
+                ProjectContributorsTab(
+                  project: project,
+                  currentUserId: _currentUserId,
+                  isOwner: _isOwner,
+                ),
+                ProjectEquityTab(
+                  project: project,
+                  isOwner: _isOwner,
+                ),
               ],
             ),
             // Floating team chat (only visible to the project owner)

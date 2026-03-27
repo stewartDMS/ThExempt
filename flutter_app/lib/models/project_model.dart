@@ -34,6 +34,10 @@ class Project {
   /// Whether the current user has endorsed this project (Phase 3).
   final bool isEndorsedByUser;
 
+  // --- Phase 4: Investment stats ---
+  final int totalInvested;
+  final int investorCount;
+
   // --- Extended tracking fields ---
   /// Total number of tasks for health-score calculation.
   final int? totalTasks;
@@ -86,6 +90,8 @@ class Project {
     this.applicationsCount,
     this.endorsementsCount = 0,
     this.isEndorsedByUser = false,
+    this.totalInvested = 0,
+    this.investorCount = 0,
     this.totalTasks,
     this.completedTasks,
     this.overdueTasks,
@@ -128,6 +134,8 @@ class Project {
       applicationsCount: (json['applications_count'] as num?)?.toInt(),
       endorsementsCount: (json['endorsements_count'] as num?)?.toInt() ?? 0,
       isEndorsedByUser: json['is_endorsed_by_user'] == true,
+      totalInvested: (json['total_invested'] as num?)?.toInt() ?? 0,
+      investorCount: (json['investor_count'] as num?)?.toInt() ?? 0,
       totalTasks: (json['total_tasks'] as num?)?.toInt(),
       completedTasks: (json['completed_tasks'] as num?)?.toInt(),
       overdueTasks: (json['overdue_tasks'] as num?)?.toInt(),
@@ -168,6 +176,8 @@ class Project {
       if (likesCount != null) 'likes_count': likesCount,
       if (applicationsCount != null) 'applications_count': applicationsCount,
       'endorsements_count': endorsementsCount,
+      'total_invested': totalInvested,
+      'investor_count': investorCount,
       if (totalTasks != null) 'total_tasks': totalTasks,
       if (completedTasks != null) 'completed_tasks': completedTasks,
       if (overdueTasks != null) 'overdue_tasks': overdueTasks,
@@ -186,6 +196,8 @@ class Project {
     Map<String, dynamic>? impactMetrics,
     int? endorsementsCount,
     bool? isEndorsedByUser,
+    int? totalInvested,
+    int? investorCount,
   }) {
     return Project(
       id: id,
@@ -211,6 +223,8 @@ class Project {
       applicationsCount: applicationsCount,
       endorsementsCount: endorsementsCount ?? this.endorsementsCount,
       isEndorsedByUser: isEndorsedByUser ?? this.isEndorsedByUser,
+      totalInvested: totalInvested ?? this.totalInvested,
+      investorCount: investorCount ?? this.investorCount,
       totalTasks: totalTasks,
       completedTasks: completedTasks,
       overdueTasks: overdueTasks,
