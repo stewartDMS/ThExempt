@@ -25,9 +25,16 @@ import 'widgets/project_equity_tab.dart';
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
 
+  /// Optional tab index to open on first load (e.g. [investTabIndex] = Invest tab).
+  final int initialTabIndex;
+
+  /// Index of the Invest tab – use this when navigating to the invest/contribute flow.
+  static const int investTabIndex = 2;
+
   const ProjectDetailScreen({
     super.key,
     required this.projectId,
+    this.initialTabIndex = 0,
   });
 
   @override
@@ -45,20 +52,20 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   String? _currentUserId;
   String? _currentUserName;
 
+  // Primary (always visible first in the scrollable bar)
   static const _tabs = [
     Tab(icon: Icon(Icons.dashboard_outlined), text: 'Overview'),
     Tab(icon: Icon(Icons.flag_outlined), text: 'Milestones'),
+    Tab(icon: Icon(Icons.trending_up_outlined), text: 'Invest'),
     Tab(icon: Icon(Icons.people_outline), text: 'Team'),
-    Tab(icon: Icon(Icons.check_circle_outline), text: 'Tasks'),
-    Tab(icon: Icon(Icons.analytics_outlined), text: 'Analytics'),
-    Tab(icon: Icon(Icons.folder_outlined), text: 'Resources'),
-    Tab(icon: Icon(Icons.timeline_outlined), text: 'Activity'),
-    // Phase 3
     Tab(icon: Icon(Icons.thumb_up_alt_outlined), text: 'Endorsements'),
     Tab(icon: Icon(Icons.campaign_outlined), text: 'Updates'),
+    // Secondary (scrolled to)
+    Tab(icon: Icon(Icons.check_circle_outline), text: 'Tasks'),
+    Tab(icon: Icon(Icons.timeline_outlined), text: 'Activity'),
+    Tab(icon: Icon(Icons.analytics_outlined), text: 'Analytics'),
+    Tab(icon: Icon(Icons.folder_outlined), text: 'Resources'),
     Tab(icon: Icon(Icons.forum_outlined), text: 'Discussions'),
-    // Phase 4
-    Tab(icon: Icon(Icons.trending_up_outlined), text: 'Invest'),
     Tab(icon: Icon(Icons.volunteer_activism_outlined), text: 'Contributors'),
     Tab(icon: Icon(Icons.pie_chart_outline), text: 'Equity'),
   ];
@@ -66,7 +73,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, _tabs.length - 1),
+    );
     _loadCurrentUser();
     _loadProject();
   }
@@ -205,6 +216,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     ));
                   },
                 ),
+              IconButton(
+                icon: const Icon(Icons.bookmark_border_outlined),
+                tooltip: 'Save project',
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(Icons.share_outlined),
+                tooltip: 'Share project',
+                onPressed: () {},
+              ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.parallax,
@@ -232,25 +253,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
             TabBarView(
               controller: _tabController,
               children: [
+                // 0 - Overview
                 ProjectOverviewTab(project: project, health: health),
+                // 1 - Milestones
                 ProjectMilestonesTab(project: project, isOwner: _isOwner),
-                ProjectTeamTab(project: project, isOwner: _isOwner),
-                ProjectTasksTab(project: project, isTeamMember: _isOwner),
-                ProjectAnalyticsTab(project: project),
-                ProjectResourcesTab(project: project),
-                ProjectActivityTab(project: project),
-                // Phase 3
-                ProjectEndorsementsTab(
-                  project: project,
-                  currentUserId: _currentUserId,
-                  onProjectUpdated: (updated) {
-                    if (mounted) setState(() => _project = updated);
-                  },
-                ),
-                ProjectUpdatesTab(project: project, isOwner: _isOwner),
-                ProjectLinkedDiscussionsTab(
-                    project: project, isOwner: _isOwner),
-                // Phase 4
+                // 2 - Invest
                 ProjectInvestmentTab(
                   project: project,
                   currentUserId: _currentUserId,
@@ -258,11 +265,36 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     if (mounted) setState(() => _project = updated);
                   },
                 ),
+                // 3 - Team
+                ProjectTeamTab(project: project, isOwner: _isOwner),
+                // 4 - Endorsements
+                ProjectEndorsementsTab(
+                  project: project,
+                  currentUserId: _currentUserId,
+                  onProjectUpdated: (updated) {
+                    if (mounted) setState(() => _project = updated);
+                  },
+                ),
+                // 5 - Updates
+                ProjectUpdatesTab(project: project, isOwner: _isOwner),
+                // 6 - Tasks
+                ProjectTasksTab(project: project, isTeamMember: _isOwner),
+                // 7 - Activity
+                ProjectActivityTab(project: project),
+                // 8 - Analytics
+                ProjectAnalyticsTab(project: project),
+                // 9 - Resources
+                ProjectResourcesTab(project: project),
+                // 10 - Discussions
+                ProjectLinkedDiscussionsTab(
+                    project: project, isOwner: _isOwner),
+                // 11 - Contributors
                 ProjectContributorsTab(
                   project: project,
                   currentUserId: _currentUserId,
                   isOwner: _isOwner,
                 ),
+                // 12 - Equity
                 ProjectEquityTab(
                   project: project,
                   isOwner: _isOwner,
@@ -282,19 +314,50 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
       bottomNavigationBar: !_isOwner
           ? SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: _showApplyDialog,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          _tabController.animateTo(
+                              ProjectDetailScreen.investTabIndex);
+                        },
+                        icon: const Icon(Icons.volunteer_activism, size: 18),
+                        label: const Text('Contribute'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Apply to Project',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: OutlinedButton.icon(
+                        onPressed: _showApplyDialog,
+                        icon: const Icon(Icons.person_add_outlined, size: 18),
+                        label: const Text('Apply'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             )
