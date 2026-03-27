@@ -93,7 +93,7 @@ class _ProjectInvestmentTabState extends State<ProjectInvestmentTab> {
               controller: creditsController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Credits (1–999)',
+                labelText: 'Credits (1-999)',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
