@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 
-/// Centralized Material theme for ThExempt – LinkedIn/professional aesthetic
+/// Centralized Material theme for ThExempt – movement-first changemaker platform.
 class AppTheme {
   AppTheme._();
 
@@ -39,7 +39,7 @@ class AppTheme {
         ),
       ),
 
-      // Card – clean bordered cards, no shadow (LinkedIn style)
+      // Card – clean bordered cards, no shadow
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
