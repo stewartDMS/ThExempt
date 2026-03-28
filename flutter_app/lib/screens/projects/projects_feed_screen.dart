@@ -59,8 +59,15 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: const Text('Projects'),
+        title: const Text('Discover Projects'),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune_outlined),
+            tooltip: 'Filter & Sort',
+            onPressed: () {},
+          ),
+        ],
       ),
       body: _buildBody(),
     );

@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
 /// Landing page shown to unauthenticated users.
-/// Features a hero section, feature highlights, how-it-works steps,
-/// statistics, and a call-to-action section.
+///
+/// Visual identity matches the public ThExempt marketing site:
+/// dark charcoal/steelGray/deepRed palette, bold movement-first copy, and
+/// the same section ordering as the Next.js landing page (Hero → Features →
+/// How It Works → Stats → CTA).
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
   // ── Community stats shown in the social-proof section ─────────────────────
-  static const String _statProjects = '1,000+';
-  static const String _statMembers = '5,000+';
-  static const String _statConnections = '10,000+';
+  static const String _statInvested = '\$2.5M+';
+  static const String _statChangemakers = '10,234';
+  static const String _statProjects = '234';
+  static const String _statHours = '87K+';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.charcoal,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -34,84 +39,97 @@ class LandingPage extends StatelessWidget {
   Widget _buildHeroSection(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        minHeight: MediaQuery.of(context).size.height * 0.85,
+        minHeight: MediaQuery.of(context).size.height * 0.9,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primaryDark,
-            AppColors.primary,
-            Color(0xFF7B61FF),
+            AppColors.charcoal,
+            AppColors.steelGray,
+            AppColors.deepRed,
           ],
-          stops: [0.0, 0.55, 1.0],
+          stops: [0.0, 0.5, 1.0],
         ),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App icon
+              // Brand icon
               Container(
                 width: 88,
                 height: 88,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withOpacity(0.25),
                     width: 1.5,
                   ),
                 ),
                 child: const Icon(
-                  Icons.rocket_launch_rounded,
-                  size: 48,
+                  Icons.bolt_rounded,
+                  size: 44,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 36),
 
               const Text(
-                'Build Your Next\nProject',
+                'WHERE CHANGE\nHAPPENS.',
                 style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w900,
                   color: Colors.white,
-                  height: 1.15,
-                  letterSpacing: -0.5,
+                  height: 1.1,
+                  letterSpacing: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              const Text(
+                'EVERYDAY PEOPLE\nMAKE IT HAPPEN.',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  height: 1.2,
+                  letterSpacing: 1.0,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
               Text(
-                'Connect with talented collaborators, share ideas,\nand bring your projects to life.',
+                'The old systems are broken.\nBut you have power. And we have a plan.',
                 style: TextStyle(
                   fontSize: 17,
-                  color: Colors.white.withOpacity(0.88),
-                  height: 1.55,
+                  color: Colors.white.withOpacity(0.82),
+                  height: 1.6,
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 44),
+              const SizedBox(height: 48),
 
               // CTA buttons
               Wrap(
                 spacing: 16,
-                runSpacing: 12,
+                runSpacing: 14,
                 alignment: WrapAlignment.center,
                 children: [
                   _HeroButton(
-                    label: 'Get Started',
+                    label: 'JOIN THE MOVEMENT',
                     icon: Icons.arrow_forward_rounded,
                     filled: true,
                     onPressed: () => _navigateTo(context, 'signup'),
                   ),
                   _HeroButton(
-                    label: 'Sign In',
-                    icon: Icons.login_rounded,
+                    label: 'SEE PROJECTS',
+                    icon: Icons.play_circle_outline_rounded,
                     filled: false,
                     onPressed: () => _navigateTo(context, 'login'),
                   ),
@@ -136,52 +154,100 @@ class LandingPage extends StatelessWidget {
 
   Widget _buildFeaturesSection() {
     return Container(
-      color: AppColors.scaffoldBackground,
+      color: AppColors.charcoal,
       padding: const EdgeInsets.symmetric(vertical: 72, horizontal: 24),
       child: Column(
         children: [
-          const Text(
-            'Everything You Need',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: AppColors.grey900,
-              letterSpacing: -0.3,
+          // Section label pill
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.electricBlue.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                  color: AppColors.electricBlue.withOpacity(0.35)),
             ),
-            textAlign: TextAlign.center,
+            child: const Text(
+              'EVERYTHING YOU NEED',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.electricBlue,
+                letterSpacing: 1.2,
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
+          RichText(
+            textAlign: TextAlign.center,
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                height: 1.2,
+              ),
+              children: [
+                TextSpan(text: 'Built for\n'),
+                TextSpan(
+                  text: 'Ambitious Builders',
+                  style: TextStyle(color: AppColors.electricBlue),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
-            'One platform to ideate, collaborate, and ship.',
+            'Every tool you need to go from idea to shipped,\nwith the right team by your side.',
             style: TextStyle(
               fontSize: 15,
-              color: AppColors.grey500,
+              color: Colors.white.withOpacity(0.55),
+              height: 1.6,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 48),
           Wrap(
-            spacing: 20,
-            runSpacing: 20,
+            spacing: 16,
+            runSpacing: 16,
             alignment: WrapAlignment.center,
             children: [
               _buildFeatureCard(
                 Icons.people_outline_rounded,
                 'Find Collaborators',
-                'Connect with talented individuals who share your vision and want to build together.',
-                AppColors.primary,
+                'Connect with talented changemakers who share your vision and want to build together.',
+                AppColors.electricBlue,
               ),
               _buildFeatureCard(
-                Icons.lightbulb_outline_rounded,
-                'Share Ideas',
-                'Post your projects and get meaningful feedback from a passionate community.',
-                AppColors.warning,
+                Icons.trending_up_outlined,
+                'Fund Your Project',
+                'Access membership credits, community investment, and equity tools for real impact.',
+                AppColors.rebellionOrange,
               ),
               _buildFeatureCard(
                 Icons.rocket_launch_outlined,
                 'Launch Together',
-                'Build amazing things with your team and take your ideas from concept to reality.',
-                AppColors.success,
+                'Go from idea to shipped with milestones, tasks, and a team that believes in the mission.',
+                AppColors.forestGreen,
+              ),
+              _buildFeatureCard(
+                Icons.forum_outlined,
+                'Discuss Systems',
+                'Break down broken structures, share insights, and turn discussions into action.',
+                AppColors.brightCyan,
+              ),
+              _buildFeatureCard(
+                Icons.bar_chart_rounded,
+                'Track Progress',
+                'Project analytics, health scores, and milestone tracking keep everyone moving forward.',
+                AppColors.warmAmber,
+              ),
+              _buildFeatureCard(
+                Icons.pie_chart_outline_rounded,
+                'Earn Equity',
+                'Contribute your skills and time, and earn real shares in the projects you help build.',
+                AppColors.deepRed,
               ),
             ],
           ),
@@ -193,48 +259,43 @@ class LandingPage extends StatelessWidget {
   Widget _buildFeatureCard(
       IconData icon, String title, String description, Color color) {
     return Container(
-      width: 280,
-      padding: const EdgeInsets.all(28),
+      width: 268,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.steelGray.withOpacity(0.45),
+        ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 36, color: color),
+            child: Icon(icon, size: 28, color: color),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: AppColors.grey900,
+              color: Colors.white,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             description,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.grey500,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.55),
               height: 1.55,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -245,16 +306,26 @@ class LandingPage extends StatelessWidget {
 
   Widget _buildHowItWorksSection() {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFF1A1A1A), // slightly lighter than charcoal
       padding: const EdgeInsets.symmetric(vertical: 72, horizontal: 32),
       child: Column(
         children: [
           const Text(
-            'How It Works',
+            'HOW IT WORKS',
             style: TextStyle(
-              fontSize: 32,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.electricBlue,
+              letterSpacing: 2.0,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Your Changemaker Journey',
+            style: TextStyle(
+              fontSize: 30,
               fontWeight: FontWeight.w800,
-              color: AppColors.grey900,
+              color: Colors.white,
               letterSpacing: -0.3,
             ),
             textAlign: TextAlign.center,
@@ -263,27 +334,38 @@ class LandingPage extends StatelessWidget {
           _buildStep(
             1,
             'Create Your Profile',
-            'Tell us about your skills, interests, and what kind of projects excite you.',
-            AppColors.primary,
+            'Tell us your skills, experiences, and which systems you\'re ready to fix.',
+            AppColors.electricBlue,
+            AppColors.brightCyan,
           ),
           _buildStep(
             2,
             'Discover Projects',
-            'Browse exciting projects looking for collaborators just like you.',
-            AppColors.warning,
+            'Find changemakers already building solutions you believe in, or launch your own.',
+            AppColors.rebellionOrange,
+            AppColors.warmAmber,
           ),
           _buildStep(
             3,
-            'Join & Build',
-            'Connect with teams, contribute your skills, and start creating something great.',
-            AppColors.success,
+            'Contribute & Build',
+            'Invest credits, offer skills, join a team — and start creating something that matters.',
+            AppColors.forestGreen,
+            AppColors.brightCyan,
+          ),
+          _buildStep(
+            4,
+            'Earn Real Returns',
+            'As projects succeed, your contributions convert to equity and shared wealth.',
+            AppColors.deepRed,
+            AppColors.rebellionOrange,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStep(int number, String title, String description, Color color) {
+  Widget _buildStep(int number, String title, String description,
+      Color colorA, Color colorB) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 32),
       child: Row(
@@ -294,16 +376,16 @@ class LandingPage extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.7)],
+                colors: [colorA, colorB],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: colorA.withOpacity(0.35),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -312,7 +394,7 @@ class LandingPage extends StatelessWidget {
                 '$number',
                 style: const TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                   color: Colors.white,
                 ),
               ),
@@ -329,16 +411,16 @@ class LandingPage extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.grey900,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.grey500,
-                    height: 1.5,
+                    color: Colors.white.withOpacity(0.55),
+                    height: 1.55,
                   ),
                 ),
               ],
@@ -353,29 +435,29 @@ class LandingPage extends StatelessWidget {
 
   Widget _buildStatsSection() {
     return Container(
-      color: AppColors.scaffoldBackground,
+      color: AppColors.deepRed,
       padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
       child: Column(
         children: [
           const Text(
-            'Join a Growing Community',
+            'THE MOVEMENT IN NUMBERS',
             style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: AppColors.grey900,
-              letterSpacing: -0.3,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Colors.white70,
+              letterSpacing: 2.0,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 36),
           Wrap(
             spacing: 40,
             runSpacing: 32,
             alignment: WrapAlignment.center,
             children: [
-              _buildStat(_statProjects, 'Projects', AppColors.primary),
-              _buildStat(_statMembers, 'Members', AppColors.success),
-              _buildStat(_statConnections, 'Connections', AppColors.warning),
+              _buildStat(_statInvested, 'INVESTED IN CHANGE'),
+              _buildStat(_statChangemakers, 'CHANGEMAKERS BUILDING'),
+              _buildStat(_statProjects, 'PROJECTS FUNDED'),
+              _buildStat(_statHours, 'HOURS CONTRIBUTED'),
             ],
           ),
         ],
@@ -383,25 +465,26 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(String number, String label, Color color) {
+  Widget _buildStat(String number, String label) {
     return Column(
       children: [
         Text(
           number,
-          style: TextStyle(
-            fontSize: 44,
-            fontWeight: FontWeight.w800,
-            color: color,
+          style: const TextStyle(
+            fontSize: 42,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
             letterSpacing: -1.0,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           label,
           style: const TextStyle(
-            fontSize: 15,
-            color: AppColors.grey500,
-            fontWeight: FontWeight.w500,
+            fontSize: 11,
+            color: Colors.white70,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
           ),
         ),
       ],
@@ -412,53 +495,55 @@ class LandingPage extends StatelessWidget {
 
   Widget _buildCTASection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 72, horizontal: 28),
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, Color(0xFF7B61FF)],
+          colors: [AppColors.deepRed, AppColors.charcoal, AppColors.electricBlue],
+          stops: [0.0, 0.5, 1.0],
         ),
       ),
       child: Column(
         children: [
           const Text(
-            'Ready to Get Started?',
+            'READY TO BUILD\nSOMETHING THAT MATTERS?',
             style: TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.w800,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
               color: Colors.white,
-              letterSpacing: -0.3,
+              height: 1.15,
+              letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
-            'Join thousands of creators building amazing projects together.',
+            'Join thousands of changemakers building real solutions\nto the problems institutions won\'t fix.',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.88),
-              height: 1.5,
+              color: Colors.white.withOpacity(0.82),
+              height: 1.6,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 36),
+          const SizedBox(height: 40),
           _HeroButton(
-            label: 'Create Free Account',
+            label: 'CREATE FREE ACCOUNT',
             icon: Icons.arrow_forward_rounded,
             filled: true,
             onPressed: () => Navigator.of(context).pushNamed('/signup'),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           GestureDetector(
             onTap: () => Navigator.of(context).pushNamed('/login'),
             child: Text(
-              'Already have an account? Sign in →',
+              'Already a member? Sign in →',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withOpacity(0.7),
                 decoration: TextDecoration.underline,
-                decorationColor: Colors.white.withOpacity(0.5),
+                decorationColor: Colors.white.withOpacity(0.4),
               ),
             ),
           ),
@@ -491,17 +576,18 @@ class _HeroButton extends StatelessWidget {
         icon: Icon(icon, size: 18),
         label: Text(
           label,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor: AppColors.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+          foregroundColor: AppColors.charcoal,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(10),
           ),
           elevation: 8,
-          shadowColor: Colors.black.withOpacity(0.2),
+          shadowColor: Colors.black.withOpacity(0.3),
         ),
       );
     }
@@ -511,16 +597,18 @@ class _HeroButton extends StatelessWidget {
       icon: Icon(icon, size: 18),
       label: Text(
         label,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        style: const TextStyle(
+            fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5),
       ),
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.white,
         side: const BorderSide(color: Colors.white, width: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
     );
   }
 }
+
