@@ -263,7 +263,7 @@ class _UpdateCard extends StatelessWidget {
       case ProjectUpdateType.team:
         return Colors.blue;
       case ProjectUpdateType.media:
-        return Colors.purple;
+        return AppColors.expertiseOperations;
       case ProjectUpdateType.general:
         return AppColors.primary;
     }

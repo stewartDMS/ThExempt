@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/project_model.dart';
 import '../../../services/chat_service.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectChatWidget extends StatefulWidget {
   final Project project;
@@ -100,7 +101,7 @@ class _ProjectChatWidgetState extends State<ProjectChatWidget> {
           bottom: 16,
           child: FloatingActionButton(
             onPressed: () => setState(() => _isOpen = !_isOpen),
-            backgroundColor: Colors.indigo,
+            backgroundColor: AppColors.electricBlue,
             child: Icon(
               _isOpen ? Icons.close : Icons.chat_outlined,
               color: Colors.white,
@@ -125,7 +126,7 @@ class _ProjectChatWidgetState extends State<ProjectChatWidget> {
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
-                      color: Colors.indigo,
+                      color: AppColors.electricBlue,
                       child: Row(
                         children: [
                           const Icon(Icons.chat,
@@ -217,7 +218,7 @@ class _ProjectChatWidgetState extends State<ProjectChatWidget> {
                           const SizedBox(width: 6),
                           IconButton(
                             icon: const Icon(Icons.send_rounded,
-                                color: Colors.indigo),
+                                color: AppColors.electricBlue),
                             onPressed: _sendMessage,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -252,7 +253,7 @@ class _MessageBubble extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         constraints: const BoxConstraints(maxWidth: 220),
         decoration: BoxDecoration(
-          color: isMe ? Colors.indigo : Colors.grey[100],
+          color: isMe ? AppColors.electricBlue : AppColors.grey100,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),

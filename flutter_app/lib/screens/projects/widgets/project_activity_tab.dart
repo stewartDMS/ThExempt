@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/project_model.dart';
 import '../../../models/activity_item.dart';
 import '../../../utils/time_ago.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectActivityTab extends StatefulWidget {
   final Project project;
@@ -134,7 +135,7 @@ class _ActivityTile extends StatelessWidget {
                 backgroundImage: activity.userAvatar != null
                     ? NetworkImage(activity.userAvatar!)
                     : null,
-                backgroundColor: Colors.indigo[100],
+                backgroundColor: AppColors.primaryContainer,
                 child: activity.userAvatar == null
                     ? Text(
                         activity.userName.isNotEmpty
@@ -142,7 +143,7 @@ class _ActivityTile extends StatelessWidget {
                             : '?',
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
+                            color: AppColors.electricBlue,
                             fontSize: 14),
                       )
                     : null,

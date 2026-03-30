@@ -135,10 +135,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     switch (expertise) {
       case 'Technical': return Colors.blue;
       case 'Business': return Colors.green;
-      case 'Marketing': return Colors.orange;
-      case 'Operations': return Colors.purple;
-      case 'Creative': return Colors.pink;
-      case 'Legal': return Colors.indigo;
+      case 'Marketing': return AppColors.rebellionOrange;
+      case 'Operations': return AppColors.expertiseOperations;
+      case 'Creative': return AppColors.expertiseCreative;
+      case 'Legal': return AppColors.electricBlue;
       case 'Domain': return Colors.red;
       case 'Soft Skills': return Colors.cyan;
       default: return Colors.grey;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/projects_service.dart';
+import '../../../theme/app_colors.dart';
 
 class ApplyDialog extends StatefulWidget {
   final String projectId;
@@ -49,7 +50,7 @@ class _ApplyDialogState extends State<ApplyDialog> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Application submitted successfully!'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.forestGreen,
             ),
           );
         } else {

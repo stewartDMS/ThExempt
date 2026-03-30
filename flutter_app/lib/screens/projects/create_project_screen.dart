@@ -114,7 +114,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Project created, but video upload failed: $e'),
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.rebellionOrange,
               ),
             );
           }
@@ -131,7 +131,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Project created successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.forestGreen,
           ),
         );
       }
@@ -146,7 +146,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AppColors.error),
     );
   }
 

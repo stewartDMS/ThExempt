@@ -268,7 +268,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600]),
+                backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete',
                 style: TextStyle(color: Colors.white)),
@@ -361,7 +361,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Application submitted!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.forestGreen,
           ),
         );
       }
@@ -414,7 +414,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
               const SizedBox(width: 8),
               _SummaryChip(
                 label: '$_openRoles Open',
-                color: Colors.green[600]!,
+                color: AppColors.forestGreen,
               ),
               const SizedBox(width: 8),
               _SummaryChip(
@@ -437,7 +437,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(
               'Could not load roles.',
-              style: TextStyle(color: Colors.red[400]),
+              style: TextStyle(color: AppColors.error),
             ),
           )
         else if (_rolesByCategory.isEmpty)
@@ -618,7 +618,7 @@ class _RoleTile extends StatelessWidget {
             height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: role.isFilled ? Colors.grey[400] : Colors.green[500],
+              color: role.isFilled ? Colors.grey[400] : AppColors.forestGreen,
             ),
           ),
           const SizedBox(width: 10),
@@ -651,7 +651,7 @@ class _RoleTile extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: role.isFilled
                             ? Colors.grey[200]
-                            : Colors.green[100],
+                            : AppColors.successLight,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -661,7 +661,7 @@ class _RoleTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: role.isFilled
                               ? Colors.grey[600]
-                              : Colors.green[700],
+                              : AppColors.forestGreen,
                         ),
                       ),
                     ),
@@ -719,7 +719,7 @@ class _RoleTile extends StatelessWidget {
                 const PopupMenuItem(
                     value: 'delete',
                     child: Text('Delete',
-                        style: TextStyle(color: Colors.red))),
+                        style: TextStyle(color: AppColors.error))),
               ],
             ),
           ] else if (!role.isFilled) ...[

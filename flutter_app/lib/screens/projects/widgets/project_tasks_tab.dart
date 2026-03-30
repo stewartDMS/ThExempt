@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/project_model.dart';
 import '../../../models/task.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectTasksTab extends StatefulWidget {
   final Project project;
@@ -80,7 +81,7 @@ class _ProjectTasksTabState extends State<ProjectTasksTab> {
             const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: selected
-              ? Colors.indigo
+              ? AppColors.electricBlue
               : Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
         ),

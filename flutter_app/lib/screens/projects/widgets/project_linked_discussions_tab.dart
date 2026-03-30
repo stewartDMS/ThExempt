@@ -3,6 +3,7 @@ import '../../../models/project_model.dart';
 import '../../../models/discussion_model.dart';
 import '../../../services/projects_service.dart';
 import '../../../utils/time_ago.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectLinkedDiscussionsTab extends StatefulWidget {
   final Project project;
@@ -131,13 +132,13 @@ class _DiscussionLinkCard extends StatelessWidget {
   Color _stageColor(DiscussionStage stage) {
     switch (stage) {
       case DiscussionStage.problem:
-        return Colors.red[400]!;
+        return AppColors.deepRed;
       case DiscussionStage.solution:
-        return Colors.amber[700]!;
+        return AppColors.warmAmber;
       case DiscussionStage.projectProposal:
-        return Colors.blue[600]!;
+        return AppColors.electricBlue;
       case DiscussionStage.projectLinked:
-        return Colors.green[600]!;
+        return AppColors.forestGreen;
     }
   }
 

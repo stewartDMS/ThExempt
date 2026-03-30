@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 enum ProjectStage {
   ideation,
@@ -55,15 +56,15 @@ enum ProjectStage {
   Color get color {
     switch (this) {
       case ProjectStage.ideation:
-        return const Color(0xFF9C27B0); // Purple
+        return AppColors.brightCyan;       // innovation, fresh ideas
       case ProjectStage.design:
-        return const Color(0xFFE91E63); // Pink
+        return AppColors.warmAmber;        // creativity, optimism
       case ProjectStage.development:
-        return const Color(0xFF2196F3); // Blue
+        return AppColors.electricBlue;     // technology, intelligence
       case ProjectStage.launch:
-        return const Color(0xFFFF9800); // Orange
+        return AppColors.rebellionOrange;  // energy, action
       case ProjectStage.scale:
-        return const Color(0xFF4CAF50); // Green
+        return AppColors.forestGreen;      // growth, sustainability
     }
   }
 

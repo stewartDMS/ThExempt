@@ -364,7 +364,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     String label;
     switch (status) {
       case 'busy':
-        color = Colors.orange;
+        color = AppColors.rebellionOrange;
         label = 'Busy';
         break;
       case 'not_looking':
@@ -436,7 +436,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               'Views',
               (_stats['profile_views'] ?? _user?.profileViews ?? 0).toString(),
               Icons.visibility_outlined,
-              Colors.purple,
+              AppColors.expertiseOperations,
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 enum AchievementType {
   firstTeamMember,
@@ -73,7 +74,7 @@ class Achievement {
       title: 'Milestone Maker',
       description: 'Complete your first milestone',
       icon: Icons.flag,
-      color: Colors.purple,
+      color: AppColors.expertiseOperations,
       xp: 100,
     ),
     AchievementType.halfwayPoint: Achievement(
@@ -81,7 +82,7 @@ class Achievement {
       title: 'Halfway There',
       description: 'Reach 50% task completion',
       icon: Icons.trending_up,
-      color: Colors.orange,
+      color: AppColors.rebellionOrange,
       xp: 150,
     ),
     AchievementType.launched: Achievement(
@@ -97,7 +98,7 @@ class Achievement {
       title: '100 Views',
       description: 'Reach 100 project views',
       icon: Icons.visibility,
-      color: Colors.teal,
+      color: AppColors.brightCyan,
       xp: 50,
     ),
     AchievementType.thousandViews: Achievement(
@@ -105,7 +106,7 @@ class Achievement {
       title: '1K Views',
       description: 'Reach 1,000 project views',
       icon: Icons.visibility,
-      color: Colors.teal,
+      color: AppColors.brightCyan,
       xp: 200,
     ),
     AchievementType.tenThousandViews: Achievement(
@@ -121,7 +122,7 @@ class Achievement {
       title: '10 Likes',
       description: 'Receive 10 likes on your project',
       icon: Icons.thumb_up,
-      color: Colors.pink,
+      color: AppColors.expertiseCreative,
       xp: 50,
     ),
     AchievementType.fiftyLikes: Achievement(
@@ -129,7 +130,7 @@ class Achievement {
       title: '50 Likes',
       description: 'Receive 50 likes on your project',
       icon: Icons.favorite,
-      color: Colors.pink,
+      color: AppColors.expertiseCreative,
       xp: 200,
     ),
     AchievementType.firstApplication: Achievement(
@@ -137,7 +138,7 @@ class Achievement {
       title: 'First Applicant',
       description: 'Receive your first application',
       icon: Icons.inbox,
-      color: Colors.indigo,
+      color: AppColors.electricBlue,
       xp: 50,
     ),
     AchievementType.tenApplications: Achievement(
@@ -145,7 +146,7 @@ class Achievement {
       title: 'Popular Project',
       description: 'Receive 10 applications',
       icon: Icons.inbox,
-      color: Colors.indigo,
+      color: AppColors.electricBlue,
       xp: 150,
     ),
     AchievementType.weekStreak: Achievement(

@@ -352,7 +352,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildAvailabilitySelector() {
     final options = [
       ('available', 'Available', Colors.green),
-      ('busy', 'Busy', Colors.orange),
+      ('busy', 'Busy', AppColors.rebellionOrange),
       ('not_looking', 'Not Looking', Colors.red),
     ];
 

@@ -68,7 +68,7 @@ class DiscussionCard extends StatelessWidget {
                   if (discussion.isPinned)
                     const Padding(
                       padding: EdgeInsets.only(right: 6),
-                      child: Icon(Icons.push_pin, size: 14, color: Colors.orange),
+                      child: Icon(Icons.push_pin, size: 14, color: AppColors.rebellionOrange),
                     ),
                   Text(timeAgo(discussion.createdAt),
                       style: TextStyle(fontSize: 12, color: Colors.grey[500])),

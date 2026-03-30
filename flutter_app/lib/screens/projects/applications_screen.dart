@@ -322,13 +322,13 @@ class _ApplicationCard extends StatelessWidget {
       case 'rejected':
         return Colors.red;
       default:
-        return Colors.orange;
+        return AppColors.rebellionOrange;
     }
   }
 
   Color _matchColor(int score) {
     if (score >= 80) return Colors.green[700]!;
-    if (score >= 50) return Colors.orange[700]!;
+    if (score >= 50) return AppColors.warmAmber;
     return Colors.red[600]!;
   }
 
