@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/project_member_model.dart';
 import '../services/projects_service.dart';
+import '../theme/app_colors.dart';
 
 class TeamMembersWidget extends StatefulWidget {
   final String projectId;
@@ -18,16 +19,16 @@ class _TeamMembersWidgetState extends State<TeamMembersWidget> {
   List<ProjectMember> _members = [];
   bool _isLoading = true;
 
-  // Category color map
+  // Category color map — aligned with ThExempt brand palette
   static const Map<String, Color> _categoryColors = {
-    'Technical': Color(0xFF3B82F6),
-    'Business': Color(0xFF10B981),
-    'Marketing': Color(0xFFF59E0B),
-    'Operations': Color(0xFF8B5CF6),
-    'Creative': Color(0xFFEC4899),
-    'Legal': Color(0xFF6366F1),
-    'Domain': Color(0xFFEF4444),
-    'Soft Skills': Color(0xFF06B6D4),
+    'Technical': AppColors.electricBlue,
+    'Business': AppColors.forestGreen,
+    'Marketing': AppColors.rebellionOrange,
+    'Operations': AppColors.expertiseOperations,
+    'Creative': AppColors.expertiseCreative,
+    'Legal': AppColors.electricBlue,
+    'Domain': AppColors.deepRed,
+    'Soft Skills': AppColors.brightCyan,
   };
 
   @override
@@ -61,7 +62,7 @@ class _TeamMembersWidgetState extends State<TeamMembersWidget> {
   }
 
   Color _colorForCategory(String category) =>
-      _categoryColors[category] ?? const Color(0xFF6366F1);
+      _categoryColors[category] ?? AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +91,7 @@ class _TeamMembersWidgetState extends State<TeamMembersWidget> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -98,7 +99,7 @@ class _TeamMembersWidgetState extends State<TeamMembersWidget> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF6366F1),
+                  color: AppColors.primary,
                 ),
               ),
             ),

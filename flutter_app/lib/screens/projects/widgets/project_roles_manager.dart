@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/project_role_model.dart';
 import '../../../services/projects_service.dart';
+import '../../../theme/app_colors.dart';
 
 /// Displays project roles grouped by category.
 /// - When [isOwner] is true, shows add/edit/delete controls.
@@ -26,16 +27,16 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
   bool _isLoading = true;
   String? _errorMessage;
 
-  // Category color map (matches schema colours)
+  // Category color map — aligned with ThExempt brand palette
   static const Map<String, Color> _categoryColors = {
-    'Technical': Color(0xFF3B82F6),
-    'Business': Color(0xFF10B981),
-    'Marketing': Color(0xFFF59E0B),
-    'Operations': Color(0xFF8B5CF6),
-    'Creative': Color(0xFFEC4899),
-    'Legal': Color(0xFF6366F1),
-    'Domain': Color(0xFFEF4444),
-    'Soft Skills': Color(0xFF06B6D4),
+    'Technical': AppColors.electricBlue,
+    'Business': AppColors.forestGreen,
+    'Marketing': AppColors.rebellionOrange,
+    'Operations': AppColors.expertiseOperations,
+    'Creative': AppColors.expertiseCreative,
+    'Legal': AppColors.electricBlue,
+    'Domain': AppColors.deepRed,
+    'Soft Skills': AppColors.brightCyan,
   };
 
   static const List<String> _categories = [
@@ -79,7 +80,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
   }
 
   Color _colorForCategory(String category) =>
-      _categoryColors[category] ?? const Color(0xFF6366F1);
+      _categoryColors[category] ?? AppColors.primary;
 
   int get _totalRoles =>
       _rolesByCategory.values.fold(0, (sum, list) => sum + list.length);
@@ -408,7 +409,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
             children: [
               _SummaryChip(
                 label: '$_totalRoles Total',
-                color: const Color(0xFF6366F1),
+                color: AppColors.primary,
               ),
               const SizedBox(width: 8),
               _SummaryChip(

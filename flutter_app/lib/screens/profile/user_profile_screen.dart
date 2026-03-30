@@ -305,11 +305,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.heroGradient,
       ),
       child: Column(
         children: [
@@ -323,10 +319,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: _user?.avatarUrl == null
                 ? Text(
                     initial,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF6366F1),
+                      color: AppColors.charcoal,
                     ),
                   )
                 : null,
@@ -539,7 +535,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   _user!.linkedinUrl!, const Color(0xFF0077B5)),
             if (_user?.websiteUrl != null && _user!.websiteUrl!.isNotEmpty)
               _buildSocialLinkTile(Icons.language, 'Website',
-                  _user!.websiteUrl!, const Color(0xFF6366F1)),
+                  _user!.websiteUrl!, AppColors.primary),
           ],
         ),
       ),
@@ -587,16 +583,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                    color: const Color(0xFF6366F1).withOpacity(0.3)),
+                    color: AppColors.primary.withOpacity(0.3)),
               ),
               child: Text(
                 skill,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF6366F1),
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -674,7 +670,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF6366F1)
+                                    color: AppColors.primary
                                         .withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -682,7 +678,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     skill,
                                     style: const TextStyle(
                                       fontSize: 11,
-                                      color: Color(0xFF6366F1),
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 );
@@ -720,7 +716,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(icon, size: 20, color: const Color(0xFF6366F1)),
+                Icon(icon, size: 20, color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
                   title,
