@@ -2,6 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { SIGN_UP_URL } from '@/lib/app-links'
 
 const steps = [
   {
@@ -101,7 +102,7 @@ export default function HowItWorks() {
           className="mt-16 text-center"
         >
           <a
-            href="#get-started"
+            href={SIGN_UP_URL}
             className="inline-flex items-center gap-2 px-8 py-4 text-lg font-bold text-charcoal rounded-lg bg-white hover:bg-white/90 shadow-xl hover:-translate-y-0.5 transition-all duration-300"
           >
             Start Making Change

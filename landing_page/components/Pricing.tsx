@@ -3,6 +3,7 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { SIGN_UP_URL } from '@/lib/app-links'
 
 const tiers = [
   {
@@ -177,11 +178,12 @@ export default function Pricing() {
               </ul>
 
               {/* CTA */}
-              <button
-                className={`w-full py-3 rounded-lg text-sm font-bold transition-all duration-200 ${tier.ctaClass}`}
+              <a
+                href={SIGN_UP_URL}
+                className={`block w-full py-3 rounded-lg text-sm font-bold text-center transition-all duration-200 ${tier.ctaClass}`}
               >
                 {tier.price === '$0' ? 'Get Started Free' : 'Join Now'}
-              </button>
+              </a>
             </motion.div>
           ))}
         </div>

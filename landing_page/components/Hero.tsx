@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
+import { SIGN_UP_URL } from '@/lib/app-links'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -54,20 +55,22 @@ export default function Hero() {
           variants={itemVariants}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <motion.button
+          <motion.a
+            href={SIGN_UP_URL}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             className="bg-white text-charcoal text-lg font-bold px-8 py-4 rounded-lg shadow-xl transition-transform"
           >
             JOIN THE MOVEMENT
-          </motion.button>
-          <motion.button
+          </motion.a>
+          <motion.a
+            href={SIGN_UP_URL}
             whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
             whileTap={{ scale: 0.97 }}
             className="border-2 border-white text-white text-lg font-bold px-8 py-4 rounded-lg transition-colors"
           >
             SEE PROJECTS IN ACTION
-          </motion.button>
+          </motion.a>
         </motion.div>
 
       </motion.div>
