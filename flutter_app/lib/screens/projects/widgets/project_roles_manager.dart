@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/project_role_model.dart';
 import '../../../services/projects_service.dart';
+import '../../../theme/app_colors.dart';
 
 /// Displays project roles grouped by category.
 /// - When [isOwner] is true, shows add/edit/delete controls.
@@ -26,16 +27,16 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
   bool _isLoading = true;
   String? _errorMessage;
 
-  // Category color map (matches schema colours)
+  // Category color map — aligned with ThExempt brand palette
   static const Map<String, Color> _categoryColors = {
-    'Technical': Color(0xFF3B82F6),
-    'Business': Color(0xFF10B981),
-    'Marketing': Color(0xFFF59E0B),
-    'Operations': Color(0xFF8B5CF6),
-    'Creative': Color(0xFFEC4899),
-    'Legal': Color(0xFF6366F1),
-    'Domain': Color(0xFFEF4444),
-    'Soft Skills': Color(0xFF06B6D4),
+    'Technical': AppColors.electricBlue,
+    'Business': AppColors.forestGreen,
+    'Marketing': AppColors.rebellionOrange,
+    'Operations': AppColors.expertiseOperations,
+    'Creative': AppColors.expertiseCreative,
+    'Legal': AppColors.electricBlue,
+    'Domain': AppColors.deepRed,
+    'Soft Skills': AppColors.brightCyan,
   };
 
   static const List<String> _categories = [
@@ -79,7 +80,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
   }
 
   Color _colorForCategory(String category) =>
-      _categoryColors[category] ?? const Color(0xFF6366F1);
+      _categoryColors[category] ?? AppColors.primary;
 
   int get _totalRoles =>
       _rolesByCategory.values.fold(0, (sum, list) => sum + list.length);
@@ -267,7 +268,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600]),
+                backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete',
                 style: TextStyle(color: Colors.white)),
@@ -360,7 +361,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Application submitted!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.forestGreen,
           ),
         );
       }
@@ -408,12 +409,12 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
             children: [
               _SummaryChip(
                 label: '$_totalRoles Total',
-                color: const Color(0xFF6366F1),
+                color: AppColors.primary,
               ),
               const SizedBox(width: 8),
               _SummaryChip(
                 label: '$_openRoles Open',
-                color: Colors.green[600]!,
+                color: AppColors.forestGreen,
               ),
               const SizedBox(width: 8),
               _SummaryChip(
@@ -436,7 +437,7 @@ class _ProjectRolesManagerState extends State<ProjectRolesManager> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(
               'Could not load roles.',
-              style: TextStyle(color: Colors.red[400]),
+              style: TextStyle(color: AppColors.error),
             ),
           )
         else if (_rolesByCategory.isEmpty)
@@ -617,7 +618,7 @@ class _RoleTile extends StatelessWidget {
             height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: role.isFilled ? Colors.grey[400] : Colors.green[500],
+              color: role.isFilled ? Colors.grey[400] : AppColors.forestGreen,
             ),
           ),
           const SizedBox(width: 10),
@@ -650,7 +651,7 @@ class _RoleTile extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: role.isFilled
                             ? Colors.grey[200]
-                            : Colors.green[100],
+                            : AppColors.successLight,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -660,7 +661,7 @@ class _RoleTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: role.isFilled
                               ? Colors.grey[600]
-                              : Colors.green[700],
+                              : AppColors.forestGreen,
                         ),
                       ),
                     ),
@@ -718,7 +719,7 @@ class _RoleTile extends StatelessWidget {
                 const PopupMenuItem(
                     value: 'delete',
                     child: Text('Delete',
-                        style: TextStyle(color: Colors.red))),
+                        style: TextStyle(color: AppColors.error))),
               ],
             ),
           ] else if (!role.isFilled) ...[

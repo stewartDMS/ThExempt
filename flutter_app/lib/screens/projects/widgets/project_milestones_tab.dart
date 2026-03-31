@@ -3,6 +3,7 @@ import '../../../models/project_model.dart';
 import '../../../models/milestone.dart';
 import '../../../models/project_stage.dart';
 import '../../../services/projects_service.dart';
+import '../../../theme/app_colors.dart';
 
 /// Formats a [DateTime] as a compact YYYY-MM-DD string.
 String _formatDate(DateTime d) =>
@@ -166,7 +167,7 @@ class _ProjectMilestonesTabState extends State<ProjectMilestonesTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Milestone added!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.forestGreen,
           ),
         );
       }
@@ -290,7 +291,7 @@ class _DbMilestoneRow extends StatelessWidget {
     final dueDate = data['due_date'] != null
         ? DateTime.tryParse(data['due_date'])
         : null;
-    final dotColor = isComplete ? Colors.green : Colors.grey[300]!;
+    final dotColor = isComplete ? AppColors.forestGreen : Colors.grey[300]!;
 
     return IntrinsicHeight(
       child: Row(
@@ -319,7 +320,7 @@ class _DbMilestoneRow extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.symmetric(horizontal: 23),
-                      color: isComplete ? Colors.green : Colors.grey[300],
+                      color: isComplete ? AppColors.forestGreen : Colors.grey[300],
                     ),
                   ),
               ],
@@ -345,7 +346,7 @@ class _DbMilestoneRow extends StatelessWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: isComplete
-                                  ? Colors.green[700]
+                                  ? AppColors.forestGreen
                                   : Colors.grey[800],
                               decoration: isComplete
                                   ? TextDecoration.lineThrough
@@ -354,7 +355,7 @@ class _DbMilestoneRow extends StatelessWidget {
                           ),
                         ),
                         if (isComplete)
-                          _badge('Done', Colors.green)
+                          _badge('Done', AppColors.forestGreen)
                         else if (dueDate != null &&
                             dueDate.isBefore(DateTime.now()))
                           _badge('Overdue', Colors.red),
@@ -440,9 +441,9 @@ class _MilestoneRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dotColor = milestone.isComplete
-        ? Colors.green
+        ? AppColors.forestGreen
         : isCurrent
-            ? Colors.blue
+            ? AppColors.electricBlue
             : Colors.grey[300]!;
 
     return IntrinsicHeight(
@@ -462,7 +463,7 @@ class _MilestoneRow extends StatelessWidget {
                     color: dotColor,
                     shape: BoxShape.circle,
                     border: isCurrent
-                        ? Border.all(color: Colors.blue, width: 3)
+                        ? Border.all(color: AppColors.electricBlue, width: 3)
                         : null,
                   ),
                   child: milestone.isComplete
@@ -475,7 +476,7 @@ class _MilestoneRow extends StatelessWidget {
                       width: 2,
                       margin: const EdgeInsets.symmetric(horizontal: 23),
                       color: milestone.isComplete
-                          ? Colors.green
+                          ? AppColors.forestGreen
                           : Colors.grey[300],
                     ),
                   ),
@@ -490,7 +491,7 @@ class _MilestoneRow extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: isCurrent
-                    ? const BorderSide(color: Colors.blue, width: 1.5)
+                    ? const BorderSide(color: AppColors.electricBlue, width: 1.5)
                     : BorderSide.none,
               ),
               child: Padding(
@@ -506,9 +507,9 @@ class _MilestoneRow extends StatelessWidget {
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: milestone.isComplete
-                                ? Colors.green[700]
+                                ? AppColors.forestGreen
                                 : isCurrent
-                                    ? Colors.blue[700]
+                                    ? AppColors.primary
                                     : Colors.grey[800],
                           ),
                         ),
@@ -518,14 +519,14 @@ class _MilestoneRow extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.green[100],
+                              color: AppColors.successLight,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               'Done',
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.green[700],
+                                  color: AppColors.forestGreen,
                                   fontWeight: FontWeight.w600),
                             ),
                           )
@@ -534,14 +535,14 @@ class _MilestoneRow extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.blue[100],
+                              color: AppColors.primaryContainer,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               'Current',
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.blue[700],
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -559,9 +560,9 @@ class _MilestoneRow extends StatelessWidget {
                       const SizedBox(height: 10),
                       LinearProgressIndicator(
                         value: milestone.progress,
-                        backgroundColor: Colors.blue[100],
+                        backgroundColor: AppColors.primaryContainer,
                         valueColor:
-                            const AlwaysStoppedAnimation(Colors.blue),
+                            const AlwaysStoppedAnimation(AppColors.primary),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(3),
                       ),

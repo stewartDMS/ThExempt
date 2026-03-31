@@ -3,6 +3,7 @@ import '../../../models/project_model.dart';
 import '../../../models/project_member_model.dart';
 import '../../../services/projects_service.dart';
 import '../applications_screen.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectTeamTab extends StatefulWidget {
   final Project project;
@@ -96,7 +97,7 @@ class _ProjectTeamTabState extends State<ProjectTeamTab> {
         backgroundImage: member.avatarUrl != null
             ? NetworkImage(member.avatarUrl!)
             : null,
-        backgroundColor: Colors.indigo[100],
+        backgroundColor: AppColors.primaryContainer,
         child: member.avatarUrl == null
             ? Text(
                 member.name.isNotEmpty
@@ -104,7 +105,7 @@ class _ProjectTeamTabState extends State<ProjectTeamTab> {
                     : '?',
                 style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.indigo),
+                    color: AppColors.electricBlue),
               )
             : null,
       ),
@@ -117,13 +118,13 @@ class _ProjectTeamTabState extends State<ProjectTeamTab> {
         padding:
             const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Colors.blue[50],
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           member.roleCategory,
           style:
-              TextStyle(fontSize: 11, color: Colors.blue[700]),
+              TextStyle(fontSize: 11, color: AppColors.primary),
         ),
       ),
     );
@@ -154,14 +155,14 @@ class _ProjectTeamTabState extends State<ProjectTeamTab> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.green[100],
+                    color: AppColors.successLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '$openRoles open',
                     style: TextStyle(
                         fontSize: 12,
-                        color: Colors.green[700],
+                        color: AppColors.forestGreen,
                         fontWeight: FontWeight.w600),
                   ),
                 ),

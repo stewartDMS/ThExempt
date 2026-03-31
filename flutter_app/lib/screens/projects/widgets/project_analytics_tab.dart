@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../models/project_model.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectAnalyticsTab extends StatelessWidget {
   final Project project;
@@ -45,21 +46,21 @@ class ProjectAnalyticsTab extends StatelessWidget {
                   Icons.visibility_outlined,
                   '${project.viewsCount ?? 0}',
                   'Views',
-                  Colors.teal,
+                  AppColors.brightCyan,
                   project.viewsTrend,
                 ),
                 _engagementItem(
                   Icons.thumb_up_outlined,
                   '${project.likesCount ?? 0}',
                   'Likes',
-                  Colors.pink,
+                  AppColors.expertiseCreative,
                   null,
                 ),
                 _engagementItem(
                   Icons.inbox_outlined,
                   '${project.applicationsCount ?? 0}',
                   'Applications',
-                  Colors.indigo,
+                  AppColors.electricBlue,
                   null,
                 ),
               ],
@@ -192,11 +193,11 @@ class ProjectAnalyticsTab extends StatelessWidget {
                     LineChartBarData(
                       spots: spots,
                       isCurved: true,
-                      color: Colors.teal,
+                      color: AppColors.brightCyan,
                       barWidth: 2.5,
                       belowBarData: BarAreaData(
                         show: true,
-                        color: Colors.teal.withOpacity(0.1),
+                        color: AppColors.brightCyan.withOpacity(0.1),
                       ),
                       dotData: const FlDotData(show: false),
                     ),

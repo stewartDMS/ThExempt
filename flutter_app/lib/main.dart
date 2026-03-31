@@ -224,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+          gradient: AppColors.heroGradient,
         ),
         child: SafeArea(
           child: Center(
@@ -261,24 +261,36 @@ class _LoginScreenState extends State<LoginScreen>
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            color: Colors.white.withAlpha(26),
+            border: Border.all(color: Colors.white.withAlpha(77), width: 1.5),
             borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(77),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: const Icon(Icons.rocket_launch, size: 40, color: AppColors.white),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('ThExempt', style: AppTextStyles.heading2),
+        Text(
+          'THEXEMPT',
+          style: AppTextStyles.heading2.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2.0,
+          ),
+        ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Connect. Build. Launch.',
-          style: AppTextStyles.body1.copyWith(color: AppColors.grey500),
+          'WHERE CHANGE HAPPENS.',
+          style: AppTextStyles.body1.copyWith(
+            color: Colors.white.withAlpha(230),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Everyday people make it happen.',
+          style: AppTextStyles.body2.copyWith(
+            color: Colors.white.withAlpha(179),
+          ),
         ),
       ],
     );
@@ -306,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen>
             Text('Welcome back', style: AppTextStyles.heading3),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Sign in to continue building',
+              'Sign in to continue the movement',
               style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -421,13 +433,18 @@ class _LoginScreenState extends State<LoginScreen>
                 );
               },
               style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.charcoal,
+                side: const BorderSide(color: AppColors.charcoal, width: 2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
               ),
-              child: const Text(
-                'Create Account',
-                style: AppTextStyles.button,
+              child: Text(
+                'CREATE ACCOUNT',
+                style: AppTextStyles.button.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
@@ -504,39 +521,35 @@ class _LoginScreenState extends State<LoginScreen>
     required bool isLoading,
     required VoidCallback? onPressed,
   }) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(77),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.charcoal,
+        minimumSize: const Size(double.infinity, AppSpacing.minTouchTarget),
+        elevation: 4,
+        shadowColor: Colors.black.withAlpha(51),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         ),
-        child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.white,
-                ),
-              )
-            : Text(label, style: AppTextStyles.button.copyWith(color: AppColors.white)),
       ),
+      child: isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.charcoal,
+              ),
+            )
+          : Text(
+              label.toUpperCase(),
+              style: AppTextStyles.button.copyWith(
+                color: AppColors.charcoal,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
     );
   }
 }
@@ -654,7 +667,7 @@ class _SignupScreenState extends State<SignupScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
         child: SafeArea(
           child: Column(
             children: [
@@ -667,7 +680,8 @@ class _SignupScreenState extends State<SignupScreen>
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                      icon: const Icon(Icons.arrow_back_ios_new,
+                          size: 20, color: AppColors.white),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -689,27 +703,31 @@ class _SignupScreenState extends State<SignupScreen>
                             width: 72,
                             height: 72,
                             decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
+                              color: Colors.white.withAlpha(26),
+                              border: Border.all(
+                                  color: Colors.white.withAlpha(77),
+                                  width: 1.5),
                               borderRadius:
                                   BorderRadius.circular(AppSpacing.radiusXl),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withAlpha(77),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
                             ),
                             child: const Icon(Icons.rocket_launch,
                                 size: 36, color: AppColors.white),
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          Text('Create Account', style: AppTextStyles.heading3),
+                          Text(
+                            'JOIN THE MOVEMENT',
+                            style: AppTextStyles.heading3.copyWith(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
-                            'Join the builder community',
-                            style: AppTextStyles.body2
-                                .copyWith(color: AppColors.grey500),
+                            'Everyday people make it happen.',
+                            style: AppTextStyles.body2.copyWith(
+                              color: Colors.white.withAlpha(179),
+                            ),
                           ),
                           const SizedBox(height: AppSpacing.xxl),
 
@@ -813,13 +831,18 @@ class _SignupScreenState extends State<SignupScreen>
                             children: [
                               Text(
                                 'Already have an account? ',
-                                style: AppTextStyles.body2,
+                                style: AppTextStyles.body2.copyWith(
+                                  color: Colors.white.withAlpha(179),
+                                ),
                               ),
                               GestureDetector(
                                 onTap: () => Navigator.of(context).pop(),
                                 child: Text(
                                   'Sign In',
-                                  style: AppTextStyles.link,
+                                  style: AppTextStyles.link.copyWith(
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
                             ],
@@ -838,42 +861,35 @@ class _SignupScreenState extends State<SignupScreen>
   }
 
   Widget _buildGradientButton() {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(77),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleSignup,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          ),
+    return ElevatedButton(
+      onPressed: _isLoading ? null : _handleSignup,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.charcoal,
+        minimumSize: const Size(double.infinity, AppSpacing.minTouchTarget),
+        elevation: 4,
+        shadowColor: Colors.black.withAlpha(51),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.white,
-                ),
-              )
-            : Text(
-                'Create Account',
-                style: AppTextStyles.button.copyWith(color: AppColors.white),
-              ),
       ),
+      child: _isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.charcoal,
+              ),
+            )
+          : Text(
+              'JOIN THE MOVEMENT',
+              style: AppTextStyles.button.copyWith(
+                color: AppColors.charcoal,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
     );
   }
 }

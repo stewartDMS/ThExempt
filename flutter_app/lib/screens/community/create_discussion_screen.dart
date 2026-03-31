@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
+import '../../theme/app_colors.dart';
 import '../../services/media_upload_service.dart';
 
 class CreateDiscussionScreen extends StatefulWidget {
@@ -94,7 +95,7 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Maximum ${MediaUploadService.maxFiles} files allowed'),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.rebellionOrange,
       ),
     );
   }

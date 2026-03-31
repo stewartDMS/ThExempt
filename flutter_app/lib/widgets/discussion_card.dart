@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/discussion_model.dart';
 import '../utils/time_ago.dart';
 import '../screens/community/discussion_detail_screen.dart';
+import '../theme/app_colors.dart';
 
 class DiscussionCard extends StatelessWidget {
   final Discussion discussion;
@@ -15,13 +16,13 @@ class DiscussionCard extends StatelessWidget {
 
   Color _categoryColor(String category) {
     switch (category) {
-      case 'world_problems': return const Color(0xFF10B981);
-      case 'ideas': return const Color(0xFFF59E0B);
-      case 'learning': return const Color(0xFF3B82F6);
-      case 'live_events': return const Color(0xFFEF4444);
-      case 'networking': return const Color(0xFF8B5CF6);
-      case 'feedback': return const Color(0xFFEC4899);
-      default: return const Color(0xFF6B7280);
+      case 'world_problems': return AppColors.forestGreen;
+      case 'ideas': return AppColors.warmAmber;
+      case 'learning': return AppColors.electricBlue;
+      case 'live_events': return AppColors.deepRed;
+      case 'networking': return AppColors.brightCyan;
+      case 'feedback': return AppColors.rebellionOrange;
+      default: return AppColors.steelGray;
     }
   }
 
@@ -67,7 +68,7 @@ class DiscussionCard extends StatelessWidget {
                   if (discussion.isPinned)
                     const Padding(
                       padding: EdgeInsets.only(right: 6),
-                      child: Icon(Icons.push_pin, size: 14, color: Colors.orange),
+                      child: Icon(Icons.push_pin, size: 14, color: AppColors.rebellionOrange),
                     ),
                   Text(timeAgo(discussion.createdAt),
                       style: TextStyle(fontSize: 12, color: Colors.grey[500])),

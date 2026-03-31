@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import '../models/live_event_model.dart';
 import '../utils/time_ago.dart';
 
@@ -47,7 +48,7 @@ class ChatMessageBubble extends StatelessWidget {
                     ),
                     if (message.isPinned) ...[
                       const SizedBox(width: 4),
-                      const Icon(Icons.push_pin, size: 12, color: Colors.orange),
+                      const Icon(Icons.push_pin, size: 12, color: AppColors.rebellionOrange),
                     ],
                     const SizedBox(width: 6),
                     Text(timeAgo(message.createdAt),
@@ -59,12 +60,12 @@ class ChatMessageBubble extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: message.isPinned
-                        ? Colors.orange.withAlpha(25)
+                        ? AppColors.rebellionOrange.withAlpha(25)
                         : isCurrentUser
                             ? Theme.of(context).colorScheme.primary.withAlpha(25)
                             : Colors.grey[100],
                     borderRadius: BorderRadius.circular(12),
-                    border: message.isPinned ? Border.all(color: Colors.orange.withAlpha(80)) : null,
+                    border: message.isPinned ? Border.all(color: AppColors.rebellionOrange.withAlpha(80)) : null,
                   ),
                   child: Text(message.message, style: const TextStyle(fontSize: 13, height: 1.3)),
                 ),

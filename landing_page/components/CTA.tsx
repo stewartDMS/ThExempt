@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle } from 'lucide-react'
+import { SIGN_UP_URL } from '@/lib/app-links'
 
 const shapes = [
   { size: 'w-32 h-32', top: '10%', left: '5%', delay: 0, rotate: 12 },
@@ -75,7 +76,7 @@ export default function CTA() {
 
           {/* CTA button */}
           <motion.a
-            href="#get-started"
+            href={SIGN_UP_URL}
             whileHover={{ scale: 1.05, y: -3 }}
             whileTap={{ scale: 0.97 }}
             className="group inline-flex items-center gap-2 px-10 py-5 text-lg font-bold text-charcoal bg-white rounded-2xl shadow-2xl hover:shadow-white/30 transition-all duration-300"

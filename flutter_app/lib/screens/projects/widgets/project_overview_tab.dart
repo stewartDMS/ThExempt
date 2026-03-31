@@ -3,6 +3,7 @@ import '../../../models/project_model.dart';
 import '../../../models/project_health.dart';
 import '../../../models/project_achievements.dart';
 import '../../../models/project_stage.dart';
+import '../../../theme/app_colors.dart';
 
 class ProjectOverviewTab extends StatelessWidget {
   final Project project;
@@ -90,19 +91,19 @@ class ProjectOverviewTab extends StatelessWidget {
                   Icons.assignment_outlined,
                   '$openRoles',
                   'Open Roles',
-                  Colors.orange,
+                  AppColors.rebellionOrange,
                 ),
                 _statItem(
                   Icons.visibility_outlined,
                   '${project.viewsCount ?? 0}',
                   'Views',
-                  Colors.teal,
+                  AppColors.brightCyan,
                 ),
                 _statItem(
                   Icons.thumb_up_alt_outlined,
                   '${project.endorsementsCount}',
                   'Endorsed',
-                  Colors.indigo,
+                  AppColors.electricBlue,
                 ),
               ],
             ),
@@ -255,13 +256,13 @@ class ProjectOverviewTab extends StatelessWidget {
             const SizedBox(height: 8),
             _healthRow('Tasks', health.taskScore, Colors.green),
             const SizedBox(height: 8),
-            _healthRow('Timeline', health.timelineScore, Colors.orange),
+            _healthRow('Timeline', health.timelineScore, AppColors.rebellionOrange),
             const SizedBox(height: 8),
             _healthRow(
-                'Engagement', health.engagementScore, Colors.teal),
+                'Engagement', health.engagementScore, AppColors.brightCyan),
             const SizedBox(height: 8),
             _healthRow(
-                'Activity', health.activityScore, Colors.purple),
+                'Activity', health.activityScore, AppColors.expertiseOperations),
           ],
         ),
       ),
@@ -309,7 +310,7 @@ class ProjectOverviewTab extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.warning_amber_rounded,
-                    color: Colors.orange[700], size: 20),
+                    color: AppColors.warmAmber, size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'Warnings',
@@ -365,7 +366,7 @@ class ProjectOverviewTab extends StatelessWidget {
       case WarningSeverity.critical:
         return Colors.red;
       case WarningSeverity.high:
-        return Colors.orange;
+        return AppColors.rebellionOrange;
       case WarningSeverity.medium:
         return Colors.amber;
       case WarningSeverity.low:
@@ -407,7 +408,7 @@ class ProjectOverviewTab extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(rec.icon, size: 18, color: Colors.indigo),
+          Icon(rec.icon, size: 18, color: AppColors.electricBlue),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -464,7 +465,7 @@ class ProjectOverviewTab extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.indigo)),
+                        color: AppColors.electricBlue)),
               ],
             ),
             const SizedBox(height: 8),

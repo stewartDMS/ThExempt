@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/skills_service.dart';
+import '../theme/app_colors.dart';
 
 class CategorizedSkillPicker extends StatefulWidget {
   final List<String> selectedSkills;
@@ -138,11 +139,11 @@ class _CategorizedSkillPickerState extends State<CategorizedSkillPicker> {
                 label: Text(skill),
                 onDeleted: () => _toggleSkill(skill),
                 deleteIcon: const Icon(Icons.close, size: 16),
-                backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
-                labelStyle: const TextStyle(color: Color(0xFF6366F1)),
-                deleteIconColor: const Color(0xFF6366F1),
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                labelStyle: const TextStyle(color: AppColors.primary),
+                deleteIconColor: AppColors.primary,
                 side: BorderSide(
-                    color: const Color(0xFF6366F1).withOpacity(0.3)),
+                    color: AppColors.primary.withOpacity(0.3)),
               );
             }).toList(),
           ),
@@ -183,7 +184,7 @@ class _CategorizedSkillPickerState extends State<CategorizedSkillPicker> {
             subtitle: Text(
                 '${skill['parent_category'] ?? ''} • ${skill['description'] ?? ''}'),
             trailing: isSelected
-                ? const Icon(Icons.check_circle, color: Color(0xFF6366F1))
+                ? const Icon(Icons.check_circle, color: AppColors.primary)
                 : const Icon(Icons.add_circle_outline),
             onTap: () => _toggleSkill(skill['name'] ?? ''),
           );
@@ -240,7 +241,7 @@ class _CategorizedSkillPickerState extends State<CategorizedSkillPicker> {
                 title: Text(skill['name'] ?? ''),
                 subtitle: Text(skill['description'] ?? ''),
                 trailing: isSelected
-                    ? const Icon(Icons.check_circle, color: Color(0xFF6366F1))
+                    ? const Icon(Icons.check_circle, color: AppColors.primary)
                     : const Icon(Icons.add_circle_outline),
                 onTap: () => _toggleSkill(skill['name'] ?? ''),
               );

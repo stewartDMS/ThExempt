@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../services/user_service.dart';
 import '../../widgets/categorized_skill_picker.dart';
 import '../../widgets/common/loading_button.dart';
+import '../../theme/app_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile user;
@@ -211,7 +212,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
                           child: CircleAvatar(
                             radius: 18,
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: AppColors.primary,
                             child: _isUploadingAvatar
                                 ? const SizedBox(
                                     width: 16,
@@ -331,7 +332,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF6366F1),
+        color: AppColors.primary,
       ),
     );
   }
@@ -351,7 +352,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildAvailabilitySelector() {
     final options = [
       ('available', 'Available', Colors.green),
-      ('busy', 'Busy', Colors.orange),
+      ('busy', 'Busy', AppColors.rebellionOrange),
       ('not_looking', 'Not Looking', Colors.red),
     ];
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import 'project_model.dart';
 
 class HealthWarning {
@@ -190,7 +191,7 @@ class ProjectHealth {
 
   Color get scoreColor {
     if (overallScore >= 80) return Colors.green;
-    if (overallScore >= 60) return Colors.orange;
+    if (overallScore >= 60) return AppColors.rebellionOrange;
     return Colors.red;
   }
 

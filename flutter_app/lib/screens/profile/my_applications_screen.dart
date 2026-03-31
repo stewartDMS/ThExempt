@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/role_application_model.dart';
 import '../../services/projects_service.dart';
+import '../../theme/app_colors.dart';
 import '../../utils/time_ago.dart';
 
 class MyApplicationsScreen extends StatefulWidget {
@@ -190,7 +191,7 @@ class _ApplicationCard extends StatelessWidget {
       case 'rejected':
         return Colors.red;
       default:
-        return Colors.orange;
+        return AppColors.rebellionOrange;
     }
   }
 
@@ -380,7 +381,7 @@ class _ApplicationCard extends StatelessWidget {
 
   Color _matchColor(int score) {
     if (score >= 80) return Colors.green[700]!;
-    if (score >= 50) return Colors.orange[700]!;
+    if (score >= 50) return AppColors.warmAmber;
     return Colors.red[600]!;
   }
 }

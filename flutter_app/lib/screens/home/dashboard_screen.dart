@@ -95,12 +95,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         height: LayoutConstants.bottomNavHeight,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.charcoal,
           boxShadow: [
             BoxShadow(
-              color: AppColors.grey300.withAlpha(128),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              color: Colors.black.withAlpha(77),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
@@ -150,7 +150,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = index == currentIndex;
-    final color = isActive ? AppColors.primary : AppColors.grey500;
+    final color = isActive ? AppColors.white : AppColors.grey400;
 
     return Expanded(
       child: GestureDetector(

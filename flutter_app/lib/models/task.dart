@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 enum TaskPriority { high, medium, low }
 
@@ -74,7 +75,7 @@ class Task {
       case TaskPriority.high:
         return Colors.red;
       case TaskPriority.medium:
-        return Colors.orange;
+        return AppColors.rebellionOrange;
       case TaskPriority.low:
         return Colors.green;
     }

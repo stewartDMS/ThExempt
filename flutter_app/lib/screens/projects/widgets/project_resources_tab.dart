@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/project_model.dart';
+import '../../../theme/app_colors.dart';
 import '../../../models/resource.dart';
 import '../../../services/integrations_service.dart';
 
@@ -51,7 +52,7 @@ class _ProjectResourcesTabState extends State<ProjectResourcesTab> {
           _buildSection(
             icon: Icons.description_outlined,
             title: 'Documents',
-            color: Colors.red,
+            color: AppColors.deepRed,
             children: _documents.isEmpty
                 ? [_emptyItem('No documents uploaded')]
                 : _documents.map((r) => _resourceTile(r)).toList(),
@@ -60,7 +61,7 @@ class _ProjectResourcesTabState extends State<ProjectResourcesTab> {
           _buildSection(
             icon: Icons.link,
             title: 'Links',
-            color: Colors.blue,
+            color: AppColors.electricBlue,
             children: _links.isEmpty
                 ? [_emptyItem('No links added')]
                 : _links.map((r) => _resourceTile(r)).toList(),
@@ -69,7 +70,7 @@ class _ProjectResourcesTabState extends State<ProjectResourcesTab> {
           _buildSection(
             icon: Icons.videocam_outlined,
             title: 'Videos',
-            color: Colors.orange,
+            color: AppColors.rebellionOrange,
             children: _videos.isEmpty
                 ? [_emptyItem('No videos uploaded')]
                 : _videos.map((r) => _resourceTile(r)).toList(),
@@ -156,15 +157,15 @@ class _ProjectResourcesTabState extends State<ProjectResourcesTab> {
     switch (resource.type) {
       case ResourceType.document:
         icon = Icons.description_outlined;
-        color = Colors.red;
+        color = AppColors.deepRed;
         break;
       case ResourceType.link:
         icon = Icons.link;
-        color = Colors.blue;
+        color = AppColors.electricBlue;
         break;
       case ResourceType.video:
         icon = Icons.videocam_outlined;
-        color = Colors.orange;
+        color = AppColors.rebellionOrange;
         break;
     }
     return Container(
@@ -244,13 +245,13 @@ class _ProjectResourcesTabState extends State<ProjectResourcesTab> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.green[100],
+                          color: AppColors.successLight,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text('Connected',
                             style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.green[700],
+                                color: AppColors.forestGreen,
                                 fontWeight: FontWeight.w600)),
                       )
                     : TextButton(

@@ -23,19 +23,20 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppColors.scaffoldBackground,
 
-      // AppBar
+      // AppBar – charcoal header matching the dark brand aesthetic
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: false,
-        backgroundColor: AppColors.cardBackground,
-        foregroundColor: AppColors.grey900,
-        scrolledUnderElevation: 1,
-        shadowColor: AppColors.border,
+        backgroundColor: AppColors.charcoal,
+        foregroundColor: AppColors.white,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: AppColors.white),
+        actionsIconTheme: IconThemeData(color: AppColors.white),
         titleTextStyle: TextStyle(
           fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: AppColors.grey900,
-          letterSpacing: -0.2,
+          fontWeight: FontWeight.w800,
+          color: AppColors.white,
+          letterSpacing: 0.2,
         ),
       ),
 
@@ -137,15 +138,15 @@ class AppTheme {
         ),
       ),
 
-      // BottomNavigationBar
+      // BottomNavigationBar – charcoal matching AppBar
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         elevation: 0,
-        backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.grey500,
+        backgroundColor: AppColors.charcoal,
+        selectedItemColor: AppColors.white,
+        unselectedItemColor: AppColors.grey400,
         selectedLabelStyle: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
         unselectedLabelStyle: TextStyle(
           fontSize: 11,

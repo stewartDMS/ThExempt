@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/role_application_model.dart';
 import '../../services/projects_service.dart';
 import '../../utils/time_ago.dart';
+import '../../theme/app_colors.dart';
 
 class ApplicationsInboxScreen extends StatefulWidget {
   final String projectId;
@@ -215,7 +216,7 @@ class _ApplicationsInboxScreenState extends State<ApplicationsInboxScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -223,7 +224,7 @@ class _ApplicationsInboxScreenState extends State<ApplicationsInboxScreen> {
               style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF6366F1)),
+                  color: AppColors.primary),
             ),
           ),
           const SizedBox(height: 16),
@@ -321,13 +322,13 @@ class _ApplicationCard extends StatelessWidget {
       case 'rejected':
         return Colors.red;
       default:
-        return Colors.orange;
+        return AppColors.rebellionOrange;
     }
   }
 
   Color _matchColor(int score) {
     if (score >= 80) return Colors.green[700]!;
-    if (score >= 50) return Colors.orange[700]!;
+    if (score >= 50) return AppColors.warmAmber;
     return Colors.red[600]!;
   }
 
@@ -358,7 +359,7 @@ class _ApplicationCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: const Color(0xFF6366F1).withOpacity(0.15),
+                backgroundColor: AppColors.primary.withOpacity(0.15),
                 backgroundImage: application.applicantAvatarUrl != null
                     ? NetworkImage(application.applicantAvatarUrl!)
                     : null,
@@ -366,7 +367,7 @@ class _ApplicationCard extends StatelessWidget {
                     ? Text(
                         (application.applicantName ?? 'U')[0].toUpperCase(),
                         style: const TextStyle(
-                            color: Color(0xFF6366F1),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.bold),
                       )
                     : null,

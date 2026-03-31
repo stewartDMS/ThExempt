@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 /// Visual indicator showing team composition (filled vs open roles).
 /// Uses coloured dots and an emoji status to communicate fullness at a glance.
@@ -31,7 +32,7 @@ class TeamCompositionIndicator extends StatelessWidget {
     } else if (fillRatio >= 0.5) {
       emoji = '🟡';
       label = '$openRoles spot${openRoles == 1 ? '' : 's'} left';
-      labelColor = Colors.orange[700]!;
+      labelColor = AppColors.warmAmber;
     } else {
       emoji = '❌';
       label = '$openRoles open role${openRoles == 1 ? '' : 's'} needed';

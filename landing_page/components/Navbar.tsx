@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, useScroll } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SIGN_IN_URL, SIGN_UP_URL } from '@/lib/app-links'
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -86,7 +87,7 @@ export default function Navbar() {
           {/* Desktop CTA buttons */}
           <div className="hidden md:flex items-center gap-3">
             <a
-              href="#signin"
+              href={SIGN_IN_URL}
               className={cn(
                 'px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200',
                 isScrolled
@@ -97,7 +98,7 @@ export default function Navbar() {
               Sign In
             </a>
             <a
-              href="#get-started"
+              href={SIGN_UP_URL}
               className="px-5 py-2 text-sm font-semibold text-white rounded-lg bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-md hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5"
             >
               Get Started
@@ -138,13 +139,13 @@ export default function Navbar() {
               ))}
               <div className="pt-3 flex flex-col gap-2 border-t border-gray-200 dark:border-gray-800">
                 <a
-                  href="#signin"
+                  href={SIGN_IN_URL}
                   className="block px-4 py-3 text-sm font-medium text-center text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Sign In
                 </a>
                 <a
-                  href="#get-started"
+                  href={SIGN_UP_URL}
                   className="block px-4 py-3 text-sm font-semibold text-center text-white rounded-lg bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
                 >
                   Get Started
