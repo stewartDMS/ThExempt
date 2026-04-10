@@ -5,6 +5,14 @@ import '../../../models/project_achievements.dart';
 import '../../../models/project_stage.dart';
 import '../../../theme/app_colors.dart';
 
+// ─── Dark surface constants ────────────────────────────────────────────────
+const _cardColor = Color(0xFF2C2C2C);
+const _cardBorder = Color(0xFF3A3A3A);
+
+// ─── Layout constants ──────────────────────────────────────────────────────
+const _kWideScreenBreakpoint = 500.0;
+const _kNarrowGridColumns = 2;
+
 class ProjectOverviewTab extends StatelessWidget {
   final Project project;
   final ProjectHealth health;
@@ -18,131 +26,142 @@ class ProjectOverviewTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
+      color: AppColors.electricBlue,
+      backgroundColor: _cardColor,
       onRefresh: () async {},
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
         children: [
           _buildQuickStats(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           // Phase 3 — Problem / Solution / Impact cards
           if (project.hasProblemStatement) ...[
             _buildStructuredCard(
               context,
               icon: Icons.warning_amber_rounded,
-              iconColor: Colors.red[600]!,
+              iconColor: AppColors.deepRed,
               title: 'Problem',
               content: project.problemStatement!,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
           ],
           if (project.hasSolutionApproach) ...[
             _buildStructuredCard(
               context,
               icon: Icons.lightbulb_outline,
-              iconColor: Colors.amber[700]!,
+              iconColor: AppColors.warmAmber,
               title: 'Solution Approach',
               content: project.solutionApproach!,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
           ],
           if (project.hasImpactMetrics) ...[
             _buildImpactMetricsCard(context),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
           ],
           _buildHealthBreakdown(context),
           if (health.warnings.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             _buildWarnings(context),
           ],
           if (health.recommendations.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             _buildRecommendations(context),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           _buildAchievementsSection(context),
         ],
       ),
     );
   }
 
+  // ─── Quick Stats ───────────────────────────────────────────────────────────
+
   Widget _buildQuickStats(BuildContext context) {
     final openRoles = project.totalRolesNeeded - project.rolesFilled;
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Quick Stats',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _statItem(
-                  Icons.people_outline,
-                  '${project.rolesFilled}/${project.totalRolesNeeded}',
-                  'Team',
-                  Colors.blue,
-                ),
-                _statItem(
-                  Icons.assignment_outlined,
-                  '$openRoles',
-                  'Open Roles',
-                  AppColors.rebellionOrange,
-                ),
-                _statItem(
-                  Icons.visibility_outlined,
-                  '${project.viewsCount ?? 0}',
-                  'Views',
-                  AppColors.brightCyan,
-                ),
-                _statItem(
-                  Icons.thumb_up_alt_outlined,
-                  '${project.endorsementsCount}',
-                  'Endorsed',
-                  AppColors.electricBlue,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _statItem(
-      IconData icon, String value, String label, Color color) {
-    return Expanded(
+    return _DarkCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 22),
+          _SectionHeader(
+            icon: Icons.bar_chart_rounded,
+            iconColor: AppColors.brightCyan,
+            title: 'Quick Stats',
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            label,
-            style:
-                TextStyle(fontSize: 11, color: Colors.grey[600]),
-          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(builder: (context, constraints) {
+            final stats = [
+              _statCell(Icons.people_outline,
+                  '${project.rolesFilled}/${project.totalRolesNeeded}',
+                  'Team', AppColors.electricBlue),
+              _statCell(Icons.assignment_outlined, '$openRoles', 'Open Roles',
+                  AppColors.rebellionOrange),
+              _statCell(Icons.visibility_outlined,
+                  '${project.viewsCount ?? 0}', 'Views', AppColors.brightCyan),
+              _statCell(Icons.thumb_up_alt_outlined,
+                  '${project.endorsementsCount}', 'Endorsed',
+                  AppColors.forestGreen),
+            ];
+            // On wide screens keep 4 in a row; on narrow use 2×2 wrap
+            if (constraints.maxWidth >= _kWideScreenBreakpoint) {
+              return Row(children: stats.map((s) => Expanded(child: s)).toList());
+            }
+            return Wrap(
+              spacing: 0,
+              runSpacing: 16,
+              children: stats.map((s) {
+                return SizedBox(
+                    width: constraints.maxWidth / _kNarrowGridColumns,
+                    child: s);
+              }).toList(),
+            );
+          }),
         ],
       ),
     );
   }
 
-  /// Phase 3 — generic structured content card (Problem / Solution).
+  Widget _statCell(IconData icon, String value, String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.25), color.withOpacity(0.1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.white54,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Structured content card (Problem / Solution) ─────────────────────────
+
   Widget _buildStructuredCard(
     BuildContext context, {
     required IconData icon,
@@ -150,179 +169,176 @@ class ProjectOverviewTab extends StatelessWidget {
     required String title,
     required String content,
   }) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: iconColor, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+    return _DarkCard(
+      accentColor: iconColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(icon: icon, iconColor: iconColor, title: title),
+          const SizedBox(height: 12),
+          Text(
+            content,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white70,
+              height: 1.6,
             ),
-            const SizedBox(height: 10),
-            Text(
-              content,
-              style: TextStyle(
-                  fontSize: 14, color: Colors.grey[700], height: 1.5),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  /// Phase 3 — Impact Metrics card.
+  // ─── Impact Metrics ────────────────────────────────────────────────────────
+
   Widget _buildImpactMetricsCard(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.auto_graph, color: Colors.green[600], size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  'Impact Metrics',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return _DarkCard(
+      accentColor: AppColors.forestGreen,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            icon: Icons.auto_graph,
+            iconColor: AppColors.forestGreen,
+            title: 'Impact Metrics',
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: project.impactMetrics.entries.map((e) {
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppColors.forestGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(999),
+                  border:
+                      Border.all(color: AppColors.forestGreen.withOpacity(0.4)),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: project.impactMetrics.entries.map((e) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: Colors.green[200]!),
-                  ),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 12),
-                      children: [
-                        TextSpan(
-                          text: '${e.key}: ',
-                          style: TextStyle(
-                              color: Colors.green[800],
-                              fontWeight: FontWeight.w600),
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 12),
+                    children: [
+                      TextSpan(
+                        text: '${e.key}: ',
+                        style: const TextStyle(
+                          color: AppColors.forestGreen,
+                          fontWeight: FontWeight.w700,
                         ),
-                        TextSpan(
-                          text: e.value.toString(),
-                          style: TextStyle(color: Colors.green[700]),
+                      ),
+                      TextSpan(
+                        text: e.value.toString(),
+                        style: TextStyle(
+                          color: AppColors.forestGreen.withOpacity(0.85),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
+
+  // ─── Health Breakdown ──────────────────────────────────────────────────────
 
   Widget _buildHealthBreakdown(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Health Breakdown',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            _healthRow('Team', health.teamScore, Colors.blue),
-            const SizedBox(height: 8),
-            _healthRow('Tasks', health.taskScore, Colors.green),
-            const SizedBox(height: 8),
-            _healthRow('Timeline', health.timelineScore, AppColors.rebellionOrange),
-            const SizedBox(height: 8),
-            _healthRow(
-                'Engagement', health.engagementScore, AppColors.brightCyan),
-            const SizedBox(height: 8),
-            _healthRow(
-                'Activity', health.activityScore, AppColors.expertiseOperations),
-          ],
-        ),
+    return _DarkCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            icon: Icons.monitor_heart_outlined,
+            iconColor: AppColors.electricBlue,
+            title: 'Health Breakdown',
+          ),
+          const SizedBox(height: 16),
+          _healthRow('Team', health.teamScore, AppColors.electricBlue),
+          const SizedBox(height: 12),
+          _healthRow('Tasks', health.taskScore, AppColors.forestGreen),
+          const SizedBox(height: 12),
+          _healthRow(
+              'Timeline', health.timelineScore, AppColors.rebellionOrange),
+          const SizedBox(height: 12),
+          _healthRow(
+              'Engagement', health.engagementScore, AppColors.brightCyan),
+          const SizedBox(height: 12),
+          _healthRow(
+              'Activity', health.activityScore, AppColors.expertiseOperations),
+        ],
       ),
     );
   }
 
   Widget _healthRow(String label, double score, Color color) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 90,
-          child: Text(label,
-              style: const TextStyle(fontSize: 13)),
-        ),
-        Expanded(
-          child: LinearProgressIndicator(
-            value: score / 100,
-            backgroundColor: Colors.grey[200],
-            valueColor: AlwaysStoppedAnimation(color),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 36,
-          child: Text(
-            '${score.toInt()}',
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: score / 100),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) {
+        return Row(
+          children: [
+            SizedBox(
+              width: 88,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: value,
+                  backgroundColor: Colors.white12,
+                  valueColor: AlwaysStoppedAnimation(color),
+                  minHeight: 10,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 38,
+              child: Text(
+                '${score.toInt()}',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
+  // ─── Warnings ─────────────────────────────────────────────────────────────
+
   Widget _buildWarnings(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warning_amber_rounded,
-                    color: AppColors.warmAmber, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  'Warnings',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...health.warnings.map((w) => _warningTile(w)),
-          ],
-        ),
+    return _DarkCard(
+      accentColor: AppColors.warmAmber,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            icon: Icons.warning_amber_rounded,
+            iconColor: AppColors.warmAmber,
+            title: 'Warnings',
+          ),
+          const SizedBox(height: 14),
+          ...health.warnings.map((w) => _warningTile(w)),
+        ],
       ),
     );
   }
@@ -330,29 +346,46 @@ class ProjectOverviewTab extends StatelessWidget {
   Widget _warningTile(HealthWarning warning) {
     final severityColor = _severityColor(warning.severity);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.only(top: 4, right: 8),
+            width: 10,
+            height: 10,
+            margin: const EdgeInsets.only(top: 3, right: 10),
             decoration: BoxDecoration(
               color: severityColor,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: severityColor.withOpacity(0.4),
+                  blurRadius: 6,
+                ),
+              ],
             ),
           ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(warning.message,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500)),
-                Text(warning.action,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey[600])),
+                Text(
+                  warning.message,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  warning.action,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white54,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
@@ -364,62 +397,72 @@ class ProjectOverviewTab extends StatelessWidget {
   Color _severityColor(WarningSeverity severity) {
     switch (severity) {
       case WarningSeverity.critical:
-        return Colors.red;
+        return AppColors.deepRed;
       case WarningSeverity.high:
         return AppColors.rebellionOrange;
       case WarningSeverity.medium:
-        return Colors.amber;
+        return AppColors.warmAmber;
       case WarningSeverity.low:
-        return Colors.blue;
+        return AppColors.electricBlue;
     }
   }
 
+  // ─── Recommendations ──────────────────────────────────────────────────────
+
   Widget _buildRecommendations(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.lightbulb_outline,
-                    color: Colors.amber, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  'Recommendations',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...health.recommendations.map((r) => _recommendationTile(r)),
-          ],
-        ),
+    return _DarkCard(
+      accentColor: AppColors.warmAmber,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            icon: Icons.lightbulb_outline,
+            iconColor: AppColors.warmAmber,
+            title: 'Recommendations',
+          ),
+          const SizedBox(height: 14),
+          ...health.recommendations.map((r) => _recommendationTile(r)),
+        ],
       ),
     );
   }
 
   Widget _recommendationTile(HealthRecommendation rec) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(rec.icon, size: 18, color: AppColors.electricBlue),
-          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.electricBlue.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(rec.icon, size: 16, color: AppColors.electricBlue),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(rec.message,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500)),
-                Text(rec.action,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey[600])),
+                Text(
+                  rec.message,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  rec.action,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white54,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
@@ -427,6 +470,8 @@ class ProjectOverviewTab extends StatelessWidget {
       ),
     );
   }
+
+  // ─── Achievements ──────────────────────────────────────────────────────────
 
   Widget _buildAchievementsSection(BuildContext context) {
     final achievements = Achievement.computeForProject(
@@ -440,70 +485,107 @@ class ProjectOverviewTab extends StatelessWidget {
       isLaunched: project.stage == ProjectStage.launch,
     );
     final level = ProjectLevel.calculate(project.totalXP);
-    final unlocked =
-        achievements.where((a) => a.unlocked).toList();
+    final unlocked = achievements.where((a) => a.unlocked).toList();
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.emoji_events,
-                    color: Colors.amber, size: 22),
-                const SizedBox(width: 8),
-                const Text(
-                  'Achievements',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+    return _DarkCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row: title + level badge
+          Row(
+            children: [
+              _SectionHeader(
+                icon: Icons.emoji_events_rounded,
+                iconColor: AppColors.warmAmber,
+                title: 'Achievements',
+              ),
+              const Spacer(),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.electricBlue, AppColors.brightCyan],
+                  ),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                const Spacer(),
-                Text('Level ${level.level}',
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.electricBlue)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // XP progress bar
-            Row(
-              children: [
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: level.progress,
-                    backgroundColor: Colors.grey[200],
-                    valueColor: const AlwaysStoppedAnimation(Colors.amber),
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(4),
+                child: Text(
+                  'Level ${level.level}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '${level.currentXP}/${level.xpForNextLevel} XP',
-                  style: TextStyle(
-                      fontSize: 11, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (unlocked.isEmpty)
-              Text(
-                'Complete milestones to earn achievements!',
-                style: TextStyle(
-                    fontSize: 13, color: Colors.grey[600]),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: unlocked.map((a) => _achievementChip(a)).toList(),
               ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // XP progress bar
+          Row(
+            children: [
+              const Icon(Icons.star_rounded,
+                  size: 16, color: AppColors.warmAmber),
+              const SizedBox(width: 6),
+              Expanded(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: level.progress),
+                  duration: const Duration(milliseconds: 1100),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        backgroundColor: Colors.white12,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.warmAmber),
+                        minHeight: 10,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${level.currentXP}/${level.xpForNextLevel} XP',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (unlocked.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                children: [
+                  const Icon(Icons.lock_outline,
+                      size: 18, color: Colors.white38),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Complete milestones to earn achievements!',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white38,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: unlocked.map((a) => _achievementChip(a)).toList(),
+            ),
+        ],
       ),
     );
   }
@@ -512,29 +594,109 @@ class ProjectOverviewTab extends StatelessWidget {
     return Tooltip(
       message: '${achievement.description}\n+${achievement.xp} XP',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: achievement.color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-              color: achievement.color.withOpacity(0.4)),
+          color: achievement.color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: achievement.color.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: achievement.color.withOpacity(0.15),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(achievement.icon,
-                size: 14, color: achievement.color),
-            const SizedBox(width: 4),
+            Icon(achievement.icon, size: 15, color: achievement.color),
+            const SizedBox(width: 6),
             Text(
               achievement.title,
               style: TextStyle(
-                  fontSize: 12,
-                  color: achievement.color,
-                  fontWeight: FontWeight.w600),
+                fontSize: 12,
+                color: achievement.color,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─── Shared dark card container ────────────────────────────────────────────
+
+class _DarkCard extends StatelessWidget {
+  final Widget child;
+  final Color? accentColor;
+
+  const _DarkCard({required this.child, this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: accentColor != null
+              ? accentColor!.withOpacity(0.2)
+              : _cardBorder,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+// ─── Shared section header row ─────────────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 16, color: iconColor),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ],
     );
   }
 }
