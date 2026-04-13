@@ -76,7 +76,7 @@ class ProjectsFeedScreenState extends State<ProjectsFeedScreen> {
           SliverAppBar(
             pinned: true,
             floating: false,
-            expandedHeight: 110,
+            expandedHeight: 130,
             backgroundColor: const Color(0xFF1A1A1A),
             elevation: 0,
             actions: [
