@@ -68,11 +68,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }) {
     return FloatingActionButton.extended(
       onPressed: onPressed,
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.electricBlue,
       foregroundColor: AppColors.white,
-      elevation: 4,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       icon: Icon(icon),
-      label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+      label: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.2)),
     );
   }
 
@@ -95,23 +96,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         height: LayoutConstants.bottomNavHeight,
         decoration: BoxDecoration(
-          color: AppColors.charcoal,
+          color: const Color(0xFF141416),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(77),
-              blurRadius: 12,
+              color: Colors.black.withAlpha(120),
+              blurRadius: 16,
               offset: const Offset(0, -2),
             ),
           ],
+          border: const Border(
+            top: BorderSide(color: Color(0xFF252528), width: 1),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home', index: 0, currentIndex: _currentIndex, onTap: _onNavTap),
-            _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'Discover', index: 1, currentIndex: _currentIndex, onTap: _onNavTap),
-            _NavItem(icon: Icons.add_circle_outline, activeIcon: Icons.add_circle, label: 'Create', index: 2, currentIndex: _currentIndex, onTap: _onNavTap),
-            _NavItem(icon: Icons.forum_outlined, activeIcon: Icons.forum, label: 'Community', index: 3, currentIndex: _currentIndex, onTap: _onNavTap),
-            _NavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile', index: 4, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Discover', index: 1, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.add_circle_outline, activeIcon: Icons.add_circle_rounded, label: 'Create', index: 2, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.forum_outlined, activeIcon: Icons.forum_rounded, label: 'Community', index: 3, currentIndex: _currentIndex, onTap: _onNavTap),
+            _NavItem(icon: Icons.person_outline, activeIcon: Icons.person_rounded, label: 'Profile', index: 4, currentIndex: _currentIndex, onTap: _onNavTap),
           ],
         ),
       ),
@@ -129,7 +133,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-/// Custom bottom navigation item with scale animation on tap
+/// Custom bottom navigation item with brand-colored active state and top-pill indicator.
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
@@ -150,38 +154,58 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = index == currentIndex;
-    final color = isActive ? AppColors.white : AppColors.grey400;
+    final iconColor =
+        isActive ? AppColors.brightCyan : const Color(0xFF6B6B6E);
+    final labelColor =
+        isActive ? AppColors.brightCyan : const Color(0xFF6B6B6E);
 
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => onTap(index),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                child: Icon(
-                  isActive ? activeIcon : icon,
-                  key: ValueKey(isActive),
-                  color: color,
-                  size: 26,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Active indicator pill at the top
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 3,
+              width: isActive ? 24 : 0,
+              margin: const EdgeInsets.only(bottom: 5),
+              decoration: BoxDecoration(
+                gradient: isActive
+                    ? const LinearGradient(
+                        colors: [
+                          AppColors.electricBlue,
+                          AppColors.brightCyan,
+                        ],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(2),
               ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight:
-                      isActive ? FontWeight.w700 : FontWeight.w400,
-                  color: color,
-                ),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: Icon(
+                isActive ? activeIcon : icon,
+                key: ValueKey(isActive),
+                color: iconColor,
+                size: 24,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight:
+                    isActive ? FontWeight.w700 : FontWeight.w400,
+                color: labelColor,
+                letterSpacing: 0.1,
+              ),
+            ),
+          ],
         ),
       ),
     );

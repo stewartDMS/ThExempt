@@ -9,6 +9,9 @@ class PremiumCard extends StatefulWidget {
   final EdgeInsets? padding;
   final EdgeInsets? margin;
 
+  /// Card surface color. Defaults to [Colors.white].
+  final Color? backgroundColor;
+
   const PremiumCard({
     super.key,
     required this.child,
@@ -16,6 +19,7 @@ class PremiumCard extends StatefulWidget {
     this.onTap,
     this.padding,
     this.margin,
+    this.backgroundColor,
   });
 
   @override
@@ -34,7 +38,7 @@ class _PremiumCardState extends State<PremiumCard> {
           const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: widget.backgroundColor ?? Colors.white,
         boxShadow: [
           BoxShadow(
             color: accent.withOpacity(_isHovered ? 0.15 : 0.08),

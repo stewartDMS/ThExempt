@@ -61,9 +61,9 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
               begin: Alignment(shimmerPos - 1, 0),
               end: Alignment(shimmerPos + 1, 0),
               colors: const [
-                AppColors.grey200,
-                AppColors.grey100,
-                AppColors.grey200,
+                Color(0xFF2A2A2D),
+                Color(0xFF353538),
+                Color(0xFF2A2A2D),
               ],
             ),
           ),
