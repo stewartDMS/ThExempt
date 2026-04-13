@@ -9,12 +9,8 @@ import '../../widgets/best_matches_section.dart';
 import '../../widgets/discovery_project_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/text_styles.dart';
 import '../../widgets/common/skeleton_project_card.dart';
-import '../../widgets/common/filter_dropdown.dart';
-import '../../widgets/common/filter_panel.dart';
 import '../../utils/error_handler.dart';
-import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/error_snackbar.dart';
 import '../discovery/changemakers_screen.dart';
 import '../discovery/skills_marketplace_screen.dart';
@@ -179,15 +175,61 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.charcoal,
       appBar: AppBar(
-        title: const Text('Discover'),
+        backgroundColor: const Color(0xFF1A1A1A),
         elevation: 0,
+        titleSpacing: 20,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ShaderMask(
+              shaderCallback: (rect) =>
+                  AppColors.primaryGradient.createShader(rect),
+              child: const Text(
+                'ThExempt',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.brightCyan.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.brightCyan.withOpacity(0.35),
+                  width: 1,
+                ),
+              ),
+              child: const Text(
+                '🔍 Discover',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.brightCyan,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ],
+        ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.grey500,
-          indicatorColor: AppColors.primary,
+          labelColor: AppColors.brightCyan,
+          unselectedLabelColor: Colors.white54,
+          indicatorColor: AppColors.brightCyan,
+          indicatorWeight: 2,
+          dividerColor: Colors.transparent,
           isScrollable: true,
+          labelStyle: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontSize: 13),
           tabs: const [
             Tab(text: 'Projects'),
             Tab(text: 'Changemakers'),
@@ -225,161 +267,147 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   }
 
   Widget _buildFilters() {
-    return FilterPanel(
-      child: Column(
-        children: [
-          // Category dropdown
-          FilterDropdown<String?>(
-            label: 'Category',
-            value: _selectedCategory,
-            items: const [
-              DropdownItem(
-                  value: null,
-                  label: 'All Categories',
-                  icon: Icons.grid_view_outlined),
-              DropdownItem(
-                  value: 'Technical',
-                  label: 'Technical',
-                  icon: Icons.code),
-              DropdownItem(
-                  value: 'Business',
-                  label: 'Business',
-                  icon: Icons.business_center_outlined),
-              DropdownItem(
-                  value: 'Marketing',
-                  label: 'Marketing',
-                  icon: Icons.campaign_outlined),
-              DropdownItem(
-                  value: 'Design',
-                  label: 'Design',
-                  icon: Icons.brush_outlined),
-              DropdownItem(
-                  value: 'Finance',
-                  label: 'Finance',
-                  icon: Icons.attach_money),
-              DropdownItem(
-                  value: 'Operations',
-                  label: 'Operations',
-                  icon: Icons.settings_outlined),
-              DropdownItem(
-                  value: 'Legal', label: 'Legal', icon: Icons.gavel_outlined),
-              DropdownItem(
-                  value: 'Other',
-                  label: 'Other',
-                  icon: Icons.more_horiz),
-            ],
-            onChanged: (value) {
-              setState(() => _selectedCategory = value);
-              _loadData();
-            },
-          ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Stage dropdown
-          FilterDropdown<ProjectStage?>(
-            label: 'Project Stage',
-            value: _selectedStage,
-            items: [
-              const DropdownItem(
-                  value: null,
-                  label: 'All Stages',
-                  icon: Icons.layers_outlined),
-              ...ProjectStage.values.map(
-                (stage) => DropdownItem(
-                  value: stage,
-                  label: '${stage.emoji} ${stage.displayName}',
-                  color: stage.color,
+    return Container(
+      color: const Color(0xFF1A1A1A),
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            // ── Category ──────────────────────────────────────────────────
+            PopupMenuButton<String?>(
+              color: const Color(0xFF2C2C2C),
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (v) {
+                setState(() => _selectedCategory = v);
+                _loadData();
+              },
+              itemBuilder: (_) => [
+                _darkMenuItem<String?>(null, 'All Categories'),
+                _darkMenuItem('Technical', 'Technical'),
+                _darkMenuItem('Business', 'Business'),
+                _darkMenuItem('Marketing', 'Marketing'),
+                _darkMenuItem('Design', 'Design'),
+                _darkMenuItem('Finance', 'Finance'),
+                _darkMenuItem('Operations', 'Operations'),
+                _darkMenuItem('Legal', 'Legal'),
+                _darkMenuItem('Other', 'Other'),
+              ],
+              child: _FilterChip(
+                label: _selectedCategory ?? 'Category',
+                icon: Icons.grid_view_outlined,
+                isActive: _selectedCategory != null,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // ── Stage ─────────────────────────────────────────────────────
+            PopupMenuButton<String>(
+              color: const Color(0xFF2C2C2C),
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (v) {
+                setState(() => _selectedStage = v.isEmpty
+                    ? null
+                    : ProjectStage.values
+                        .firstWhere((s) => s.name == v,
+                            orElse: () => ProjectStage.values.first));
+                _loadData();
+              },
+              itemBuilder: (_) => [
+                _darkMenuItem('', 'All Stages'),
+                ...ProjectStage.values.map(
+                  (s) => _darkMenuItem(s.name, '${s.emoji} ${s.displayName}'),
                 ),
+              ],
+              child: _FilterChip(
+                label: _selectedStage != null
+                    ? '${_selectedStage!.emoji} ${_selectedStage!.displayName}'
+                    : 'Stage',
+                icon: Icons.layers_outlined,
+                isActive: _selectedStage != null,
               ),
-            ],
-            onChanged: (value) {
-              setState(() => _selectedStage = value);
-              _loadData();
-            },
-          ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Sort dropdown
-          FilterDropdown<String>(
-            label: 'Sort By',
-            value: _sort,
-            items: const [
-              DropdownItem(
-                  value: 'recent',
-                  label: 'Most Recent',
-                  icon: Icons.schedule_outlined),
-              DropdownItem(
-                  value: 'match',
-                  label: 'Best Match',
-                  icon: Icons.star_outline),
-              DropdownItem(
-                  value: 'needed',
-                  label: 'Most Needed',
-                  icon: Icons.group_add_outlined),
-            ],
-            onChanged: (value) {
-              if (value != null) setState(() => _sort = value);
-            },
-          ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Open roles toggle
-          Row(
-            children: [
-              Icon(Icons.work_outline,
-                  size: AppSpacing.iconSm + 2, color: AppColors.success),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  'Only show projects with open roles',
-                  style: AppTextStyles.body2
-                      .copyWith(color: AppColors.grey700, fontSize: 13),
-                ),
+            ),
+            const SizedBox(width: 8),
+            // ── Sort ──────────────────────────────────────────────────────
+            PopupMenuButton<String>(
+              color: const Color(0xFF2C2C2C),
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (v) {
+                setState(() => _sort = v);
+                _loadData();
+              },
+              itemBuilder: (_) => [
+                _darkMenuItem('recent', 'Most Recent'),
+                _darkMenuItem('match', 'Best Match'),
+                _darkMenuItem('needed', 'Most Needed'),
+              ],
+              child: _FilterChip(
+                label: _sortLabel,
+                icon: Icons.sort,
+                isActive: _sort != 'recent',
               ),
-              Switch.adaptive(
-                value: _onlyOpenRoles,
-                onChanged: (v) {
-                  setState(() => _onlyOpenRoles = v);
-                  _loadData();
-                },
-                activeColor: AppColors.success,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const SizedBox(width: 8),
+            // ── Open Roles toggle ─────────────────────────────────────────
+            GestureDetector(
+              onTap: () {
+                setState(() => _onlyOpenRoles = !_onlyOpenRoles);
+                _loadData();
+              },
+              child: _FilterChip(
+                label: 'Open Roles',
+                icon: Icons.work_outline,
+                isActive: _onlyOpenRoles,
+                showArrow: false,
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  PopupMenuItem<T> _darkMenuItem<T>(T value, String label) {
+    return PopupMenuItem<T>(
+      value: value,
+      child: Text(
+        label,
+        style: const TextStyle(color: Colors.white70, fontSize: 14),
+      ),
+    );
+  }
+
+  String get _sortLabel => switch (_sort) {
+        'match' => 'Best Match',
+        'needed' => 'Most Needed',
+        _ => 'Most Recent',
+      };
+
   Widget _buildSearchHint() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.xs,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
       child: GestureDetector(
-        onTap: () {}, // Future: open search
+        onTap: () {},
         child: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.grey100,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(color: AppColors.grey200),
+            color: Colors.white.withOpacity(0.07),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withOpacity(0.12)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Row(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: const Row(
             children: [
-              const Icon(Icons.search, color: AppColors.grey400, size: 20),
-              const SizedBox(width: AppSpacing.sm),
+              Icon(Icons.search, color: Colors.white38, size: 20),
+              SizedBox(width: 10),
               Text(
-                'Search projects, skills...',
-                style: AppTextStyles.body2.copyWith(color: AppColors.grey400),
+                'Search projects, skills…',
+                style: TextStyle(fontSize: 14, color: Colors.white38),
               ),
             ],
           ),
@@ -401,7 +429,54 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     if (_error != null && _allProjects.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
-        child: ErrorStateWidget(error: _error!, onRetry: _loadData),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.deepRed.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.error_outline,
+                      size: 40, color: AppColors.deepRed),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Something went wrong',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _error!.message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 13, color: Colors.white54, height: 1.5),
+                ),
+                const SizedBox(height: 24),
+                OutlinedButton.icon(
+                  onPressed: _loadData,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.brightCyan,
+                    side: const BorderSide(color: AppColors.brightCyan),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -414,7 +489,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.primary,
+      color: AppColors.brightCyan,
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: filtered.length + (bestMatches.isNotEmpty ? 1 : 0),
@@ -442,9 +517,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                 },
               ),
               const Divider(
-                  height: 8,
-                  color: AppColors.scaffoldBackground,
-                  thickness: 8),
+                  height: 1,
+                  color: Color(0xFF2A2A2A),
+                  thickness: 1),
             ],
           );
         },
@@ -455,7 +530,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.fromLTRB(
+            32, 32, 32, AppSpacing.bottomNavWithFabPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -463,27 +539,36 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
+                gradient: const LinearGradient(
+                  colors: [AppColors.electricBlue, AppColors.brightCyan],
+                ),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(Icons.search_off,
-                  size: AppSpacing.iconXxl, color: AppColors.primary),
+                  size: 40, color: Colors.white),
             ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               'No projects found',
-              style: AppTextStyles.heading4,
-              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 8),
             Text(
               _selectedCategory != null
-                  ? 'No ${_selectedCategory!} projects match your filters.\nTry a different category or turn off the open-roles filter.'
+                  ? 'No ${_selectedCategory!} projects match your filters.\nTry a different category or turn off Open Roles.'
                   : 'No projects match your current filters.\nTry adjusting them.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white54,
+                height: 1.5,
+              ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: 28),
             ElevatedButton.icon(
               onPressed: () {
                 setState(() {
@@ -494,14 +579,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                 });
                 _loadData();
               },
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh_rounded),
               label: const Text('Reset Filters'),
               style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                ),
+                backgroundColor: AppColors.electricBlue,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                    horizontal: 28, vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                textStyle: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -510,4 +599,63 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     );
   }
 
+}
+
+// ── Dark filter chip ──────────────────────────────────────────────────────────
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final bool showArrow;
+
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+    required this.isActive,
+    this.showArrow = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: isActive
+            ? AppColors.electricBlue.withOpacity(0.18)
+            : Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isActive
+              ? AppColors.electricBlue.withOpacity(0.5)
+              : Colors.transparent,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon,
+              size: 13,
+              color: isActive ? AppColors.brightCyan : Colors.white54),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+              color: isActive ? AppColors.brightCyan : Colors.white54,
+            ),
+          ),
+          if (showArrow) ...[
+            const SizedBox(width: 3),
+            Icon(Icons.keyboard_arrow_down,
+                size: 13,
+                color: isActive ? AppColors.brightCyan : Colors.white38),
+          ],
+        ],
+      ),
+    );
+  }
 }
