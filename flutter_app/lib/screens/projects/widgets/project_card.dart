@@ -110,11 +110,8 @@ class ProjectCard extends StatelessWidget {
                   child: _buildHeader(context),
                 ),
 
-                // ── Video thumbnail ─────────────────────────────────────
-                if (project.videoUrl != null) _buildVideoThumbnail(context),
-
-                // ── Media gallery ───────────────────────────────────────
-                if (project.hasMedia) MediaGalleryWidget(media: project.media),
+                // ── Media section: always visible ─────────────────────────
+                _buildMediaSection(context),
 
                 // ── Content ─────────────────────────────────────────────
                 Padding(
@@ -266,6 +263,147 @@ class ProjectCard extends StatelessWidget {
           fontWeight: FontWeight.w700,
           color: AppColors.brightCyan,
         ),
+      ),
+    );
+  }
+
+
+  // ── Media section ────────────────────────────────────────────────────────
+
+  /// Always-visible media section: video > first image > gradient banner.
+  Widget _buildMediaSection(BuildContext context) {
+    if (project.videoUrl != null) return _buildVideoThumbnail(context);
+    final images = project.media.where((m) => m.isImage).toList();
+    if (images.isNotEmpty) return _buildImageBanner(context, images.first.fileUrl);
+    // Remaining media (extra videos without a primary url) fall back to gallery
+    if (project.hasMedia) return MediaGalleryWidget(media: project.media);
+    return _buildGradientBanner();
+  }
+
+  /// Full-width 16:9 image banner with bottom gradient overlay.
+  Widget _buildImageBanner(BuildContext context, String url) {
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildGradientBanner(),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.55, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.55),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Branded gradient banner shown when a project has no uploaded media.
+  Widget _buildGradientBanner() {
+    final accent = project.stage.color;
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Base gradient
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF14141A),
+                  accent.withOpacity(0.30),
+                ],
+              ),
+            ),
+          ),
+          // Decorative circles
+          Positioned(
+            right: -28,
+            top: -28,
+            child: _DecoCircle(size: 130, color: accent.withOpacity(0.18)),
+          ),
+          Positioned(
+            right: 22,
+            top: 18,
+            child: _DecoCircle(size: 55, color: accent.withOpacity(0.12)),
+          ),
+          Positioned(
+            left: -18,
+            bottom: -18,
+            child: _DecoCircle(
+                size: 80, color: AppColors.electricBlue.withOpacity(0.14)),
+          ),
+          // Bottom scrim
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.45, 1.0],
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.65),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Title overlay
+          Positioned(
+            left: 16,
+            right: 56,
+            bottom: 14,
+            child: Text(
+              project.title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                height: 1.3,
+                shadows: [Shadow(color: Colors.black54, blurRadius: 8)],
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          // Stage emoji badge top-right
+          Positioned(
+            right: 12,
+            top: 12,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.35),
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                project.stage.emoji,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -845,6 +983,22 @@ class _DarkSkillChip extends StatelessWidget {
           color: AppColors.brightCyan,
         ),
       ),
+    );
+  }
+}
+
+/// Simple decorative circle for gradient banner backgrounds.
+class _DecoCircle extends StatelessWidget {
+  final double size;
+  final Color color;
+  const _DecoCircle({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 }
