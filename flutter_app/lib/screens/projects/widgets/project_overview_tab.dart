@@ -11,7 +11,6 @@ const _cardBorder = Color(0xFF3A3A3A);
 
 // ─── Layout constants ──────────────────────────────────────────────────────
 const _kWideScreenBreakpoint = 500.0;
-const _kNarrowGridColumns = 2;
 
 class ProjectOverviewTab extends StatelessWidget {
   final Project project;
@@ -102,18 +101,29 @@ class ProjectOverviewTab extends StatelessWidget {
                   '${project.endorsementsCount}', 'Endorsed',
                   AppColors.forestGreen),
             ];
-            // On wide screens keep 4 in a row; on narrow use 2×2 wrap
             if (constraints.maxWidth >= _kWideScreenBreakpoint) {
-              return Row(children: stats.map((s) => Expanded(child: s)).toList());
+              // Wide: all four side-by-side
+              return Row(
+                  children: stats.map((s) => Expanded(child: s)).toList());
             }
-            return Wrap(
-              spacing: 0,
-              runSpacing: 16,
-              children: stats.map((s) {
-                return SizedBox(
-                    width: constraints.maxWidth / _kNarrowGridColumns,
-                    child: s);
-              }).toList(),
+            // Narrow: two rows of two, with equal column width and a gap
+            const rowSpacing = 16.0;
+            return Column(
+              children: [
+                Row(
+                  children: stats
+                      .sublist(0, 2)
+                      .map((s) => Expanded(child: s))
+                      .toList(),
+                ),
+                const SizedBox(height: rowSpacing),
+                Row(
+                  children: stats
+                      .sublist(2, 4)
+                      .map((s) => Expanded(child: s))
+                      .toList(),
+                ),
+              ],
             );
           }),
         ],

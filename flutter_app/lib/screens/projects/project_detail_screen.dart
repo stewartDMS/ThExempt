@@ -23,6 +23,42 @@ import 'widgets/project_investment_tab.dart';
 import 'widgets/project_contributors_tab.dart';
 import 'widgets/project_equity_tab.dart';
 
+// ---------------------------------------------------------------------------
+// Tab metadata
+// ---------------------------------------------------------------------------
+
+class _TabMeta {
+  final IconData icon;
+  final String label;
+  const _TabMeta(this.icon, this.label);
+}
+
+const _kTabMeta = [
+  _TabMeta(Icons.dashboard_outlined, 'Overview'),             // 0
+  _TabMeta(Icons.flag_outlined, 'Milestones'),                // 1
+  _TabMeta(Icons.trending_up_outlined, 'Invest'),             // 2
+  _TabMeta(Icons.people_outline, 'Team'),                     // 3
+  _TabMeta(Icons.thumb_up_alt_outlined, 'Endorsements'),      // 4
+  _TabMeta(Icons.campaign_outlined, 'Updates'),               // 5
+  _TabMeta(Icons.check_circle_outline, 'Tasks'),              // 6
+  _TabMeta(Icons.timeline_outlined, 'Activity'),              // 7
+  _TabMeta(Icons.analytics_outlined, 'Analytics'),            // 8
+  _TabMeta(Icons.folder_outlined, 'Resources'),               // 9
+  _TabMeta(Icons.forum_outlined, 'Discussions'),              // 10
+  _TabMeta(Icons.volunteer_activism_outlined, 'Contributors'), // 11
+  _TabMeta(Icons.pie_chart_outline, 'Equity'),                // 12
+];
+
+/// Indices shown directly in the primary nav bar (the 5 most-used sections).
+const _kPrimaryTabIndices = [0, 1, 2, 3, 5];
+
+/// Indices accessible through the "More" overflow sheet.
+const _kSecondaryTabIndices = [4, 6, 7, 8, 9, 10, 11, 12];
+
+// ---------------------------------------------------------------------------
+// Screen widget
+// ---------------------------------------------------------------------------
+
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
 
@@ -42,26 +78,6 @@ class ProjectDetailScreen extends StatefulWidget {
   State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
 }
 
-// Compact horizontal tab item: icon to the left of label.
-class _TabItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _TabItem(this.icon, this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 15),
-        const SizedBox(width: 5),
-        Text(label),
-      ],
-    );
-  }
-}
-
 class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -73,36 +89,28 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   String? _currentUserId;
   String? _currentUserName;
 
-  static final _kTabs = [
-    Tab(child: _TabItem(Icons.dashboard_outlined, 'Overview')),
-    Tab(child: _TabItem(Icons.flag_outlined, 'Milestones')),
-    Tab(child: _TabItem(Icons.trending_up_outlined, 'Invest')),
-    Tab(child: _TabItem(Icons.people_outline, 'Team')),
-    Tab(child: _TabItem(Icons.thumb_up_alt_outlined, 'Endorsements')),
-    Tab(child: _TabItem(Icons.campaign_outlined, 'Updates')),
-    Tab(child: _TabItem(Icons.check_circle_outline, 'Tasks')),
-    Tab(child: _TabItem(Icons.timeline_outlined, 'Activity')),
-    Tab(child: _TabItem(Icons.analytics_outlined, 'Analytics')),
-    Tab(child: _TabItem(Icons.folder_outlined, 'Resources')),
-    Tab(child: _TabItem(Icons.forum_outlined, 'Discussions')),
-    Tab(child: _TabItem(Icons.volunteer_activism_outlined, 'Contributors')),
-    Tab(child: _TabItem(Icons.pie_chart_outline, 'Equity')),
-  ];
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: _kTabs.length,
+      length: _kTabMeta.length,
       vsync: this,
-      initialIndex: widget.initialTabIndex.clamp(0, _kTabs.length - 1),
+      initialIndex: widget.initialTabIndex.clamp(0, _kTabMeta.length - 1),
     );
+    // Rebuild the nav bar whenever the tab changes (includes programmatic animateTo).
+    _tabController.addListener(_onTabChange);
     _loadCurrentUser();
     _loadProject();
   }
 
+  void _onTabChange() {
+    // Rebuild the nav bar to update the active-tab highlight.
+    if (!_tabController.indexIsChanging && mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -291,27 +299,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           SliverToBoxAdapter(child: _buildHealthBar(health)),
           SliverPersistentHeader(
             pinned: true,
-            delegate: _TabBarDelegate(
-              TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabs: _kTabs,
-                labelColor: AppColors.brightCyan,
-                unselectedLabelColor: Colors.white60,
-                indicatorColor: AppColors.electricBlue,
-                indicatorWeight: 3,
-                indicatorSize: TabBarIndicatorSize.label,
-                labelStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.1,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-                dividerColor: Colors.white12,
-              ),
+            delegate: _PrimaryNavDelegate(
+              currentIndex: _tabController.index,
+              onTabSelected: (i) => _tabController.animateTo(i),
             ),
           ),
         ],
@@ -569,7 +559,6 @@ class _ProjectHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Stage pill badge
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -646,10 +635,7 @@ class _ProjectHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.charcoal,
-            color.withOpacity(0.7),
-          ],
+          colors: [AppColors.charcoal, color.withOpacity(0.7)],
         ),
       ),
     );
@@ -657,29 +643,345 @@ class _ProjectHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Tab bar sliver delegate
+// Primary navigation bar – 5 pinned tabs + "More" overflow
 // ---------------------------------------------------------------------------
 
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
+class _PrimaryNavDelegate extends SliverPersistentHeaderDelegate {
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
 
-  const _TabBarDelegate(this.tabBar);
+  const _PrimaryNavDelegate({
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
+
+  static const double _kBarHeight = 64.0;
+
+  bool get _isSecondaryActive =>
+      !_kPrimaryTabIndices.contains(currentIndex);
 
   @override
-  double get minExtent => tabBar.preferredSize.height;
+  double get minExtent => _kBarHeight;
 
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get maxExtent => _kBarHeight;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: AppColors.charcoal,
-      child: tabBar,
+    return Material(
+      color: const Color(0xFF1A1A1A),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: _kBarHeight - 1,
+            child: Row(
+              children: [
+                // Five primary tab items
+                ..._kPrimaryTabIndices.map((tabIndex) {
+                  final meta = _kTabMeta[tabIndex];
+                  return _PrimaryNavItem(
+                    icon: meta.icon,
+                    label: meta.label,
+                    isActive: currentIndex == tabIndex,
+                    onTap: () => onTabSelected(tabIndex),
+                  );
+                }),
+                // "More" overflow button
+                _MoreNavItem(
+                  isActive: _isSecondaryActive,
+                  activeLabel: _isSecondaryActive
+                      ? _kTabMeta[currentIndex].label
+                      : null,
+                  onTap: () => _openMoreSheet(context),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1, color: Color(0xFF2C2C2C)),
+        ],
+      ),
+    );
+  }
+
+  void _openMoreSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF252525),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _MoreTabsSheet(
+        currentIndex: currentIndex,
+        onTabSelected: (i) {
+          Navigator.of(context).pop();
+          onTabSelected(i);
+        },
+      ),
     );
   }
 
   @override
-  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
+  bool shouldRebuild(_PrimaryNavDelegate old) =>
+      old.currentIndex != currentIndex;
+}
+
+// Individual primary tab item: icon above label, equal-width columns.
+class _PrimaryNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _PrimaryNavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? AppColors.brightCyan : const Color(0xFF7A7A7A);
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.brightCyan.withOpacity(0.08),
+        highlightColor: Colors.transparent,
+        child: SizedBox.expand(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppColors.electricBlue.withOpacity(0.18)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(icon, size: 22, color: color),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight:
+                      isActive ? FontWeight.w700 : FontWeight.w400,
+                  color: color,
+                  letterSpacing: 0.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// "More ···" overflow button.  Shows the active secondary tab name when one
+// is selected so the user always knows where they are.
+class _MoreNavItem extends StatelessWidget {
+  final bool isActive;
+  final String? activeLabel;
+  final VoidCallback onTap;
+
+  const _MoreNavItem({
+    required this.isActive,
+    required this.onTap,
+    this.activeLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? AppColors.brightCyan : const Color(0xFF7A7A7A);
+    final displayLabel =
+        (isActive && activeLabel != null) ? activeLabel! : 'More';
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.brightCyan.withOpacity(0.08),
+        highlightColor: Colors.transparent,
+        child: SizedBox.expand(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppColors.electricBlue.withOpacity(0.18)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.apps_outlined,
+                  size: 22,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                displayLabel,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight:
+                      isActive ? FontWeight.w700 : FontWeight.w400,
+                  color: color,
+                  letterSpacing: 0.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "More" bottom sheet – 4-column grid of secondary tabs
+// ---------------------------------------------------------------------------
+
+class _MoreTabsSheet extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+
+  const _MoreTabsSheet({
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const Text(
+              'MORE SECTIONS',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white38,
+                letterSpacing: 1.0,
+              ),
+            ),
+            const SizedBox(height: 14),
+            GridView.count(
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.85,
+              children: _kSecondaryTabIndices.map((i) {
+                final meta = _kTabMeta[i];
+                return _SheetTabCard(
+                  icon: meta.icon,
+                  label: meta.label,
+                  isActive: currentIndex == i,
+                  onTap: () => onTabSelected(i),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetTabCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _SheetTabCard({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isActive
+        ? AppColors.electricBlue.withOpacity(0.22)
+        : const Color(0xFF333333);
+    final iconColor = isActive ? AppColors.brightCyan : Colors.white70;
+    final textColor = isActive ? AppColors.brightCyan : Colors.white60;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        splashColor: AppColors.electricBlue.withOpacity(0.2),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(14),
+            border: isActive
+                ? Border.all(
+                    color: AppColors.electricBlue.withOpacity(0.5),
+                    width: 1.5)
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 26, color: iconColor),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight:
+                      isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: textColor,
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
