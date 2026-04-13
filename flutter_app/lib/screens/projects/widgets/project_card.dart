@@ -615,7 +615,7 @@ class ProjectCard extends StatelessWidget {
         // Bookmark
         Container(
           decoration: BoxDecoration(
-            color: Colors.white08,
+            color: Colors.white.withOpacity(0.08),
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           ),
           child: IconButton(
