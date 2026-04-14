@@ -2,13 +2,22 @@ import 'package:flutter/material.dart';
 import '../../models/role_application_model.dart';
 import '../../services/projects_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 import '../../utils/time_ago.dart';
+
+const _kBg            = Color(0xFF14141A);
+const _kCardBg        = Color(0xFF1C1C1E);
+const _kDivider       = Color(0xFF2C2C2F);
+const _kBorder        = Color(0xFF3A3A3C);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
 
 class MyApplicationsScreen extends StatefulWidget {
   const MyApplicationsScreen({super.key});
 
   @override
-  State<MyApplicationsScreen> createState() => _MyApplicationsScreenState();
+  State<MyApplicationsScreen> createState() =>
+      _MyApplicationsScreenState();
 }
 
 class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
@@ -23,24 +32,15 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
   }
 
   Future<void> _loadApplications() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    setState(() { _isLoading = true; _errorMessage = null; });
     try {
       final apps = await ProjectsService.getMyApplications();
       if (mounted) {
-        setState(() {
-          _applications = apps;
-          _isLoading = false;
-        });
+        setState(() { _applications = apps; _isLoading = false; });
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = e.toString();
-        });
+        setState(() { _isLoading = false; _errorMessage = e.toString(); });
       }
     }
   }
@@ -49,38 +49,52 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Withdraw Application'),
+        backgroundColor: _kCardBg,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+        title: const Text('Withdraw Application',
+            style: TextStyle(color: _kTextPrimary)),
         content: Text(
-            'Withdraw your application for "${application.roleTitle}" at "${application.projectTitle}"?'),
+          'Withdraw your application for "${application.roleTitle}" at "${application.projectTitle}"?',
+          style: const TextStyle(color: _kTextSecondary, fontSize: 13),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: const Text('Cancel',
+                style: TextStyle(color: _kTextSecondary)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[600]),
+          TextButton(
+            style: TextButton.styleFrom(
+                foregroundColor: AppColors.deepRed),
             onPressed: () => Navigator.pop(ctx, true),
-            child:
-                const Text('Withdraw', style: TextStyle(color: Colors.white)),
+            child: const Text('Withdraw',
+                style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
-
     if (confirmed != true) return;
-
     try {
       await ProjectsService.withdrawApplication(application.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Application withdrawn')),
+          SnackBar(
+            content: const Text('Application withdrawn'),
+            backgroundColor: AppColors.forestGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
         _loadApplications();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.deepRed,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -89,9 +103,22 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _kBg,
       appBar: AppBar(
-        title: const Text('My Applications'),
+        backgroundColor: _kBg,
+        foregroundColor: _kTextPrimary,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: _kTextSecondary, size: 20),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        title: const Text(
+          'My Applications',
+          style: TextStyle(
+              color: _kTextPrimary, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -99,26 +126,31 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.brightCyan));
     }
 
     if (_errorMessage != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+              const Icon(Icons.error_outline,
+                  size: 56, color: AppColors.deepRed),
               const SizedBox(height: 12),
               Text(_errorMessage!,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600])),
-              const SizedBox(height: 16),
+                  style: const TextStyle(
+                      color: _kTextSecondary, fontSize: 13)),
+              const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _loadApplications,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.electricBlue),
               ),
             ],
           ),
@@ -129,25 +161,35 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
     if (_applications.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.description_outlined,
-                  size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text(
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.electricBlue.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: AppColors.electricBlue.withOpacity(0.3)),
+                ),
+                child: const Icon(Icons.description_outlined,
+                    size: 40, color: AppColors.brightCyan),
+              ),
+              const SizedBox(height: 20),
+              const Text(
                 'No applications yet',
                 style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700]),
+                    fontWeight: FontWeight.w700,
+                    color: _kTextPrimary),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Apply for roles in projects you\'re interested in.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 13, color: _kTextSecondary),
               ),
             ],
           ),
@@ -157,10 +199,13 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
 
     return RefreshIndicator(
       onRefresh: _loadApplications,
+      color: AppColors.brightCyan,
+      backgroundColor: _kCardBg,
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: _applications.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, color: _kDivider),
         itemBuilder: (context, index) {
           final app = _applications[index];
           return _ApplicationCard(
@@ -173,7 +218,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
   }
 }
 
-// ── Application card ─────────────────────────────────────────────────────────────
+// ── Application card ──────────────────────────────────────────────────────────
 
 class _ApplicationCard extends StatelessWidget {
   final RoleApplication application;
@@ -186,46 +231,35 @@ class _ApplicationCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'accepted':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return AppColors.rebellionOrange;
+      case 'accepted': return AppColors.forestGreen;
+      case 'rejected': return AppColors.deepRed;
+      default:         return AppColors.rebellionOrange;
     }
   }
 
   IconData _statusIcon(String status) {
     switch (status) {
-      case 'accepted':
-        return Icons.check_circle_outline;
-      case 'rejected':
-        return Icons.cancel_outlined;
-      default:
-        return Icons.access_time;
+      case 'accepted': return Icons.check_circle_outline;
+      case 'rejected': return Icons.cancel_outlined;
+      default:         return Icons.access_time;
     }
+  }
+
+  Color _matchColor(int score) {
+    if (score >= 80) return AppColors.forestGreen;
+    if (score >= 50) return AppColors.warmAmber;
+    return AppColors.deepRed;
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      color: _kCardBg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Project title + status
+          // Project title + status badge
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -236,27 +270,30 @@ class _ApplicationCard extends StatelessWidget {
                     Text(
                       application.projectTitle ?? 'Project',
                       style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.bold),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: _kTextPrimary,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.work_outline,
-                            size: 13, color: Colors.grey[500]),
+                        const Icon(Icons.work_outline,
+                            size: 12, color: _kTextSecondary),
                         const SizedBox(width: 4),
                         Text(
                           application.roleTitle ?? 'Role',
-                          style: TextStyle(
-                              fontSize: 13, color: Colors.grey[600]),
+                          style: const TextStyle(
+                              fontSize: 12, color: _kTextSecondary),
                         ),
                         if (application.roleCategory != null &&
                             application.roleCategory!.isNotEmpty) ...[
-                          Text(' · ',
-                              style: TextStyle(color: Colors.grey[400])),
+                          const Text(' · ',
+                              style: TextStyle(color: _kTextSecondary)),
                           Text(
                             application.roleCategory!,
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey[500]),
+                            style: const TextStyle(
+                                fontSize: 12, color: _kTextSecondary),
                           ),
                         ],
                       ],
@@ -269,15 +306,19 @@ class _ApplicationCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _statusColor(application.status).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
+                  color: _statusColor(application.status).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(
+                      AppSpacing.radiusFull),
+                  border: Border.all(
+                      color: _statusColor(application.status)
+                          .withOpacity(0.35)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       _statusIcon(application.status),
-                      size: 13,
+                      size: 12,
                       color: _statusColor(application.status),
                     ),
                     const SizedBox(width: 4),
@@ -285,8 +326,8 @@ class _ApplicationCard extends StatelessWidget {
                       application.status[0].toUpperCase() +
                           application.status.substring(1),
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                         color: _statusColor(application.status),
                       ),
                     ),
@@ -295,15 +336,20 @@ class _ApplicationCard extends StatelessWidget {
               ),
             ],
           ),
+
           const SizedBox(height: 10),
+
           // Message preview
           Text(
             application.message,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: const TextStyle(
+                fontSize: 13, color: _kTextSecondary, height: 1.45),
           ),
+
           const SizedBox(height: 8),
+
           // Match score + date
           Row(
             children: [
@@ -311,14 +357,18 @@ class _ApplicationCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _matchColor(application.matchScore).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: _matchColor(application.matchScore)
+                      .withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  border: Border.all(
+                      color: _matchColor(application.matchScore)
+                          .withOpacity(0.3)),
                 ),
                 child: Text(
                   '${application.matchScore}% match',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: _matchColor(application.matchScore),
                   ),
                 ),
@@ -326,49 +376,61 @@ class _ApplicationCard extends StatelessWidget {
               const Spacer(),
               Text(
                 'Applied ${timeAgo(application.createdAt)}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                style: const TextStyle(
+                    fontSize: 11, color: _kTextSecondary),
               ),
             ],
           ),
+
           // Withdraw button
           if (onWithdraw != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: onWithdraw,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red[600],
-                  side: BorderSide(color: Colors.red[300]!),
+                  foregroundColor: AppColors.deepRed,
+                  side: BorderSide(
+                      color: AppColors.deepRed.withOpacity(0.4)),
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusMd)),
                 ),
-                child: const Text('Withdraw Application'),
+                child: const Text('Withdraw Application',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ],
-          // Accepted message
+
+          // Accepted celebration
           if (application.status == 'accepted') ...[
             const SizedBox(height: 10),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.forestGreen.withOpacity(0.12),
+                borderRadius:
+                    BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(
+                    color: AppColors.forestGreen.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.celebration,
-                      size: 16, color: Colors.green[700]),
+                  const Icon(Icons.celebration,
+                      size: 16, color: AppColors.forestGreen),
                   const SizedBox(width: 8),
-                  Text(
-                    'You\'ve been accepted! Welcome to the team.',
-                    style: TextStyle(
+                  const Expanded(
+                    child: Text(
+                      'You\'ve been accepted! Welcome to the team.',
+                      style: TextStyle(
                         fontSize: 13,
-                        color: Colors.green[700],
-                        fontWeight: FontWeight.w500),
+                        color: AppColors.forestGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -377,11 +439,5 @@ class _ApplicationCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _matchColor(int score) {
-    if (score >= 80) return Colors.green[700]!;
-    if (score >= 50) return AppColors.warmAmber;
-    return Colors.red[600]!;
   }
 }
