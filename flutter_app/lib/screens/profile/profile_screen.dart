@@ -16,6 +16,7 @@ import '../../utils/error_handler.dart';
 import '../../widgets/common/error_snackbar.dart';
 import '../../widgets/common/skeleton_project_card.dart';
 import '../../widgets/common/shimmer_widget.dart';
+import '../projects/project_detail_screen.dart';
 
 // ── Dark palette ──────────────────────────────────────────────────────────────
 const _kBg            = Color(0xFF14141A);
@@ -793,149 +794,215 @@ class _DarkProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive   = project.status == 'open';
-    final statusColor =
-        isActive ? AppColors.forestGreen : AppColors.grey500;
-    final statusText =
-        isActive ? 'Active' : project.status.toUpperCase();
+    final isActive    = project.status == 'open';
+    final statusColor = isActive ? AppColors.forestGreen : AppColors.grey500;
+    final statusText  = isActive ? 'Active' : project.status.toUpperCase();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: _kCardBg,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: _kBorder),
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ProjectDetailScreen(projectId: project.id),
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (project.videoUrl != null)
-              GestureDetector(
-                onTap: () => showDialog(
-                  context: context,
-                  builder: (context) => VideoPlayerDialog(
-                    videoUrl: project.videoUrl!,
-                    projectTitle: project.title,
-                  ),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      project.thumbnailUrl != null
-                          ? Image.network(
-                              project.thumbnailUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFF252528),
-                                child: const Icon(Icons.video_library,
-                                    size: 48, color: _kTextSecondary),
-                              ),
-                            )
-                          : Container(
-                              color: const Color(0xFF252528),
-                              child: const Icon(Icons.video_library,
-                                  size: 48, color: _kTextSecondary),
-                            ),
-                      Center(
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.play_arrow_rounded,
-                              color: Colors.white, size: 28),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          project.title,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: _kTextPrimary,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(
-                              AppSpacing.radiusFull),
-                          border: Border.all(
-                              color: statusColor.withOpacity(0.3)),
-                        ),
-                        child: Text(
-                          statusText,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: statusColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    project.description,
-                    style: const TextStyle(
-                        fontSize: 13, color: _kTextSecondary, height: 1.45),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (project.requiredSkills.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
-                      children:
-                          project.requiredSkills.take(3).map((skill) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.electricBlue.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(
-                                AppSpacing.radiusFull),
-                            border: Border.all(
-                                color: AppColors.electricBlue
-                                    .withOpacity(0.25)),
-                          ),
-                          child: Text(
-                            skill,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.brightCyan,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: _kCardBg,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          border: Border.all(color: _kBorder),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Left accent strip (status colour)
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(AppSpacing.radiusLg),
+                      bottomLeft: Radius.circular(AppSpacing.radiusLg),
                     ),
-                  ],
-                ],
-              ),
+                  ),
+                ),
+                // Card body
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Optional video thumbnail
+                      if (project.videoUrl != null)
+                        GestureDetector(
+                          onTap: () => showDialog(
+                            context: context,
+                            builder: (context) => VideoPlayerDialog(
+                              videoUrl: project.videoUrl!,
+                              projectTitle: project.title,
+                            ),
+                          ),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                project.thumbnailUrl != null
+                                    ? Image.network(
+                                        project.thumbnailUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            Container(
+                                          color: const Color(0xFF252528),
+                                          child: const Icon(
+                                              Icons.video_library,
+                                              size: 48,
+                                              color: _kTextSecondary),
+                                        ),
+                                      )
+                                    : Container(
+                                        color: const Color(0xFF252528),
+                                        child: const Icon(
+                                            Icons.video_library,
+                                            size: 48,
+                                            color: _kTextSecondary),
+                                      ),
+                                Center(
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                        Icons.play_arrow_rounded,
+                                        color: Colors.white,
+                                        size: 28),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title row + status badge
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    project.title,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: _kTextPrimary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull),
+                                    border: Border.all(
+                                        color:
+                                            statusColor.withOpacity(0.4)),
+                                  ),
+                                  child: Text(
+                                    statusText,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: statusColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            // Description
+                            Text(
+                              project.description,
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: _kTextSecondary,
+                                  height: 1.45),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // Skills
+                            if (project.requiredSkills.isNotEmpty) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              Wrap(
+                                spacing: AppSpacing.xs,
+                                runSpacing: AppSpacing.xs,
+                                children: project.requiredSkills
+                                    .take(3)
+                                    .map((skill) => Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: AppSpacing.sm,
+                                              vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.electricBlue
+                                                .withOpacity(0.12),
+                                            borderRadius:
+                                                BorderRadius.circular(
+                                                    AppSpacing.radiusFull),
+                                            border: Border.all(
+                                                color: AppColors.electricBlue
+                                                    .withOpacity(0.25)),
+                                          ),
+                                          child: Text(
+                                            skill,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.brightCyan,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
+                            ],
+                            // Tap hint
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Spacer(),
+                                const Text(
+                                  'View details',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.brightCyan,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 10,
+                                  color: AppColors.brightCyan,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

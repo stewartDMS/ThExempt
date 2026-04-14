@@ -10,7 +10,6 @@ import '../../services/discussions_service.dart';
 import '../../utils/error_handler.dart';
 import 'delete_confirmation_dialog.dart';
 import 'error_snackbar.dart';
-import 'app_card.dart';
 import 'media_gallery_widget.dart';
 
 // Dark palette
@@ -66,29 +65,33 @@ class DiscussionFeedCard extends StatelessWidget {
         builder: (_) => DiscussionDetailScreen(discussionId: discussion.id),
       )),
       child: Container(
-        color: _kCardBg,
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Category accent strip ───────────────────────────────────
-            Container(
-              width: 32,
-              height: 3,
-              decoration: BoxDecoration(
-                color: catColor,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: _kCardBg,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: _kBorder),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Category accent strip ─────────────────────────────────
+              Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [catColor, catColor.withOpacity(0.4)],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 8, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
             // ── Author row ──────────────────────────────────────────────
-            CardHeader(
-              avatarUrl: discussion.authorAvatarUrl,
-              name: discussion.authorName,
-              subtitle: timeAgo(discussion.createdAt),
-              trailing: _buildTrailing(context, isAuthor),
-            ),
+            _buildDarkCardHeader(context, isAuthor),
 
             const SizedBox(height: 10),
 
@@ -232,37 +235,97 @@ class DiscussionFeedCard extends StatelessWidget {
                     label: 'Share',
                     color: _kTextSecondary,
                   ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTrailing(BuildContext context, bool isAuthor) {
-    if (!isAuthor) return const SizedBox.shrink();
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert, size: 20, color: _kTextSecondary),
-      color: const Color(0xFF2A2A2D),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8)),
-      onSelected: (value) {
-        if (value == 'delete') _handleDelete(context);
-      },
-      itemBuilder: (_) => [
-        const PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-              SizedBox(width: 12),
-              Text('Delete',
-                  style: TextStyle(color: AppColors.error)),
             ],
           ),
         ),
+      ],
+    ),
+  ),
+),
+);
+  }
+
+  Widget _buildDarkCardHeader(BuildContext context, bool isAuthor) {
+    final initial = discussion.authorName.isNotEmpty
+        ? discussion.authorName[0].toUpperCase()
+        : '?';
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          radius: 19,
+          backgroundColor: AppColors.electricBlue.withOpacity(0.25),
+          backgroundImage: discussion.authorAvatarUrl != null
+              ? NetworkImage(discussion.authorAvatarUrl!)
+              : null,
+          onBackgroundImageError:
+              discussion.authorAvatarUrl != null ? (_, __) {} : null,
+          child: discussion.authorAvatarUrl == null
+              ? Text(
+                  initial,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.brightCyan,
+                  ),
+                )
+              : null,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                discussion.authorName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _kTextPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 1),
+              Text(
+                timeAgo(discussion.createdAt),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: _kTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isAuthor)
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_horiz,
+                size: 20, color: _kTextSecondary),
+            color: const Color(0xFF2A2A2D),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8)),
+            onSelected: (value) {
+              if (value == 'delete') _handleDelete(context);
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline,
+                        size: 18, color: AppColors.error),
+                    SizedBox(width: 12),
+                    Text('Delete',
+                        style: TextStyle(color: AppColors.error)),
+                  ],
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }
