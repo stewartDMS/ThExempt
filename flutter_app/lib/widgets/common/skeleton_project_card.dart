@@ -15,13 +15,13 @@ class SkeletonProjectCard extends StatelessWidget {
           horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(13),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withAlpha(40),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

@@ -8,6 +8,14 @@ import '../../services/discussions_service.dart';
 import '../../theme/app_colors.dart';
 import '../../services/media_upload_service.dart';
 
+// ── Dark palette ──────────────────────────────────────────────────────────────
+const _kBg            = Color(0xFF14141A);
+const _kCardBg        = Color(0xFF1C1C1E);
+const _kInputFill     = Color(0xFF252528);
+const _kBorder        = Color(0xFF3A3A3C);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
+
 class CreateDiscussionScreen extends StatefulWidget {
   final String? initialCategory;
 
@@ -177,34 +185,27 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
   // ── Media upload section widget ────────────────────────────────────────────
 
   Widget _buildMediaUploadSection() {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Media (optional)', style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text('Media (optional)',
+            style: TextStyle(
+                fontWeight: FontWeight.w600, color: _kTextPrimary)),
         const SizedBox(height: 10),
 
         // Upload buttons
         Row(
           children: [
-            OutlinedButton.icon(
+            _DarkOutlinedButton(
+              icon: Icons.image_outlined,
+              label: 'Add Photos',
               onPressed: _isSubmitting ? null : _pickImages,
-              icon: const Icon(Icons.image_outlined, size: 18),
-              label: const Text('Add Photos'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                textStyle: const TextStyle(fontSize: 13),
-              ),
             ),
             const SizedBox(width: 10),
-            OutlinedButton.icon(
+            _DarkOutlinedButton(
+              icon: Icons.videocam_outlined,
+              label: 'Add Video',
               onPressed: _isSubmitting ? null : _pickVideo,
-              icon: const Icon(Icons.videocam_outlined, size: 18),
-              label: const Text('Add Video'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                textStyle: const TextStyle(fontSize: 13),
-              ),
             ),
           ],
         ),
@@ -214,7 +215,7 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
           const SizedBox(height: 14),
           Text(
             'Selected (${_selectedFiles.length}/${MediaUploadService.maxFiles})',
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: const TextStyle(fontSize: 13, color: _kTextSecondary),
           ),
           const SizedBox(height: 10),
           Wrap(
@@ -231,16 +232,17 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                     height: 90,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[200],
+                      color: _kInputFill,
+                      border: Border.all(color: _kBorder),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: isVideo
                           ? Container(
-                              color: Colors.black87,
+                              color: Colors.black,
                               child: const Center(
                                 child: Icon(Icons.play_circle_outline,
-                                    size: 40, color: Colors.white),
+                                    size: 40, color: AppColors.brightCyan),
                               ),
                             )
                           : kIsWeb
@@ -251,12 +253,10 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                                       return Image.memory(
                                         snapshot.data!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          color: Colors.grey[300],
-                                          child: const Icon(
-                                              Icons.broken_image_outlined,
-                                              color: Colors.grey),
-                                        ),
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(
+                                                Icons.broken_image_outlined,
+                                                color: _kTextSecondary),
                                       );
                                     }
                                     return const Center(
@@ -264,7 +264,8 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                                         width: 20,
                                         height: 20,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2),
+                                            strokeWidth: 2,
+                                            color: AppColors.brightCyan),
                                       ),
                                     );
                                   },
@@ -272,11 +273,9 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                               : Image.file(
                                   File(file.path),
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.broken_image_outlined,
-                                        color: Colors.grey),
-                                  ),
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.broken_image_outlined,
+                                      color: _kTextSecondary),
                                 ),
                     ),
                   ),
@@ -292,7 +291,8 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                           color: Colors.black54,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.close, size: 14, color: Colors.white),
+                        child: const Icon(Icons.close,
+                            size: 14, color: Colors.white),
                       ),
                     ),
                   ),
@@ -302,13 +302,16 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                       bottom: 4,
                       left: 4,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.black54,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text('VIDEO',
-                            style: TextStyle(color: Colors.white, fontSize: 9,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
                                 fontWeight: FontWeight.bold)),
                       ),
                     ),
@@ -326,14 +329,15 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
             child: LinearProgressIndicator(
               value: _uploadProgress,
               minHeight: 6,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+              backgroundColor: _kInputFill,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.brightCyan),
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Uploading media… ${(_uploadProgress * 100).toInt()}%',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: const TextStyle(fontSize: 12, color: _kTextSecondary),
           ),
         ],
       ],
@@ -342,9 +346,35 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: _kBorder),
+    );
+    final focusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide:
+          const BorderSide(color: AppColors.brightCyan, width: 1.5),
+    );
+    final inputDecoration = InputDecoration(
+      filled: true,
+      fillColor: _kInputFill,
+      labelStyle: const TextStyle(color: _kTextSecondary),
+      hintStyle: const TextStyle(color: _kTextSecondary),
+      border: inputBorder,
+      enabledBorder: inputBorder,
+      focusedBorder: focusedBorder,
+      counterStyle: const TextStyle(color: _kTextSecondary),
+    );
+
     return Scaffold(
+      backgroundColor: _kBg,
       appBar: AppBar(
-        title: const Text('New Discussion'),
+        backgroundColor: _kCardBg,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: _kTextPrimary),
+        title: const Text('New Discussion',
+            style: TextStyle(
+                color: _kTextPrimary, fontWeight: FontWeight.w700)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -352,9 +382,14 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
               onPressed: _isSubmitting ? null : _submit,
               child: _isSubmitting
                   ? const SizedBox(
-                      width: 16, height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Post', style: TextStyle(fontWeight: FontWeight.bold)),
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.brightCyan))
+                  : const Text('Post',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.brightCyan)),
             ),
           ),
         ],
@@ -365,7 +400,9 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             // Category selector
-            const Text('Category', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Category',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, color: _kTextPrimary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -373,24 +410,34 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
               children: DiscussionCategory.values.map((cat) {
                 final isSelected = _selectedCategory == cat.value;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedCategory = cat.value),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  onTap: () =>
+                      setState(() => _selectedCategory = cat.value),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey[100],
+                          ? AppColors.electricBlue.withOpacity(0.2)
+                          : _kCardBg,
                       borderRadius: BorderRadius.circular(20),
-                      border: isSelected
-                          ? null
-                          : Border.all(color: Colors.grey[300]!),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.brightCyan.withOpacity(0.7)
+                            : _kBorder,
+                        width: isSelected ? 1.5 : 1,
+                      ),
                     ),
                     child: Text(
                       cat.label,
                       style: TextStyle(
                         fontSize: 13,
-                        color: isSelected ? Colors.white : Colors.grey[700],
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected
+                            ? AppColors.brightCyan
+                            : _kTextSecondary,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -401,15 +448,16 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
             // Title
             TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(
+              style: const TextStyle(color: _kTextPrimary),
+              decoration: inputDecoration.copyWith(
                 labelText: 'Title',
                 hintText: 'What do you want to discuss?',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
               maxLength: 200,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Title is required';
-                if (v.trim().length < 5) return 'Title must be at least 5 characters';
+                if (v.trim().length < 5)
+                  return 'Title must be at least 5 characters';
                 return null;
               },
             ),
@@ -417,23 +465,27 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
             // Content
             TextFormField(
               controller: _contentController,
-              decoration: InputDecoration(
+              style: const TextStyle(color: _kTextPrimary),
+              decoration: inputDecoration.copyWith(
                 labelText: 'Content',
                 hintText: 'Share your thoughts, questions, or ideas...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 alignLabelWithHint: true,
               ),
               minLines: 5,
               maxLines: 15,
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Content is required';
-                if (v.trim().length < 10) return 'Content must be at least 10 characters';
+                if (v == null || v.trim().isEmpty)
+                  return 'Content is required';
+                if (v.trim().length < 10)
+                  return 'Content must be at least 10 characters';
                 return null;
               },
             ),
             const SizedBox(height: 20),
             // Tags
-            const Text('Tags (optional)', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Tags (optional)',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, color: _kTextPrimary)),
             const SizedBox(height: 8),
             if (_tags.isNotEmpty)
               Padding(
@@ -441,13 +493,27 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                 child: Wrap(
                   spacing: 6,
                   runSpacing: 4,
-                  children: _tags.map((tag) => Chip(
-                    label: Text('#$tag', style: const TextStyle(fontSize: 12)),
-                    deleteIcon: const Icon(Icons.close, size: 14),
-                    onDeleted: () => setState(() => _tags.remove(tag)),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                  )).toList(),
+                  children: _tags
+                      .map((tag) => Chip(
+                            label: Text('#$tag',
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.brightCyan)),
+                            deleteIcon: const Icon(Icons.close,
+                                size: 14, color: _kTextSecondary),
+                            onDeleted: () =>
+                                setState(() => _tags.remove(tag)),
+                            backgroundColor:
+                                AppColors.electricBlue.withOpacity(0.12),
+                            side: BorderSide(
+                                color:
+                                    AppColors.electricBlue.withOpacity(0.3)),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 2),
+                          ))
+                      .toList(),
                 ),
               ),
             if (_tags.length < 5)
@@ -456,20 +522,21 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
                   Expanded(
                     child: TextField(
                       controller: _tagController,
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: _kTextPrimary),
+                      decoration: inputDecoration.copyWith(
                         hintText: 'Add a tag...',
                         prefixText: '#',
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        prefixStyle:
+                            const TextStyle(color: _kTextSecondary),
                       ),
                       onSubmitted: (_) => _addTag(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
+                    icon: const Icon(Icons.add_circle_outline,
+                        color: AppColors.brightCyan),
                     onPressed: _addTag,
-                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ],
               ),
@@ -477,6 +544,47 @@ class _CreateDiscussionScreenState extends State<CreateDiscussionScreen> {
             // Media upload section
             _buildMediaUploadSection(),
             const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Dark outlined button helper ──────────────────────────────────────────────
+
+class _DarkOutlinedButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const _DarkOutlinedButton({
+    required this.icon,
+    required this.label,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: _kCardBg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _kBorder),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: AppColors.brightCyan),
+            const SizedBox(width: 6),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.brightCyan,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),

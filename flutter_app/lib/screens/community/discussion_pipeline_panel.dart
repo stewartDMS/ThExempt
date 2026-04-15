@@ -5,6 +5,14 @@ import '../../services/discussion_resources_service.dart';
 import '../../theme/app_colors.dart';
 import '../projects/create_project_screen.dart';
 
+// ── Dark palette ──────────────────────────────────────────────────────────────
+const _kCardBg        = Color(0xFF1C1C1E);
+const _kInputFill     = Color(0xFF252528);
+const _kBorder        = Color(0xFF3A3A3C);
+const _kDivider       = Color(0xFF2C2C2F);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
+
 /// Phase 1 — Problem → Solution → Project pipeline panel.
 ///
 /// Displays the current stage as a stepper, upvote/downvote controls,
@@ -193,9 +201,9 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: _kCardBg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: _kBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,14 +214,14 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
             child: Row(
               children: [
                 const Icon(Icons.route_outlined,
-                    size: 18, color: AppColors.primary),
+                    size: 18, color: AppColors.brightCyan),
                 const SizedBox(width: 8),
                 const Text(
                   'Pipeline Progress',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.grey900,
+                    color: _kTextPrimary,
                   ),
                 ),
                 const Spacer(),
@@ -232,7 +240,7 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
 
           const SizedBox(height: 16),
 
-          const Divider(height: 1),
+          const Divider(height: 1, color: _kDivider),
 
           // ── Voting row ──────────────────────────────────────────────────
           Padding(
@@ -242,7 +250,8 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
                 const SizedBox(width: 8),
                 const Text(
                   'Community votes:',
-                  style: TextStyle(fontSize: 13, color: AppColors.grey500),
+                  style: TextStyle(
+                      fontSize: 13, color: _kTextSecondary),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -251,10 +260,10 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: _discussion.votesCount > 0
-                        ? AppColors.success
+                        ? AppColors.forestGreen
                         : _discussion.votesCount < 0
-                            ? AppColors.error
-                            : AppColors.grey500,
+                            ? AppColors.deepRed
+                            : _kTextSecondary,
                   ),
                 ),
                 const Spacer(),
@@ -263,7 +272,7 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
                     icon: Icons.thumb_up_outlined,
                     activeIcon: Icons.thumb_up,
                     isActive: _userVote == 1,
-                    activeColor: AppColors.success,
+                    activeColor: AppColors.forestGreen,
                     onTap: _votingInProgress ? null : () => _vote(1),
                   ),
                   const SizedBox(width: 4),
@@ -271,7 +280,7 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
                     icon: Icons.thumb_down_outlined,
                     activeIcon: Icons.thumb_down,
                     isActive: _userVote == -1,
-                    activeColor: AppColors.error,
+                    activeColor: AppColors.deepRed,
                     onTap: _votingInProgress ? null : () => _vote(-1),
                   ),
                 ],
@@ -281,7 +290,7 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
 
           // ── Author actions ───────────────────────────────────────────────
           if (_isAuthor) ...[
-            const Divider(height: 1),
+            const Divider(height: 1, color: _kDivider),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -294,15 +303,20 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.brightCyan),
                             )
-                          : const Icon(Icons.arrow_forward, size: 16),
+                          : const Icon(Icons.arrow_forward,
+                              size: 16, color: AppColors.brightCyan),
                       label: Text(
                         'Advance to ${_nextStage(_discussion.stage)!.label}',
+                        style:
+                            const TextStyle(color: AppColors.brightCyan),
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
+                        side: BorderSide(
+                            color: AppColors.brightCyan.withOpacity(0.5)),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         shape: RoundedRectangleBorder(
@@ -311,14 +325,16 @@ class _DiscussionPipelinePanelState extends State<DiscussionPipelinePanel> {
                             fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                     ),
-                  if (_discussion.stage == DiscussionStage.projectProposal) ...[
+                  if (_discussion.stage ==
+                      DiscussionStage.projectProposal) ...[
                     const SizedBox(height: 8),
                     ElevatedButton.icon(
                       onPressed: _launchProjectFlow,
-                      icon: const Icon(Icons.rocket_launch_outlined, size: 16),
+                      icon: const Icon(Icons.rocket_launch_outlined,
+                          size: 16),
                       label: const Text('Create Project from This'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: AppColors.electricBlue,
                         foregroundColor: AppColors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
@@ -362,7 +378,7 @@ class _StageStepper extends StatelessWidget {
           return Expanded(
             child: Container(
               height: 2,
-              color: isCompleted ? AppColors.primary : AppColors.grey200,
+              color: isCompleted ? AppColors.electricBlue : _kBorder,
             ),
           );
         }
@@ -395,7 +411,9 @@ class _StageNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isCompleted || isCurrent ? AppColors.primary : AppColors.grey300;
+    final color = isCompleted || isCurrent
+        ? AppColors.electricBlue
+        : _kBorder;
     final emoji = stage.label.split(' ').first;
 
     return Tooltip(
@@ -408,17 +426,19 @@ class _StageNode extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               color: isCompleted
-                  ? AppColors.primary
+                  ? AppColors.electricBlue
                   : isCurrent
-                      ? AppColors.primaryContainer
-                      : AppColors.grey100,
+                      ? AppColors.electricBlue.withOpacity(0.2)
+                      : _kInputFill,
               shape: BoxShape.circle,
               border: Border.all(color: color, width: 2),
             ),
             child: Center(
               child: isCompleted
-                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
-                  : Text(emoji, style: const TextStyle(fontSize: 14)),
+                  ? const Icon(Icons.check,
+                      size: 16, color: AppColors.white)
+                  : Text(emoji,
+                      style: const TextStyle(fontSize: 14)),
             ),
           ),
           const SizedBox(height: 4),
@@ -426,8 +446,10 @@ class _StageNode extends StatelessWidget {
             _shortLabel(stage),
             style: TextStyle(
               fontSize: 9,
-              fontWeight: isCurrent ? FontWeight.w700 : FontWeight.normal,
-              color: isCurrent ? AppColors.primary : AppColors.grey500,
+              fontWeight:
+                  isCurrent ? FontWeight.w700 : FontWeight.normal,
+              color:
+                  isCurrent ? AppColors.brightCyan : _kTextSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -463,9 +485,9 @@ class _StagePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withAlpha(25),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(80), width: 1),
+        border: Border.all(color: color.withOpacity(0.4), width: 1),
       ),
       child: Text(
         stage.label,
@@ -481,13 +503,13 @@ class _StagePill extends StatelessWidget {
   Color _stageColor(DiscussionStage stage) {
     switch (stage) {
       case DiscussionStage.problem:
-        return AppColors.error;
+        return AppColors.deepRed;
       case DiscussionStage.solution:
-        return AppColors.warning;
+        return AppColors.warmAmber;
       case DiscussionStage.projectProposal:
-        return AppColors.primary;
+        return AppColors.electricBlue;
       case DiscussionStage.projectLinked:
-        return AppColors.success;
+        return AppColors.forestGreen;
     }
   }
 }
@@ -518,13 +540,14 @@ class _VoteButton extends StatelessWidget {
         padding: const EdgeInsets.all(6),
         child: Icon(
           isActive ? activeIcon : icon,
-          size: 20,
-          color: isActive ? activeColor : AppColors.grey400,
+          size: 22,
+          color: isActive ? activeColor : _kTextSecondary,
         ),
       ),
     );
   }
 }
+
 
 /// Standalone stage badge widget — used in feed cards and other list views.
 class PipelineStageBadge extends StatelessWidget {
@@ -540,13 +563,13 @@ class PipelineStageBadge extends StatelessWidget {
   Color _color() {
     switch (stage) {
       case DiscussionStage.problem:
-        return AppColors.error;
+        return AppColors.deepRed;
       case DiscussionStage.solution:
-        return AppColors.warning;
+        return AppColors.warmAmber;
       case DiscussionStage.projectProposal:
-        return AppColors.primary;
+        return AppColors.electricBlue;
       case DiscussionStage.projectLinked:
-        return AppColors.success;
+        return AppColors.forestGreen;
     }
   }
 
@@ -556,9 +579,9 @@ class PipelineStageBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: fontSize * 0.7, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withAlpha(20),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(80), width: 1),
+        border: Border.all(color: color.withOpacity(0.4), width: 1),
       ),
       child: Text(
         stage.label,

@@ -3,9 +3,7 @@ import '../../models/user_model.dart';
 import '../../services/changemakers_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/text_styles.dart';
 import '../../widgets/common/skeleton_loader.dart';
-import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_snackbar.dart';
 import '../../utils/error_handler.dart';
 import '../profile/user_profile_screen.dart';
@@ -111,26 +109,25 @@ class _CommunityMapScreenState extends State<CommunityMapScreen> {
 
   Widget _buildHeader() {
     return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
+      color: const Color(0xFF1A1A1A),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Stats row
           if (!_isLoading)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 children: [
                   const Icon(Icons.people_outline,
-                      size: 16, color: AppColors.primary),
-                  const SizedBox(width: AppSpacing.xs),
+                      size: 16, color: Colors.white54),
+                  const SizedBox(width: 6),
                   Text(
                     '${_users.length} changemakers across '
                     '${_grouped.length} locations',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.grey600),
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 12),
                   ),
                 ],
               ),
@@ -139,16 +136,17 @@ class _CommunityMapScreenState extends State<CommunityMapScreen> {
           TextField(
             controller: _searchController,
             onChanged: (v) => setState(() => _locationSearch = v),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search by city or country…',
               hintStyle:
-                  AppTextStyles.body2.copyWith(color: AppColors.grey400),
+                  const TextStyle(color: Colors.white38, fontSize: 14),
               prefixIcon: const Icon(Icons.location_searching,
-                  color: AppColors.grey400, size: 20),
+                  color: Colors.white38, size: 20),
               suffixIcon: _locationSearch.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear,
-                          color: AppColors.grey400, size: 18),
+                          color: Colors.white38, size: 18),
                       onPressed: () {
                         _searchController.clear();
                         setState(() => _locationSearch = '');
@@ -156,14 +154,13 @@ class _CommunityMapScreenState extends State<CommunityMapScreen> {
                     )
                   : null,
               filled: true,
-              fillColor: AppColors.grey100,
+              fillColor: Colors.white.withOpacity(0.08),
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.radiusFull),
+                borderRadius: BorderRadius.circular(22),
                 borderSide: BorderSide.none,
               ),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
         ],
@@ -182,11 +179,42 @@ class _CommunityMapScreenState extends State<CommunityMapScreen> {
     }
 
     if (_users.isEmpty) {
-      return const EmptyState(
-        icon: Icons.map_outlined,
-        title: 'No location data yet',
-        subtitle:
-            'Update your profile with your location to appear on the community map!',
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.electricBlue, AppColors.brightCyan],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(Icons.map_outlined,
+                    size: 40, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'No location data yet',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Update your profile with your location\nto appear on the community map!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14, color: Colors.white54, height: 1.5),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -196,14 +224,14 @@ class _CommunityMapScreenState extends State<CommunityMapScreen> {
       return Center(
         child: Text(
           'No locations matching "$_locationSearch"',
-          style: AppTextStyles.body2.copyWith(color: AppColors.grey500),
+          style: const TextStyle(color: Colors.white54, fontSize: 14),
         ),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.primary,
+      color: AppColors.brightCyan,
       child: ListView.builder(
         padding: const EdgeInsets.only(
             bottom: AppSpacing.bottomNavWithFabPadding),
@@ -254,8 +282,7 @@ class _LocationGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -263,32 +290,35 @@ class _LocationGroup extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.location_on,
-                  size: 14, color: AppColors.primary),
-              const SizedBox(width: AppSpacing.xs),
+                  size: 14, color: AppColors.brightCyan),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   location,
-                  style: AppTextStyles.body2
-                      .copyWith(fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm, vertical: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusFull),
+                  color: AppColors.electricBlue.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: AppColors.electricBlue.withOpacity(0.3)),
                 ),
                 child: Text(
                   '${users.length}',
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.primary),
+                  style: const TextStyle(
+                      color: AppColors.brightCyan, fontSize: 11),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: 10),
           // Avatar row – show up to 5 avatars
           Row(
             children: [
@@ -302,13 +332,13 @@ class _LocationGroup extends StatelessWidget {
                         ),
                       ),
                       child: Padding(
-                        padding:
-                            const EdgeInsets.only(right: AppSpacing.sm),
+                        padding: const EdgeInsets.only(right: 8),
                         child: Tooltip(
                           message: u.name,
                           child: CircleAvatar(
                             radius: 22,
-                            backgroundColor: AppColors.primaryContainer,
+                            backgroundColor:
+                                AppColors.electricBlue.withOpacity(0.2),
                             backgroundImage: u.avatarUrl != null
                                 ? NetworkImage(u.avatarUrl!)
                                 : null,
@@ -317,8 +347,10 @@ class _LocationGroup extends StatelessWidget {
                                     u.name.isNotEmpty
                                         ? u.name[0].toUpperCase()
                                         : '?',
-                                    style: AppTextStyles.caption
-                                        .copyWith(color: AppColors.primary),
+                                    style: const TextStyle(
+                                        color: AppColors.brightCyan,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600),
                                   )
                                 : null,
                           ),
@@ -329,17 +361,17 @@ class _LocationGroup extends StatelessWidget {
               if (users.length > 5)
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: AppColors.grey100,
+                  backgroundColor: Colors.white.withOpacity(0.08),
                   child: Text(
                     '+${users.length - 5}',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.grey600, fontSize: 11),
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 11),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          const Divider(height: 1, color: AppColors.divider),
+          const SizedBox(height: 10),
+          Divider(height: 1, color: Colors.white.withOpacity(0.08)),
         ],
       ),
     );

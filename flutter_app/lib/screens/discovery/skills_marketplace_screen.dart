@@ -3,10 +3,7 @@ import '../../models/skill_marketplace_model.dart';
 import '../../services/skills_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/text_styles.dart';
 import '../../widgets/common/skeleton_loader.dart';
-import '../../widgets/common/error_state_widget.dart';
-import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_snackbar.dart';
 import '../../utils/error_handler.dart';
 
@@ -43,12 +40,17 @@ class _SkillsMarketplaceScreenState extends State<SkillsMarketplaceScreen>
     return Column(
       children: [
         Container(
-          color: AppColors.white,
+          color: const Color(0xFF1A1A1A),
           child: TabBar(
             controller: _tabController,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.grey500,
-            indicatorColor: AppColors.primary,
+            labelColor: AppColors.brightCyan,
+            unselectedLabelColor: Colors.white54,
+            indicatorColor: AppColors.brightCyan,
+            indicatorWeight: 2,
+            dividerColor: Colors.transparent,
+            labelStyle: const TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: const TextStyle(fontSize: 13),
             tabs: const [
               Tab(text: 'Skill Offers'),
               Tab(text: 'Skill Requests'),
@@ -131,26 +133,96 @@ class _SkillOffersTabState extends State<_SkillOffersTab>
       );
     }
     if (_error != null && _offers.isEmpty) {
-      return ErrorStateWidget(error: _error!, onRetry: _loadData);
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.deepRed.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.error_outline,
+                    size: 40, color: AppColors.deepRed),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error!.message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: Colors.white54, height: 1.5),
+              ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: _loadData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.brightCyan,
+                  side: const BorderSide(color: AppColors.brightCyan),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     if (_offers.isEmpty) {
-      return const EmptyState(
-        icon: Icons.lightbulb_outline,
-        title: 'No skill offers yet',
-        subtitle: 'Be the first to offer your skills to the community!',
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.electricBlue, AppColors.brightCyan],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(Icons.lightbulb_outline,
+                    size: 40, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'No skill offers yet',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Be the first to offer your skills\nto the community!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14, color: Colors.white54, height: 1.5),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.primary,
+      color: AppColors.brightCyan,
       child: ListView.separated(
         padding: const EdgeInsets.only(
             top: AppSpacing.sm,
             bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: _offers.length,
-        separatorBuilder: (_, __) =>
-            const Divider(height: 1, color: AppColors.divider),
+        separatorBuilder: (_, __) => Divider(
+            height: 1, color: Colors.white.withOpacity(0.06)),
         itemBuilder: (context, index) =>
             _SkillOfferCard(offer: _offers[index]),
       ),
@@ -218,27 +290,96 @@ class _SkillRequestsTabState extends State<_SkillRequestsTab>
       );
     }
     if (_error != null && _requests.isEmpty) {
-      return ErrorStateWidget(error: _error!, onRetry: _loadData);
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.deepRed.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.error_outline,
+                    size: 40, color: AppColors.deepRed),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error!.message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: Colors.white54, height: 1.5),
+              ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: _loadData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.brightCyan,
+                  side: const BorderSide(color: AppColors.brightCyan),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     if (_requests.isEmpty) {
-      return const EmptyState(
-        icon: Icons.search_outlined,
-        title: 'No skill requests yet',
-        subtitle:
-            'Post a skill request to find the right collaborator for your project.',
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.electricBlue, AppColors.brightCyan],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(Icons.search_outlined,
+                    size: 40, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'No skill requests yet',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Post a skill request to find the right\ncollaborator for your project.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14, color: Colors.white54, height: 1.5),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.primary,
+      color: AppColors.brightCyan,
       child: ListView.separated(
         padding: const EdgeInsets.only(
             top: AppSpacing.sm,
             bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: _requests.length,
-        separatorBuilder: (_, __) =>
-            const Divider(height: 1, color: AppColors.divider),
+        separatorBuilder: (_, __) => Divider(
+            height: 1, color: Colors.white.withOpacity(0.06)),
         itemBuilder: (context, index) =>
             _SkillRequestCard(request: _requests[index]),
       ),
@@ -255,8 +396,7 @@ class _SkillOfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -265,7 +405,7 @@ class _SkillOfferCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: AppColors.primaryContainer,
+                backgroundColor: AppColors.electricBlue.withOpacity(0.2),
                 backgroundImage: offer.userAvatarUrl != null
                     ? NetworkImage(offer.userAvatarUrl!)
                     : null,
@@ -274,100 +414,108 @@ class _SkillOfferCard extends StatelessWidget {
                         offer.userName?.isNotEmpty == true
                             ? offer.userName![0].toUpperCase()
                             : '?',
-                        style: AppTextStyles.body2
-                            .copyWith(color: AppColors.primary),
+                        style: const TextStyle(
+                            color: AppColors.brightCyan,
+                            fontWeight: FontWeight.w600),
                       )
                     : null,
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(offer.userName ?? 'Unknown',
-                        style: AppTextStyles.body2
-                            .copyWith(fontWeight: FontWeight.w600)),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14)),
                     if (offer.userLocation != null)
                       Text(offer.userLocation!,
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.grey500)),
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 12)),
                   ],
                 ),
               ),
               if (offer.availableHoursPerWeek != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.successLight,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusFull),
+                    color: AppColors.forestGreen.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: AppColors.forestGreen.withOpacity(0.3)),
                   ),
                   child: Text(
                     '${offer.availableHoursPerWeek}h/wk',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.success),
+                    style: const TextStyle(
+                        color: AppColors.forestGreen,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: 10),
           Text(offer.title,
-              style:
-                  AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600)),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14)),
           const SizedBox(height: 4),
           Text(offer.description,
-              style:
-                  AppTextStyles.body2.copyWith(color: AppColors.grey600),
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
               maxLines: 2,
               overflow: TextOverflow.ellipsis),
           if (offer.skillCategories.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
+              spacing: 6,
+              runSpacing: 6,
               children: offer.skillCategories
                   .take(4)
                   .map(
                     (s) => Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm, vertical: 2),
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusFull),
+                        color: AppColors.electricBlue.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color:
+                                AppColors.electricBlue.withOpacity(0.25)),
                       ),
                       child: Text(s,
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.primary)),
+                          style: const TextStyle(
+                              color: AppColors.brightCyan, fontSize: 11)),
                     ),
                   )
                   .toList(),
             ),
           ],
           if (offer.equityPreferred || offer.rateCreditsPerHour != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 10),
             Row(
               children: [
                 if (offer.rateCreditsPerHour != null) ...[
                   const Icon(Icons.token_outlined,
-                      size: 14, color: AppColors.grey500),
+                      size: 14, color: Colors.white54),
                   const SizedBox(width: 4),
                   Text(
                     '${offer.rateCreditsPerHour} credits/hr',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.grey500),
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 12),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: 12),
                 ],
                 if (offer.equityPreferred) ...[
                   const Icon(Icons.pie_chart_outline,
-                      size: 14, color: AppColors.grey500),
+                      size: 14, color: Colors.white54),
                   const SizedBox(width: 4),
-                  Text(
+                  const Text(
                     'Open to equity',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.grey500),
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ],
               ],
@@ -388,8 +536,7 @@ class _SkillRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -399,22 +546,27 @@ class _SkillRequestCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   request.title,
-                  style: AppTextStyles.body1
-                      .copyWith(fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm, vertical: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.successLight,
-                  borderRadius:
-                      BorderRadius.circular(AppSpacing.radiusFull),
+                  color: AppColors.forestGreen.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: AppColors.forestGreen.withOpacity(0.3)),
                 ),
                 child: Text(
                   request.status.label,
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.success),
+                  style: const TextStyle(
+                      color: AppColors.forestGreen,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -423,35 +575,37 @@ class _SkillRequestCard extends StatelessWidget {
           if (request.projectTitle != null)
             Text(
               '📁 ${request.projectTitle}',
-              style:
-                  AppTextStyles.caption.copyWith(color: AppColors.primary),
+              style: const TextStyle(
+                  color: AppColors.brightCyan, fontSize: 12),
             ),
           const SizedBox(height: 4),
           Text(
             request.description,
-            style: AppTextStyles.body2.copyWith(color: AppColors.grey600),
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           if (request.skillCategories.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
+              spacing: 6,
+              runSpacing: 6,
               children: request.skillCategories
                   .take(4)
                   .map(
                     (s) => Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm, vertical: 2),
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.warningLight,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusFull),
+                        color: AppColors.warmAmber.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color:
+                                AppColors.warmAmber.withOpacity(0.3)),
                       ),
                       child: Text(s,
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.warning)),
+                          style: const TextStyle(
+                              color: AppColors.warmAmber, fontSize: 11)),
                     ),
                   )
                   .toList(),
@@ -459,39 +613,39 @@ class _SkillRequestCard extends StatelessWidget {
           ],
           if (request.budgetCredits != null ||
               request.equityOffered != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 10),
             Row(
               children: [
                 if (request.budgetCredits != null) ...[
                   const Icon(Icons.token_outlined,
-                      size: 14, color: AppColors.grey500),
+                      size: 14, color: Colors.white54),
                   const SizedBox(width: 4),
                   Text(
                     '${request.budgetCredits} credits budget',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.grey500),
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 12),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: 12),
                 ],
                 if (request.equityOffered != null) ...[
                   const Icon(Icons.pie_chart_outline,
-                      size: 14, color: AppColors.grey500),
+                      size: 14, color: Colors.white54),
                   const SizedBox(width: 4),
                   Text(
                     '${request.equityOffered!.toStringAsFixed(1)}% equity',
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.grey500),
+                    style: const TextStyle(
+                        color: Colors.white54, fontSize: 12),
                   ),
                 ],
               ],
             ),
           ],
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: 10),
           Row(
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundColor: AppColors.primaryContainer,
+                backgroundColor: AppColors.electricBlue.withOpacity(0.2),
                 backgroundImage: request.requesterAvatarUrl != null
                     ? NetworkImage(request.requesterAvatarUrl!)
                     : null,
@@ -500,16 +654,16 @@ class _SkillRequestCard extends StatelessWidget {
                         request.requesterName?.isNotEmpty == true
                             ? request.requesterName![0].toUpperCase()
                             : '?',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.primary, fontSize: 10),
+                        style: const TextStyle(
+                            color: AppColors.brightCyan, fontSize: 10),
                       )
                     : null,
               ),
-              const SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: 6),
               Text(
                 'Posted by ${request.requesterName ?? 'Unknown'}',
-                style: AppTextStyles.caption
-                    .copyWith(color: AppColors.grey500),
+                style: const TextStyle(
+                    color: Colors.white38, fontSize: 12),
               ),
             ],
           ),

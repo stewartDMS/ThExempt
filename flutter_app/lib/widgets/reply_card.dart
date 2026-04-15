@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/discussion_model.dart';
+import '../theme/app_colors.dart';
 import '../utils/time_ago.dart';
+
+// ── Dark palette ──────────────────────────────────────────────────────────────
+const _kDivider       = Color(0xFF2C2C2F);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
 
 class ReplyCard extends StatelessWidget {
   final DiscussionReply reply;
@@ -33,11 +39,17 @@ class ReplyCard extends StatelessWidget {
                   backgroundImage: reply.authorAvatarUrl != null
                       ? NetworkImage(reply.authorAvatarUrl!)
                       : null,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(50),
+                  backgroundColor:
+                      AppColors.electricBlue.withOpacity(0.2),
                   child: reply.authorAvatarUrl == null
                       ? Text(
-                          reply.authorName.isNotEmpty ? reply.authorName[0].toUpperCase() : '?',
-                          style: TextStyle(fontSize: nested ? 9 : 11, fontWeight: FontWeight.bold),
+                          reply.authorName.isNotEmpty
+                              ? reply.authorName[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                              fontSize: nested ? 9 : 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.brightCyan),
                         )
                       : null,
                 ),
@@ -51,15 +63,21 @@ class ReplyCard extends StatelessWidget {
                           Text(reply.authorName,
                               style: TextStyle(
                                   fontSize: nested ? 12 : 13,
-                                  fontWeight: FontWeight.w600)),
+                                  fontWeight: FontWeight.w600,
+                                  color: _kTextPrimary)),
                           const SizedBox(width: 6),
                           Text(timeAgo(reply.createdAt),
-                              style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: _kTextSecondary)),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(reply.content,
-                          style: TextStyle(fontSize: nested ? 13 : 14, height: 1.4)),
+                          style: TextStyle(
+                              fontSize: nested ? 13 : 14,
+                              height: 1.4,
+                              color: _kTextPrimary)),
                       const SizedBox(height: 6),
                       Row(
                         children: [
@@ -68,15 +86,19 @@ class ReplyCard extends StatelessWidget {
                             child: Row(
                               children: [
                                 Icon(
-                                  reply.isLikedByUser ? Icons.favorite : Icons.favorite_outline,
+                                  reply.isLikedByUser
+                                      ? Icons.favorite
+                                      : Icons.favorite_outline,
                                   size: 14,
                                   color: reply.isLikedByUser
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey[500],
+                                      ? AppColors.deepRed
+                                      : _kTextSecondary,
                                 ),
                                 const SizedBox(width: 3),
                                 Text('${reply.likesCount}',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: _kTextSecondary)),
                               ],
                             ),
                           ),
@@ -84,12 +106,16 @@ class ReplyCard extends StatelessWidget {
                           if (!nested)
                             GestureDetector(
                               onTap: () => onReply?.call(reply),
-                              child: Row(
+                              child: const Row(
                                 children: [
-                                  Icon(Icons.reply, size: 14, color: Colors.grey[500]),
-                                  const SizedBox(width: 3),
+                                  Icon(Icons.reply,
+                                      size: 14,
+                                      color: _kTextSecondary),
+                                  SizedBox(width: 3),
                                   Text('Reply',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: _kTextSecondary)),
                                 ],
                               ),
                             ),
@@ -109,7 +135,7 @@ class ReplyCard extends StatelessWidget {
                   onLike: onLike,
                 )),
           if (!nested)
-            Divider(color: Colors.grey[200], height: 1),
+            const Divider(color: _kDivider, height: 1),
         ],
       ),
     );

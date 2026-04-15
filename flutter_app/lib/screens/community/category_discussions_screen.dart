@@ -3,6 +3,16 @@ import '../../models/discussion_model.dart';
 import '../../services/discussions_service.dart';
 import '../../widgets/common/discussion_feed_card.dart';
 import '../../screens/community/discussion_pipeline_panel.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
+
+const _kBg            = Color(0xFF14141A);
+const _kCardBg        = Color(0xFF1C1C1E);
+const _kInputFill     = Color(0xFF252528);
+const _kBorder        = Color(0xFF3A3A3C);
+const _kDivider       = Color(0xFF2C2C2F);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
 
 class CategoryDiscussionsScreen extends StatefulWidget {
   final String category;
@@ -17,14 +27,15 @@ class CategoryDiscussionsScreen extends StatefulWidget {
       _CategoryDiscussionsScreenState();
 }
 
-class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
+class _CategoryDiscussionsScreenState
+    extends State<CategoryDiscussionsScreen> {
   List<Discussion> _discussions = [];
-  bool _isLoading = false;
-  bool _hasMore = true;
+  bool _isLoading  = false;
+  bool _hasMore    = true;
   String? _error;
-  String _selectedSort = 'recent';
-  String _search = '';
-  String? _selectedStage; // null = all stages
+  String _selectedSort  = 'recent';
+  String _search        = '';
+  String? _selectedStage;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -43,20 +54,13 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.8) {
-      if (!_isLoading && _hasMore) {
-        _loadDiscussions();
-      }
+      if (!_isLoading && _hasMore) _loadDiscussions();
     }
   }
 
   Future<void> _loadDiscussions({bool reset = false}) async {
     if (_isLoading) return;
-
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
+    setState(() { _isLoading = true; _error = null; });
     try {
       var result = await DiscussionsService.getDiscussions(
         category: widget.category,
@@ -65,141 +69,135 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
         limit: 20,
         offset: reset ? 0 : _discussions.length,
       );
-
-      // Client-side stage filter (server-side filtering can be added later)
       if (_selectedStage != null) {
         result = result
             .where((d) => d.stage.value == _selectedStage)
             .toList();
       }
-
       if (mounted) {
         setState(() {
-          if (reset) {
-            _discussions = result;
-          } else {
-            _discussions.addAll(result);
-          }
-          _hasMore = result.length == 20;
+          if (reset) _discussions = result; else _discussions.addAll(result);
+          _hasMore   = result.length == 20;
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('Error loading discussions: $e');
       if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
+        setState(() { _error = e.toString(); _isLoading = false; });
       }
     }
+  }
+
+  void _setSort(String sort) {
+    if (_selectedSort == sort) return;
+    setState(() => _selectedSort = sort);
+    _loadDiscussions(reset: true);
+  }
+
+  void _setStage(String? stage) {
+    if (_selectedStage == stage) return;
+    setState(() => _selectedStage = stage);
+    _loadDiscussions(reset: true);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _kBg,
       appBar: AppBar(
-        title: Text(widget.category),
+        backgroundColor: _kBg,
+        foregroundColor: _kTextPrimary,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: _kTextSecondary, size: 20),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        title: Text(
+          widget.category,
+          style: const TextStyle(
+              color: _kTextPrimary, fontWeight: FontWeight.w700),
+        ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(160),
+          preferredSize: const Size.fromHeight(136),
           child: Column(
             children: [
-              // Search bar
+              // Search
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: TextField(
-                  onChanged: (value) {
-                    setState(() => _search = value);
+                  style: const TextStyle(color: _kTextPrimary, fontSize: 14),
+                  onChanged: (v) {
+                    setState(() => _search = v);
                     _loadDiscussions(reset: true);
                   },
                   decoration: InputDecoration(
-                    hintText: 'Search discussions...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    hintText: 'Search discussions…',
+                    hintStyle: TextStyle(
+                        color: _kTextSecondary.withOpacity(0.5),
+                        fontSize: 13),
+                    prefixIcon: const Icon(Icons.search,
+                        color: _kTextSecondary, size: 20),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: _kInputFill,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: const BorderSide(color: _kBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: const BorderSide(
+                          color: AppColors.brightCyan, width: 1.5),
+                    ),
                   ),
                 ),
               ),
-              // Sort options
+              // Sort pills
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      const Text('Sort: ', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(width: 6),
-                      ChoiceChip(
-                        label: const Text('Recent'),
-                        selected: _selectedSort == 'recent',
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedSort = 'recent');
-                            _loadDiscussions(reset: true);
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 6),
-                      ChoiceChip(
-                        label: const Text('Popular'),
-                        selected: _selectedSort == 'popular',
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedSort = 'popular');
-                            _loadDiscussions(reset: true);
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 6),
-                      ChoiceChip(
-                        label: const Text('Trending'),
-                        selected: _selectedSort == 'trending',
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedSort = 'trending');
-                            _loadDiscussions(reset: true);
-                          }
-                        },
-                      ),
+                      _SortChip(label: '🕐 Recent', value: 'recent',
+                          selected: _selectedSort == 'recent',
+                          onTap: () => _setSort('recent')),
+                      const SizedBox(width: 8),
+                      _SortChip(label: '👥 Popular', value: 'popular',
+                          selected: _selectedSort == 'popular',
+                          onTap: () => _setSort('popular')),
+                      const SizedBox(width: 8),
+                      _SortChip(label: '🔥 Trending', value: 'trending',
+                          selected: _selectedSort == 'trending',
+                          onTap: () => _setSort('trending')),
                     ],
                   ),
                 ),
               ),
-              // Stage filter
+              // Stage pills
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      const Text('Stage: ', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(width: 6),
-                      ChoiceChip(
-                        label: const Text('All'),
-                        selected: _selectedStage == null,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedStage = null);
-                            _loadDiscussions(reset: true);
-                          }
-                        },
-                      ),
-                      ...DiscussionStage.values.map((stage) {
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: ChoiceChip(
-                            label: Text(stage.label),
-                            selected: _selectedStage == stage.value,
-                            onSelected: (selected) {
-                              setState(() => _selectedStage = selected ? stage.value : null);
-                              _loadDiscussions(reset: true);
-                            },
-                          ),
-                        );
-                      }),
+                      _SortChip(
+                          label: 'All Stages',
+                          value: null,
+                          selected: _selectedStage == null,
+                          onTap: () => _setStage(null)),
+                      ...DiscussionStage.values.map((stage) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: _SortChip(
+                              label: stage.label,
+                              value: stage.value,
+                              selected: _selectedStage == stage.value,
+                              onTap: () => _setStage(stage.value),
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -215,44 +213,64 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
   Widget _buildBody() {
     if (_error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red),
-            SizedBox(height: 16),
-            Text(
-              'Error loading discussions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(_error!, textAlign: TextAlign.center),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _loadDiscussions(reset: true),
-              child: Text('Retry'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline,
+                  size: 56, color: AppColors.deepRed),
+              const SizedBox(height: 16),
+              const Text(
+                'Error loading discussions',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: _kTextPrimary),
+              ),
+              const SizedBox(height: 8),
+              Text(_error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: _kTextSecondary, fontSize: 13)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => _loadDiscussions(reset: true),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.electricBlue),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_isLoading && _discussions.isEmpty) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.brightCyan));
     }
 
     if (_discussions.isEmpty) {
       return Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.forum_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
+            const Icon(Icons.forum_outlined,
+                size: 56, color: _kTextSecondary),
+            const SizedBox(height: 16),
+            const Text(
               'No discussions yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _kTextPrimary),
             ),
-            SizedBox(height: 8),
-            Text('Be the first to start a discussion!'),
+            const SizedBox(height: 8),
+            const Text(
+              'Be the first to start a discussion!',
+              style: TextStyle(color: _kTextSecondary, fontSize: 13),
+            ),
           ],
         ),
       );
@@ -260,24 +278,73 @@ class _CategoryDiscussionsScreenState extends State<CategoryDiscussionsScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _loadDiscussions(reset: true),
-      child: ListView.builder(
+      color: AppColors.brightCyan,
+      backgroundColor: _kCardBg,
+      child: ListView.separated(
         controller: _scrollController,
         itemCount: _discussions.length + (_hasMore ? 1 : 0),
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, color: _kDivider),
         itemBuilder: (context, index) {
           if (index == _discussions.length) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
+            return const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(
+                child: CircularProgressIndicator(
+                    color: AppColors.brightCyan),
               ),
             );
           }
-
-          final discussion = _discussions[index];
-          return DiscussionFeedCard(
-            discussion: discussion,
-          );
+          return DiscussionFeedCard(discussion: _discussions[index]);
         },
+      ),
+    );
+  }
+}
+
+// ── Sort/stage pill chip ───────────────────────────────────────────────────────
+
+class _SortChip extends StatelessWidget {
+  final String label;
+  final dynamic value;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SortChip({
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.electricBlue.withOpacity(0.2)
+              : _kCardBg,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          border: Border.all(
+            color: selected
+                ? AppColors.brightCyan.withOpacity(0.6)
+                : _kBorder,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.brightCyan : _kTextSecondary,
+          ),
+        ),
       ),
     );
   }

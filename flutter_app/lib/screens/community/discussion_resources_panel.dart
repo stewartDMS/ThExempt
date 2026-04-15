@@ -6,6 +6,15 @@ import '../../services/discussion_resources_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/time_ago.dart';
 
+// ── Dark palette ──────────────────────────────────────────────────────────────
+const _kBg            = Color(0xFF14141A);
+const _kCardBg        = Color(0xFF1C1C1E);
+const _kInputFill     = Color(0xFF252528);
+const _kBorder        = Color(0xFF3A3A3C);
+const _kDivider       = Color(0xFF2C2C2F);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
+
 /// Phase 1 — Resource Library panel for a discussion thread.
 ///
 /// Lists all resources attached to [discussionId] and allows authenticated
@@ -96,28 +105,41 @@ class _DiscussionResourcesPanelState extends State<DiscussionResourcesPanel> {
           child: Row(
             children: [
               const Icon(Icons.library_books_outlined,
-                  size: 18, color: AppColors.primary),
+                  size: 18, color: AppColors.brightCyan),
               const SizedBox(width: 8),
               const Text(
                 'Resource Library',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.grey900,
+                  color: _kTextPrimary,
                 ),
               ),
               const Spacer(),
               if (_isAuthenticated)
-                TextButton.icon(
-                  onPressed: _showAddDialog,
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Add'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    textStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600),
+                GestureDetector(
+                  onTap: _showAddDialog,
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.electricBlue.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                          color: AppColors.brightCyan.withOpacity(0.4)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add, size: 14, color: AppColors.brightCyan),
+                        SizedBox(width: 4),
+                        Text('Add',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.brightCyan)),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -133,59 +155,88 @@ class _DiscussionResourcesPanelState extends State<DiscussionResourcesPanel> {
               _FilterChip(
                 label: 'All',
                 isSelected: _filterType == null,
-                onTap: () { setState(() => _filterType = null); _load(); },
+                onTap: () {
+                  setState(() => _filterType = null);
+                  _load();
+                },
               ),
               ...ResourceType.values.map((t) => Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: _FilterChip(
-                  label: t.label,
-                  isSelected: _filterType == t.value,
-                  onTap: () {
-                    setState(() => _filterType = t.value);
-                    _load();
-                  },
-                ),
-              )),
+                    padding: const EdgeInsets.only(left: 6),
+                    child: _FilterChip(
+                      label: t.label,
+                      isSelected: _filterType == t.value,
+                      onTap: () {
+                        setState(() => _filterType = t.value);
+                        _load();
+                      },
+                    ),
+                  )),
             ],
           ),
         ),
 
-        const Divider(height: 1),
+        const Divider(height: 1, color: _kDivider),
 
         // ── List ────────────────────────────────────────────────────────
         if (_loading)
           const Padding(
             padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+                child: CircularProgressIndicator(
+                    color: AppColors.brightCyan)),
           )
         else if (_resources.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            padding: const EdgeInsets.symmetric(
+                vertical: 40, horizontal: 24),
             child: Column(
               children: [
                 const Icon(Icons.library_books_outlined,
-                    size: 48, color: AppColors.grey300),
+                    size: 52, color: _kBorder),
                 const SizedBox(height: 12),
                 const Text(
                   'No resources yet',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.grey600,
+                    color: _kTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 const Text(
                   'Share a link, document, or reference that helps this discussion.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: AppColors.grey400),
+                  style: TextStyle(
+                      fontSize: 13, color: _kTextSecondary),
                 ),
                 if (_isAuthenticated) ...[
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _showAddDialog,
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add Resource'),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: _showAddDialog,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 11),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.electricBlue,
+                            AppColors.brightCyan,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, size: 16, color: Colors.white),
+                          SizedBox(width: 6),
+                          Text('Add Resource',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -196,11 +247,13 @@ class _DiscussionResourcesPanelState extends State<DiscussionResourcesPanel> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _resources.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, __) =>
+                const Divider(height: 1, color: _kDivider),
             itemBuilder: (_, i) => _ResourceTile(
               resource: _resources[i],
-              canDelete: Supabase.instance.client.auth.currentUser?.id ==
-                  _resources[i].uploadedBy,
+              canDelete:
+                  Supabase.instance.client.auth.currentUser?.id ==
+                      _resources[i].uploadedBy,
               onDelete: () => _delete(_resources[i]),
             ),
           ),
@@ -266,6 +319,8 @@ class _ResourceTile extends StatelessWidget {
 
     return InkWell(
       onTap: resource.url != null ? _open : null,
+      splashColor: color.withOpacity(0.08),
+      highlightColor: color.withOpacity(0.04),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -274,8 +329,9 @@ class _ResourceTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: color.withAlpha(20),
+                color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: color.withOpacity(0.3)),
               ),
               child: Icon(_typeIcon(), size: 20, color: color),
             ),
@@ -287,7 +343,8 @@ class _ResourceTile extends StatelessWidget {
                   Row(
                     children: [
                       if (resource.isFeatured) ...[
-                        const Icon(Icons.star, size: 12, color: AppColors.warning),
+                        const Icon(Icons.star,
+                            size: 12, color: AppColors.warmAmber),
                         const SizedBox(width: 4),
                       ],
                       Flexible(
@@ -296,7 +353,7 @@ class _ResourceTile extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.grey900,
+                            color: _kTextPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -310,7 +367,7 @@ class _ResourceTile extends StatelessWidget {
                     Text(
                       resource.description!,
                       style: const TextStyle(
-                          fontSize: 12, color: AppColors.grey500),
+                          fontSize: 12, color: _kTextSecondary),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -322,7 +379,7 @@ class _ResourceTile extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: color.withAlpha(15),
+                          color: color.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -338,14 +395,14 @@ class _ResourceTile extends StatelessWidget {
                         Text(
                           'by ${resource.uploaderName}',
                           style: const TextStyle(
-                              fontSize: 11, color: AppColors.grey400),
+                              fontSize: 11, color: _kTextSecondary),
                         ),
                       ],
                       const SizedBox(width: 6),
                       Text(
                         timeAgo(resource.createdAt),
                         style: const TextStyle(
-                            fontSize: 11, color: AppColors.grey400),
+                            fontSize: 11, color: _kTextSecondary),
                       ),
                     ],
                   ),
@@ -354,7 +411,8 @@ class _ResourceTile extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             if (resource.url != null)
-              const Icon(Icons.open_in_new, size: 16, color: AppColors.grey400),
+              const Icon(Icons.open_in_new,
+                  size: 16, color: _kTextSecondary),
             if (canDelete) ...[
               const SizedBox(width: 4),
               InkWell(
@@ -363,7 +421,7 @@ class _ResourceTile extends StatelessWidget {
                 child: const Padding(
                   padding: EdgeInsets.all(4),
                   child: Icon(Icons.delete_outline,
-                      size: 16, color: AppColors.grey400),
+                      size: 16, color: _kTextSecondary),
                 ),
               ),
             ],
@@ -391,13 +449,19 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.grey100,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected
+              ? AppColors.electricBlue.withOpacity(0.2)
+              : const Color(0xFF1C1C1E),
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.grey200,
+            color: isSelected
+                ? AppColors.brightCyan.withOpacity(0.6)
+                : const Color(0xFF3A3A3C),
+            width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Text(
@@ -405,7 +469,7 @@ class _FilterChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isSelected ? AppColors.white : AppColors.grey600,
+            color: isSelected ? AppColors.brightCyan : const Color(0xFFAAAAAA),
           ),
         ),
       ),
@@ -478,8 +542,26 @@ class _AddResourceDialogState extends State<_AddResourceDialog> {
 
   @override
   Widget build(BuildContext context) {
+    const dialogBg = Color(0xFF1C1C1E);
+    const inputFill = Color(0xFF252528);
+    const border = Color(0xFF3A3A3C);
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: border),
+    );
+    final focusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: AppColors.brightCyan, width: 1.5),
+    );
     return AlertDialog(
-      title: const Text('Add Resource'),
+      backgroundColor: dialogBg,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: border)),
+      title: const Text('Add Resource',
+          style: TextStyle(
+              color: _kTextPrimary, fontWeight: FontWeight.w700)),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -494,7 +576,7 @@ class _AddResourceDialogState extends State<_AddResourceDialog> {
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.grey600)),
+                        color: _kTextSecondary)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
@@ -508,13 +590,14 @@ class _AddResourceDialogState extends State<_AddResourceDialog> {
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: selected
-                              ? AppColors.primary
-                              : AppColors.grey100,
+                              ? AppColors.electricBlue.withOpacity(0.2)
+                              : inputFill,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: selected
-                                ? AppColors.primary
-                                : AppColors.grey300,
+                                ? AppColors.brightCyan.withOpacity(0.6)
+                                : border,
+                            width: selected ? 1.5 : 1,
                           ),
                         ),
                         child: Text(
@@ -522,8 +605,8 @@ class _AddResourceDialogState extends State<_AddResourceDialog> {
                           style: TextStyle(
                             fontSize: 12,
                             color: selected
-                                ? AppColors.white
-                                : AppColors.grey600,
+                                ? AppColors.brightCyan
+                                : _kTextSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -532,61 +615,81 @@ class _AddResourceDialogState extends State<_AddResourceDialog> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-
                 // Title
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: _kTextPrimary),
+                  decoration: InputDecoration(
                     labelText: 'Title *',
-                    border: OutlineInputBorder(),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    labelStyle:
+                        const TextStyle(color: _kTextSecondary),
+                    filled: true,
+                    fillColor: inputFill,
+                    border: inputBorder,
+                    enabledBorder: inputBorder,
+                    focusedBorder: focusedBorder,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'Title is required'
                       : null,
                 ),
                 const SizedBox(height: 12),
-
                 // URL
                 TextFormField(
                   controller: _urlController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: _kTextPrimary),
+                  decoration: InputDecoration(
                     labelText: 'URL (link)',
-                    border: OutlineInputBorder(),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    labelStyle:
+                        const TextStyle(color: _kTextSecondary),
                     hintText: 'https://',
+                    hintStyle:
+                        const TextStyle(color: _kTextSecondary),
+                    filled: true,
+                    fillColor: inputFill,
+                    border: inputBorder,
+                    enabledBorder: inputBorder,
+                    focusedBorder: focusedBorder,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                   ),
                   keyboardType: TextInputType.url,
                 ),
                 const SizedBox(height: 12),
-
                 // Description
                 TextFormField(
                   controller: _descController,
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: _kTextPrimary),
+                  decoration: InputDecoration(
                     labelText: 'Description (optional)',
-                    border: OutlineInputBorder(),
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    labelStyle:
+                        const TextStyle(color: _kTextSecondary),
+                    filled: true,
+                    fillColor: inputFill,
+                    border: inputBorder,
+                    enabledBorder: inputBorder,
+                    focusedBorder: focusedBorder,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                   ),
                   maxLines: 2,
                 ),
                 const SizedBox(height: 12),
-
                 // Featured toggle
                 Row(
                   children: [
                     Switch(
                       value: _isFeatured,
-                      onChanged: (v) => setState(() => _isFeatured = v),
-                      activeColor: AppColors.primary,
+                      onChanged: (v) =>
+                          setState(() => _isFeatured = v),
+                      activeColor: AppColors.brightCyan,
                     ),
                     const SizedBox(width: 8),
                     const Text('Mark as featured',
                         style: TextStyle(
-                            fontSize: 13, color: AppColors.grey600)),
+                            fontSize: 13, color: _kTextSecondary)),
                   ],
                 ),
               ],
@@ -596,18 +699,37 @@ class _AddResourceDialogState extends State<_AddResourceDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _submitting ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          onPressed:
+              _submitting ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel',
+              style: TextStyle(color: _kTextSecondary)),
         ),
-        ElevatedButton(
-          onPressed: _submitting ? null : _submit,
-          child: _submitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Add'),
+        GestureDetector(
+          onTap: _submitting ? null : _submit,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 16, vertical: 9),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  AppColors.electricBlue,
+                  AppColors.brightCyan,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: _submitting
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Add',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13)),
+          ),
         ),
       ],
     );

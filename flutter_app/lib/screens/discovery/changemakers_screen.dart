@@ -4,10 +4,7 @@ import '../../services/changemakers_service.dart';
 import '../../services/collaboration_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/text_styles.dart';
 import '../../widgets/common/skeleton_loader.dart';
-import '../../widgets/common/error_state_widget.dart';
-import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/error_snackbar.dart';
 import '../../utils/error_handler.dart';
 import '../profile/user_profile_screen.dart';
@@ -98,25 +95,25 @@ class _ChangemakersScreenState extends State<ChangemakersScreen> {
 
   Widget _buildFilters() {
     return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
+      color: const Color(0xFF1A1A1A),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
       child: Column(
         children: [
-          // Search bar
+          // Dark search bar
           TextField(
             controller: _searchController,
             onChanged: _onSearch,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search by skill (e.g. Design, Policy…)',
               hintStyle:
-                  AppTextStyles.body2.copyWith(color: AppColors.grey400),
-              prefixIcon:
-                  const Icon(Icons.search, color: AppColors.grey400, size: 20),
+                  const TextStyle(color: Colors.white38, fontSize: 14),
+              prefixIcon: const Icon(Icons.search,
+                  color: Colors.white38, size: 20),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear,
-                          color: AppColors.grey400, size: 18),
+                          color: Colors.white38, size: 18),
                       onPressed: () {
                         _searchController.clear();
                         _onSearch('');
@@ -124,18 +121,17 @@ class _ChangemakersScreenState extends State<ChangemakersScreen> {
                     )
                   : null,
               filled: true,
-              fillColor: AppColors.grey100,
+              fillColor: Colors.white.withOpacity(0.08),
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.radiusFull),
+                borderRadius: BorderRadius.circular(22),
                 borderSide: BorderSide.none,
               ),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          // Filter row
+          const SizedBox(height: 10),
+          // Filter chips row
           Row(
             children: [
               _buildFilterChip(
@@ -147,7 +143,7 @@ class _ChangemakersScreenState extends State<ChangemakersScreen> {
                   _loadData();
                 }),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: 8),
               _buildFilterChip(
                 'Open to Collab',
                 _availabilityFilter == 'open_to_collaborate',
@@ -172,20 +168,26 @@ class _ChangemakersScreenState extends State<ChangemakersScreen> {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary : AppColors.grey100,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          color: active
+              ? AppColors.electricBlue.withOpacity(0.18)
+              : Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: active ? AppColors.primary : AppColors.grey200),
+            color: active
+                ? AppColors.electricBlue.withOpacity(0.5)
+                : Colors.transparent,
+            width: 1,
+          ),
         ),
         child: Text(
           label,
-          style: AppTextStyles.caption.copyWith(
-            color: active ? AppColors.white : AppColors.grey700,
-            fontWeight: FontWeight.w600,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+            color: active ? AppColors.brightCyan : Colors.white54,
           ),
         ),
       ),
@@ -195,35 +197,59 @@ class _ChangemakersScreenState extends State<ChangemakersScreen> {
   Widget _buildSortButton() {
     return PopupMenuButton<String>(
       initialValue: _sort,
+      color: const Color(0xFF2C2C2C),
+      elevation: 8,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
         setState(() => _sort = value);
         _loadData();
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: AppColors.grey100,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: Border.all(color: AppColors.grey200),
+          color: Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.sort, size: 14, color: AppColors.grey700),
-            const SizedBox(width: AppSpacing.xs),
+            const Icon(Icons.sort, size: 13, color: Colors.white54),
+            const SizedBox(width: 5),
             Text(
-              _sort == 'recent' ? 'Recent' : 'Top',
-              style: AppTextStyles.caption.copyWith(
-                  color: AppColors.grey700, fontWeight: FontWeight.w600),
+              _sort == 'recent'
+                  ? 'Recent'
+                  : _sort == 'activity'
+                      ? 'Active'
+                      : 'Top',
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w400),
             ),
+            const SizedBox(width: 3),
+            const Icon(Icons.keyboard_arrow_down,
+                size: 13, color: Colors.white38),
           ],
         ),
       ),
       itemBuilder: (_) => [
-        const PopupMenuItem(value: 'reputation', child: Text('Top Reputation')),
-        const PopupMenuItem(value: 'recent', child: Text('Recently Joined')),
-        const PopupMenuItem(value: 'activity', child: Text('Most Active')),
+        const PopupMenuItem(
+          value: 'reputation',
+          child: Text('Top Reputation',
+              style: TextStyle(color: Colors.white70, fontSize: 14)),
+        ),
+        const PopupMenuItem(
+          value: 'recent',
+          child: Text('Recently Joined',
+              style: TextStyle(color: Colors.white70, fontSize: 14)),
+        ),
+        const PopupMenuItem(
+          value: 'activity',
+          child: Text('Most Active',
+              style: TextStyle(color: Colors.white70, fontSize: 14)),
+        ),
       ],
     );
   }
@@ -239,25 +265,104 @@ class _ChangemakersScreenState extends State<ChangemakersScreen> {
     }
 
     if (_error != null && _changemakers.isEmpty) {
-      return ErrorStateWidget(error: _error!, onRetry: _loadData);
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.deepRed.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.error_outline,
+                    size: 40, color: AppColors.deepRed),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Something went wrong',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _error!.message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: Colors.white54, height: 1.5),
+              ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: _loadData,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.brightCyan,
+                  side: const BorderSide(color: AppColors.brightCyan),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (_changemakers.isEmpty) {
-      return const EmptyState(
-        icon: Icons.people_outline,
-        title: 'No changemakers found',
-        subtitle:
-            'Try a different skill search or remove filters to see all members.',
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.electricBlue, AppColors.brightCyan],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(Icons.people_outline,
+                    size: 40, color: Colors.white),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'No changemakers found',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Try a different skill search or remove\nfilters to see all members.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14, color: Colors.white54, height: 1.5),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.primary,
-      child: ListView.builder(
+      color: AppColors.brightCyan,
+      child: ListView.separated(
         padding: const EdgeInsets.only(
             bottom: AppSpacing.bottomNavWithFabPadding),
         itemCount: _changemakers.length,
+        separatorBuilder: (_, __) => Divider(
+            height: 1, color: Colors.white.withOpacity(0.06)),
         itemBuilder: (context, index) {
           return _ChangemakerCard(
             user: _changemakers[index],
@@ -322,16 +427,16 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
     return InkWell(
       onTap: widget.onTap,
       child: Container(
-        color: AppColors.white,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        color: AppColors.charcoal,
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Avatar
             CircleAvatar(
               radius: 28,
-              backgroundColor: AppColors.primaryContainer,
+              backgroundColor: AppColors.electricBlue.withOpacity(0.2),
               backgroundImage: user.avatarUrl != null
                   ? NetworkImage(user.avatarUrl!)
                   : null,
@@ -340,12 +445,15 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
                       user.name.isNotEmpty
                           ? user.name[0].toUpperCase()
                           : '?',
-                      style: AppTextStyles.heading4
-                          .copyWith(color: AppColors.primary),
+                      style: const TextStyle(
+                        color: AppColors.brightCyan,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
                     )
                   : null,
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: 12),
             // Info
             Expanded(
               child: Column(
@@ -354,11 +462,16 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(user.name,
-                            style: AppTextStyles.body1
-                                .copyWith(fontWeight: FontWeight.w600),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                        child: Text(
+                          user.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       _AvailabilityDot(status: user.availabilityStatus),
                     ],
@@ -367,8 +480,8 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
                     const SizedBox(height: 2),
                     Text(
                       user.primaryExpertise!,
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.primary),
+                      style: const TextStyle(
+                          color: AppColors.brightCyan, fontSize: 12),
                     ),
                   ],
                   if (user.location != null) ...[
@@ -376,37 +489,39 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
                     Row(
                       children: [
                         const Icon(Icons.location_on_outlined,
-                            size: 12, color: AppColors.grey400),
+                            size: 12, color: Colors.white38),
                         const SizedBox(width: 2),
                         Text(
                           user.location!,
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.grey500),
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 12),
                         ),
                       ],
                     ),
                   ],
                   if (user.skills.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: 8),
                     Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: user.skills
                           .take(3)
                           .map(
                             (s) => Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.sm,
-                                  vertical: 2),
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryContainer,
-                                borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusFull),
+                                color: AppColors.electricBlue
+                                    .withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: AppColors.electricBlue
+                                        .withOpacity(0.25)),
                               ),
                               child: Text(
                                 s,
-                                style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.primary,
+                                style: const TextStyle(
+                                    color: AppColors.brightCyan,
                                     fontSize: 11),
                               ),
                             ),
@@ -414,16 +529,16 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
                           .toList(),
                     ),
                   ],
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.star_rounded,
-                          size: 14, color: AppColors.warning),
+                      const Icon(Icons.star_rounded,
+                          size: 14, color: AppColors.warmAmber),
                       const SizedBox(width: 2),
                       Text(
                         '${user.reputationPoints} rep',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.grey500),
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 12),
                       ),
                       const Spacer(),
                       _requesting
@@ -432,23 +547,23 @@ class _ChangemakerCardState extends State<_ChangemakerCard> {
                               height: 16,
                               child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: AppColors.primary),
+                                  color: AppColors.brightCyan),
                             )
                           : TextButton(
                               onPressed: _sendRequest,
                               style: TextButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.md,
-                                    vertical: AppSpacing.xs),
+                                    horizontal: 12, vertical: 4),
                                 minimumSize: Size.zero,
                                 tapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
                               ),
-                              child: Text(
+                              child: const Text(
                                 'Connect',
-                                style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700),
+                                style: TextStyle(
+                                    color: AppColors.brightCyan,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12),
                               ),
                             ),
                     ],
@@ -497,22 +612,21 @@ class _ChangemakerCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      color: AppColors.charcoal,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           const SkeletonLoader(width: 56, height: 56, borderRadius: 28),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
+          const SizedBox(width: 12),
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SkeletonLoader(width: 140, height: 14),
-                const SizedBox(height: AppSpacing.xs),
-                const SkeletonLoader(width: 100, height: 12),
-                const SizedBox(height: AppSpacing.xs),
-                const SkeletonLoader(width: 80, height: 12),
+                SkeletonLoader(width: 140, height: 14),
+                SizedBox(height: 6),
+                SkeletonLoader(width: 100, height: 12),
+                SizedBox(height: 6),
+                SkeletonLoader(width: 80, height: 12),
               ],
             ),
           ),

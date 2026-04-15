@@ -4,9 +4,19 @@ import '../../services/discussions_service.dart';
 import '../../widgets/reply_card.dart';
 import '../../widgets/common/media_gallery_widget.dart';
 import '../../utils/time_ago.dart';
+import '../../theme/app_colors.dart';
 import '../projects/create_project_screen.dart';
 import 'discussion_pipeline_panel.dart';
 import 'discussion_resources_panel.dart';
+
+// ── Dark palette ──────────────────────────────────────────────────────────────
+const _kBg            = Color(0xFF14141A);
+const _kCardBg        = Color(0xFF1C1C1E);
+const _kInputFill     = Color(0xFF252528);
+const _kBorder        = Color(0xFF3A3A3C);
+const _kDivider       = Color(0xFF2C2C2F);
+const _kTextPrimary   = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
 
 class DiscussionDetailScreen extends StatefulWidget {
   final String discussionId;
@@ -156,27 +166,37 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _kBg,
       appBar: AppBar(
-        title: const Text('Discussion'),
+        backgroundColor: _kCardBg,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: _kTextPrimary),
+        title: const Text('Discussion',
+            style: TextStyle(color: _kTextPrimary, fontWeight: FontWeight.w700)),
         actions: [
           if (_discussion != null)
             IconButton(
               icon: Icon(
                 _discussion!.isLikedByUser ? Icons.favorite : Icons.favorite_outline,
-                color: _discussion!.isLikedByUser ? Colors.red : null,
+                color: _discussion!.isLikedByUser ? AppColors.deepRed : _kTextSecondary,
               ),
               onPressed: _toggleLike,
             ),
         ],
         bottom: TabBar(
           controller: _tabController,
+          labelColor: AppColors.brightCyan,
+          unselectedLabelColor: _kTextSecondary,
+          indicatorColor: AppColors.brightCyan,
+          indicatorWeight: 2.5,
           tabs: _tabs.map((t) => Tab(text: t)).toList(),
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.brightCyan))
           : _discussion == null
-              ? const Center(child: Text('Discussion not found'))
+              ? const Center(child: Text('Discussion not found',
+                  style: TextStyle(color: _kTextSecondary)))
               : TabBarView(
                   controller: _tabController,
                   children: [
@@ -186,6 +206,8 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
                         Expanded(
                           child: RefreshIndicator(
                             onRefresh: _load,
+                            color: AppColors.brightCyan,
+                            backgroundColor: _kCardBg,
                             child: ListView(
                               controller: _scrollController,
                               padding: const EdgeInsets.only(bottom: 16),
@@ -204,11 +226,13 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
                                           PipelineStageBadge(stage: _discussion!.stage),
                                         ],
                                       ),
-                                      const SizedBox(height: 10),
+                                      const SizedBox(height: 12),
                                       // Title
                                       Text(_discussion!.title,
                                           style: const TextStyle(
-                                              fontSize: 20, fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: _kTextPrimary,
                                               height: 1.3)),
                                       const SizedBox(height: 12),
                                       // Author + time
@@ -220,30 +244,39 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
                                                 ? NetworkImage(_discussion!.authorAvatarUrl!)
                                                 : null,
                                             backgroundColor:
-                                                Theme.of(context).colorScheme.primary.withAlpha(50),
+                                                AppColors.electricBlue.withOpacity(0.2),
                                             child: _discussion!.authorAvatarUrl == null
                                                 ? Text(
                                                     _discussion!.authorName.isNotEmpty
                                                         ? _discussion!.authorName[0].toUpperCase()
                                                         : '?',
                                                     style: const TextStyle(
-                                                        fontSize: 10, fontWeight: FontWeight.bold))
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: AppColors.brightCyan))
                                                 : null,
                                           ),
                                           const SizedBox(width: 8),
                                           Text(_discussion!.authorName,
-                                              style: const TextStyle(fontWeight: FontWeight.w600)),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: _kTextPrimary)),
                                           const SizedBox(width: 8),
-                                          Text('·', style: TextStyle(color: Colors.grey[400])),
+                                          const Text('·',
+                                              style: TextStyle(color: _kTextSecondary)),
                                           const SizedBox(width: 8),
                                           Text(timeAgo(_discussion!.createdAt),
-                                              style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+                                              style: const TextStyle(
+                                                  color: _kTextSecondary, fontSize: 13)),
                                         ],
                                       ),
                                       const SizedBox(height: 16),
                                       // Content
                                       Text(_discussion!.content,
-                                          style: const TextStyle(fontSize: 15, height: 1.6)),
+                                          style: const TextStyle(
+                                              fontSize: 15,
+                                              height: 1.6,
+                                              color: _kTextPrimary)),
                                       // Media gallery
                                       if (_discussion!.hasMedia) ...[
                                         const SizedBox(height: 16),
@@ -254,49 +287,75 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
                                         const SizedBox(height: 16),
                                         Wrap(
                                           spacing: 6,
+                                          runSpacing: 6,
                                           children: _discussion!.tags
-                                              .map((t) => Chip(
-                                                    label: Text('#$t',
-                                                        style: const TextStyle(fontSize: 12)),
-                                                    materialTapTargetSize:
-                                                        MaterialTapTargetSize.shrinkWrap,
-                                                    padding: EdgeInsets.zero,
+                                              .map((t) => Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 10, vertical: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.electricBlue
+                                                          .withOpacity(0.1),
+                                                      borderRadius: BorderRadius.circular(999),
+                                                      border: Border.all(
+                                                          color: AppColors.electricBlue
+                                                              .withOpacity(0.3)),
+                                                    ),
+                                                    child: Text('#$t',
+                                                        style: const TextStyle(
+                                                            fontSize: 12,
+                                                            color: AppColors.brightCyan,
+                                                            fontWeight: FontWeight.w600)),
                                                   ))
                                               .toList(),
                                         ),
                                       ],
                                       const SizedBox(height: 16),
                                       // Stats row
-                                      Row(
-                                        children: [
-                                          _StatItem(
-                                            icon: Icons.favorite,
-                                            count: _discussion!.likesCount,
-                                            active: _discussion!.isLikedByUser,
-                                            onTap: _toggleLike,
-                                          ),
-                                          const SizedBox(width: 16),
-                                          _StatItem(icon: Icons.chat_bubble_outline, count: _discussion!.repliesCount),
-                                          const SizedBox(width: 16),
-                                          _StatItem(icon: Icons.visibility_outlined, count: _discussion!.viewsCount),
-                                          const SizedBox(width: 16),
-                                          _StatItem(
-                                            icon: Icons.how_to_vote_outlined,
-                                            count: _discussion!.votesCount,
-                                            onTap: () => _tabController.animateTo(_pipelineTabIndex),
-                                          ),
-                                        ],
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: _kInputFill,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            _StatItem(
+                                              icon: Icons.favorite,
+                                              count: _discussion!.likesCount,
+                                              active: _discussion!.isLikedByUser,
+                                              activeColor: AppColors.deepRed,
+                                              onTap: _toggleLike,
+                                            ),
+                                            const SizedBox(width: 16),
+                                            _StatItem(
+                                                icon: Icons.chat_bubble_outline,
+                                                count: _discussion!.repliesCount),
+                                            const SizedBox(width: 16),
+                                            _StatItem(
+                                                icon: Icons.visibility_outlined,
+                                                count: _discussion!.viewsCount),
+                                            const SizedBox(width: 16),
+                                            _StatItem(
+                                              icon: Icons.how_to_vote_outlined,
+                                              count: _discussion!.votesCount,
+                                              onTap: () => _tabController
+                                                  .animateTo(_pipelineTabIndex),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                       const SizedBox(height: 16),
                                       // Turn this into a project button
                                       OutlinedButton.icon(
                                         onPressed: _launchProjectFlow,
-                                        icon: const Icon(Icons.rocket_launch_outlined, size: 18),
-                                        label: const Text('Turn this into a project'),
+                                        icon: const Icon(Icons.rocket_launch_outlined,
+                                            size: 18, color: AppColors.brightCyan),
+                                        label: const Text('Turn this into a project',
+                                            style: TextStyle(color: AppColors.brightCyan)),
                                         style: OutlinedButton.styleFrom(
-                                          foregroundColor: Theme.of(context).colorScheme.primary,
                                           side: BorderSide(
-                                              color: Theme.of(context).colorScheme.primary.withAlpha(120)),
+                                              color: AppColors.brightCyan.withOpacity(0.5)),
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 10),
                                           shape: RoundedRectangleBorder(
@@ -308,13 +367,16 @@ class _DiscussionDetailScreenState extends State<DiscussionDetailScreen>
                                     ],
                                   ),
                                 ),
-                                const Divider(height: 1),
+                                const Divider(height: 1, color: _kDivider),
                                 // Replies header
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                                   child: Text(
                                     '${_replies.length} ${_replies.length == 1 ? 'Reply' : 'Replies'}',
-                                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: _kTextPrimary),
                                   ),
                                 ),
                                 // Replies
@@ -374,22 +436,34 @@ class _CategoryBadge extends StatelessWidget {
   final String category;
   const _CategoryBadge({required this.category});
 
+  Color _catColor() {
+    switch (category) {
+      case 'world_problems':  return const Color(0xFF057642);
+      case 'ideas':           return const Color(0xFFF5A623);
+      case 'learning':        return const Color(0xFF0A66C2);
+      case 'live_events':     return const Color(0xFFCC1016);
+      case 'networking':      return const Color(0xFF7B61FF);
+      case 'feedback':        return const Color(0xFFE91E8C);
+      default:                return AppColors.electricBlue;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cat = DiscussionCategory.fromValue(category);
     final label = cat?.label ?? category;
+    final color = _catColor();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withAlpha(25),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(60)),
+        gradient: LinearGradient(
+            colors: [color.withOpacity(0.2), color.withOpacity(0.1)]),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Text(label,
           style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600)),
+              fontSize: 12, color: color, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -398,19 +472,32 @@ class _StatItem extends StatelessWidget {
   final IconData icon;
   final int count;
   final bool active;
+  final Color? activeColor;
   final VoidCallback? onTap;
-  const _StatItem({required this.icon, required this.count, this.active = false, this.onTap});
+  const _StatItem({
+    required this.icon,
+    required this.count,
+    this.active = false,
+    this.activeColor,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final color = active
+        ? (activeColor ?? AppColors.brightCyan)
+        : _kTextSecondary;
     return GestureDetector(
       onTap: onTap,
       child: Row(
         children: [
-          Icon(icon, size: 16,
-              color: active ? Theme.of(context).colorScheme.primary : Colors.grey[500]),
+          Icon(icon, size: 16, color: color),
           const SizedBox(width: 4),
-          Text('$count', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+          Text('$count',
+              style: TextStyle(
+                  fontSize: 13,
+                  color: color,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.normal)),
         ],
       ),
     );
@@ -436,8 +523,8 @@ class _ReplyInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 8, offset: const Offset(0, -2))],
+        color: _kCardBg,
+        border: const Border(top: BorderSide(color: _kBorder)),
       ),
       padding: EdgeInsets.only(
         left: 12,
@@ -455,11 +542,13 @@ class _ReplyInput extends StatelessWidget {
               child: Row(
                 children: [
                   Text('Replying to ${replyingTo!.authorName}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                      style: const TextStyle(
+                          fontSize: 12, color: _kTextSecondary)),
                   const SizedBox(width: 6),
                   GestureDetector(
                     onTap: onCancelReply,
-                    child: Icon(Icons.close, size: 14, color: Colors.grey[500]),
+                    child: const Icon(Icons.close,
+                        size: 14, color: _kTextSecondary),
                   ),
                 ],
               ),
@@ -469,15 +558,28 @@ class _ReplyInput extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller,
+                  style: const TextStyle(color: _kTextPrimary, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: replyingTo != null
                         ? 'Reply to ${replyingTo!.authorName}...'
                         : 'Add a reply...',
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+                    hintStyle: const TextStyle(color: _kTextSecondary),
+                    filled: true,
+                    fillColor: _kInputFill,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide:
+                          const BorderSide(color: _kBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: const BorderSide(
+                          color: AppColors.brightCyan, width: 1.5),
                     ),
                   ),
                   maxLines: 3,
@@ -491,8 +593,12 @@ class _ReplyInput extends StatelessWidget {
                 onPressed: isSubmitting ? null : onSubmit,
                 icon: isSubmitting
                     ? const SizedBox(
-                        width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Icon(Icons.send, color: Theme.of(context).colorScheme.primary),
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.brightCyan))
+                    : const Icon(Icons.send, color: AppColors.brightCyan),
               ),
             ],
           ),

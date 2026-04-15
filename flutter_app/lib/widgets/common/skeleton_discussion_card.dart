@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import 'shimmer_widget.dart';
 
-/// Skeleton placeholder that mirrors the layout of a [DiscussionFeedCard],
-/// shown while discussion data is being fetched.
+const _kCardBg = Color(0xFF1C1C1E);
+
+/// Skeleton placeholder that mirrors the layout of a [DiscussionFeedCard].
 class SkeletonDiscussionCard extends StatelessWidget {
   const SkeletonDiscussionCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.white,
+      color: _kCardBg,
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      margin: const EdgeInsets.only(bottom: 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Category accent strip
+          ShimmerWidget(
+            width: 32,
+            height: 3,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          const SizedBox(height: 10),
+
           // Author row
           Row(
             children: [
@@ -65,7 +73,7 @@ class SkeletonDiscussionCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
 
-          // Description lines
+          // Content lines
           ShimmerWidget(
             width: double.infinity,
             height: 13,
@@ -80,20 +88,10 @@ class SkeletonDiscussionCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
 
           // Engagement row
-          Row(
-            children: [
-              ShimmerWidget(
-                width: 50,
-                height: 12,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              ShimmerWidget(
-                width: 50,
-                height: 12,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
-              ),
-            ],
+          ShimmerWidget(
+            width: double.infinity,
+            height: 32,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
         ],
       ),

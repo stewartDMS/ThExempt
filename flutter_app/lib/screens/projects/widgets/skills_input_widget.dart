@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+
+// Dark palette
+const _kInputFill = Color(0xFF252528);
+const _kBorder = Color(0xFF3A3A3C);
+const _kTextPrimary = Colors.white;
+const _kTextSecondary = Color(0xFFAAAAAA);
 
 class SkillsInputWidget extends StatefulWidget {
   final List<String> selectedSkills;
@@ -16,139 +24,200 @@ class SkillsInputWidget extends StatefulWidget {
 
 class _SkillsInputWidgetState extends State<SkillsInputWidget> {
   final TextEditingController _skillController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
-  // Suggested skills
   final List<String> _suggestedSkills = [
-    'React',
-    'Flutter',
-    'Node.js',
-    'Python',
-    'JavaScript',
-    'TypeScript',
-    'Java',
-    'C++',
-    'Swift',
-    'Kotlin',
-    'Go',
-    'Rust',
-    'PHP',
-    'Ruby',
-    'SQL',
-    'MongoDB',
-    'PostgreSQL',
-    'Firebase',
-    'AWS',
-    'Docker',
-    'Kubernetes',
-    'GraphQL',
-    'REST API',
-    'UI/UX Design',
-    'Figma',
+    'React', 'Flutter', 'Node.js', 'Python', 'JavaScript',
+    'TypeScript', 'Java', 'C++', 'Swift', 'Kotlin',
+    'Go', 'Rust', 'PHP', 'Ruby', 'SQL',
+    'MongoDB', 'PostgreSQL', 'Firebase', 'AWS', 'Docker',
+    'Kubernetes', 'GraphQL', 'REST API', 'UI/UX Design', 'Figma',
   ];
 
   @override
   void dispose() {
     _skillController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   void _addSkill(String skill) {
-    final trimmedSkill = skill.trim();
-    if (trimmedSkill.isNotEmpty && 
-        !widget.selectedSkills.contains(trimmedSkill)) {
-      final updatedSkills = List<String>.from(widget.selectedSkills)
-        ..add(trimmedSkill);
-      widget.onSkillsChanged(updatedSkills);
+    final trimmed = skill.trim();
+    if (trimmed.isNotEmpty && !widget.selectedSkills.contains(trimmed)) {
+      widget.onSkillsChanged(
+          List<String>.from(widget.selectedSkills)..add(trimmed));
       _skillController.clear();
     }
   }
 
   void _removeSkill(String skill) {
-    final updatedSkills = List<String>.from(widget.selectedSkills)
-      ..remove(skill);
-    widget.onSkillsChanged(updatedSkills);
+    widget.onSkillsChanged(
+        List<String>.from(widget.selectedSkills)..remove(skill));
   }
 
   @override
   Widget build(BuildContext context) {
-    final availableSuggestions = _suggestedSkills
-        .where((skill) => !widget.selectedSkills.contains(skill))
+    final available = _suggestedSkills
+        .where((s) => !widget.selectedSkills.contains(s))
         .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Input field
-        TextField(
-          controller: _skillController,
-          decoration: InputDecoration(
-            labelText: 'Add Skills',
-            hintText: 'Type a skill and press Enter',
-            prefixIcon: const Icon(Icons.code),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.add),
+        // ── Input row ──────────────────────────────────────────────
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _skillController,
+                focusNode: _focusNode,
+                style: const TextStyle(color: _kTextPrimary, fontSize: 14),
+                onSubmitted: (v) {
+                  _addSkill(v);
+                  _focusNode.requestFocus();
+                },
+                decoration: InputDecoration(
+                  hintText: 'Add a skill and press Enter…',
+                  hintStyle: TextStyle(
+                      color: _kTextSecondary.withOpacity(0.5), fontSize: 13),
+                  prefixIcon: const Icon(Icons.add_circle_outline,
+                      color: _kTextSecondary, size: 20),
+                  filled: true,
+                  fillColor: _kInputFill,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    borderSide: const BorderSide(color: _kBorder),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    borderSide: const BorderSide(
+                        color: AppColors.brightCyan, width: 1.5),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _GradientIconButton(
+              icon: Icons.add_rounded,
               onPressed: () => _addSkill(_skillController.text),
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onSubmitted: _addSkill,
+          ],
         ),
-        const SizedBox(height: 12),
 
-        // Selected skills chips
+        // ── Selected chips ─────────────────────────────────────────
         if (widget.selectedSkills.isNotEmpty) ...[
-          const Text(
-            'Selected Skills:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: widget.selectedSkills.map((skill) {
-              return Chip(
-                label: Text(skill),
-                onDeleted: () => _removeSkill(skill),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.electricBlue.withOpacity(0.15),
+                  borderRadius:
+                      BorderRadius.circular(AppSpacing.radiusFull),
+                  border: Border.all(
+                    color: AppColors.electricBlue.withOpacity(0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      skill,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.brightCyan,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () => _removeSkill(skill),
+                      child: const Icon(Icons.close,
+                          size: 14, color: AppColors.brightCyan),
+                    ),
+                  ],
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 16),
         ],
 
-        // Suggested skills
-        if (availableSuggestions.isNotEmpty) ...[
+        // ── Suggestions ────────────────────────────────────────────
+        if (available.isNotEmpty) ...[
+          const SizedBox(height: 12),
           const Text(
-            'Suggested Skills:',
+            'Quick add:',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+                fontSize: 11,
+                color: _kTextSecondary,
+                fontWeight: FontWeight.w500),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: availableSuggestions.take(10).map((skill) {
-              return ActionChip(
-                label: Text(skill),
-                onPressed: () => _addSkill(skill),
-                avatar: const Icon(Icons.add, size: 16),
-                backgroundColor: Colors.grey[100],
+            spacing: 6,
+            runSpacing: 6,
+            children: available.take(10).map((skill) {
+              return GestureDetector(
+                onTap: () => _addSkill(skill),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: _kInputFill,
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusFull),
+                    border: Border.all(color: _kBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.add,
+                          size: 12, color: _kTextSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        skill,
+                        style: const TextStyle(
+                            fontSize: 11, color: _kTextSecondary),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }).toList(),
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Small icon-only gradient button.
+class _GradientIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _GradientIconButton(
+      {required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
     );
   }
 }
